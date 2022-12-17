@@ -1,0 +1,84 @@
+<configuration>
+    <property name="LOG_DIR" value="./log/" />
+    <property name="DEFAULT_PATTERN" value="%d{yyyy-MM-dd'T'HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n" />
+
+    <appender name="CONSOLE-APPENDER" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${DEFAULT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <property name="APP_LOG_FILE" value="application" />
+
+    <appender name="RollingFile-Appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}${APP_LOG_FILE}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${LOG_DIR}${APP_LOG_FILE}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!--<fileNamePattern>${LOG_DIR}/%d{yyyy/MM}/${APP_LOG_FILE}.gz</fileNamePattern>-->
+            <!-- keep 30 days' worth of history capped at 3GB total size -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${DEFAULT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="Async-Appender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="RollingFile-Appender" />
+    </appender>
+
+    <property name="BLOCK_THREAD_LOG_FILE" value="blockedThreads" />
+    <appender name="Blocking-Threads-RollingFile-Appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}${BLOCK_THREAD_LOG_FILE}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${LOG_DIR}${BLOCK_THREAD_LOG_FILE}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!--<fileNamePattern>${LOG_DIR}/%d{yyyy/MM}/${APP_LOG_FILE}.gz</fileNamePattern>-->
+            <!-- keep 30 days' worth of history capped at 3GB total size -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${DEFAULT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="Blocking-Thread-Async-Appender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="Blocking-Threads-RollingFile-Appender" />
+    </appender>
+
+    <logger name="io.vertx.core.impl.BlockedThreadChecker" level="debug" additivity="false">
+        <appender-ref ref="Blocking-Thread-Async-Appender" />
+    </logger>
+
+    <property name="ERROR_LOG_FILE" value="errors" />
+    <appender name="Error-RollingFile-Appender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <file>${LOG_DIR}${ERROR_LOG_FILE}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${LOG_DIR}${ERROR_LOG_FILE}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!--<fileNamePattern>${LOG_DIR}/%d{yyyy/MM}/${APP_LOG_FILE}.gz</fileNamePattern>-->
+            <!-- keep 30 days' worth of history capped at 3GB total size -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${DEFAULT_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="Error-Async-Appender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="Error-RollingFile-Appender" />
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE-APPENDER" />
+        <appender-ref ref="Async-Appender" />
+        <appender-ref ref="Error-Async-Appender" />
+    </root>
+</configuration>
