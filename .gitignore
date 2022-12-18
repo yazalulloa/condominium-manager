@@ -110,3 +110,4 @@ node_modules
 !tsconfig.json
 !frontend/themes/condominium_manager
 !src/main/resources
+!system.properties
