@@ -14,6 +14,7 @@ public class Labels {
     public static final String DEBTS = "Deudas";
     public static final String NEW_EXPENSE = "Nuevo Gasto";
     public static final String NEW_DEBT = "Nueva Deuda";
+    public static final String ASK_CONFIRMATION_DELETE_RATE = "Esta seguro de borrar la tasa de cambio\n %s %s %s?";
 
     public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";
@@ -80,5 +81,17 @@ public class Labels {
 
         public static final String PREVIOUS_AMOUNT_PAYED_LABEL = "Abono monto";
         public static final String PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL = "Abono moneda";
+    }
+
+    public static class Rate {
+        public static final String ID_LABEL = "ID";
+        public static final String RATE_LABEL = "Tasa";
+        public static final String ROUNDED_RATE_LABEL = "Tasa Redondeada";
+        public static final String DATE_OF_RATE_LABEL = "Fecha de la tasa";
+        public static final String SOURCE_LABEL = "Fuente";
+        public static final String CURRENCIES_LABEL = "Monedas";
+        public static final String CREATED_AT_LABEL = "Creado en";
+
+
     }
 }

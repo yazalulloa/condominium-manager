@@ -9,18 +9,16 @@ import kyo.yaz.condominium.manager.core.domain.HttpLogConfig;
 import kyo.yaz.condominium.manager.core.parser.BcvUsdRateParser;
 import kyo.yaz.condominium.manager.core.verticle.HttpClientVerticle;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.net.URL;
-import java.util.concurrent.TimeUnit;
-
-@Component()
+@Service
+@Slf4j
 public class GetBcvUsdRate {
 
     @Value("${app.bcv_url}")
@@ -32,16 +30,7 @@ public class GetBcvUsdRate {
     @Autowired
     private BcvUsdRateParser bcvUsdRateParser;
 
-    public GetBcvUsdRate() {
-        super();
-    }
-
-    private Mono<Document> jsoup() {
-        return Mono.fromCallable(() -> {
-            return Jsoup.parse(new URL(url), (int) TimeUnit.SECONDS.toMillis(10));
-        });
-    }
-    private Mono<Document> vertx() {
+    private Mono<Document> docuument() {
         final HttpClientRequest httpClientRequest = HttpClientRequest.get(url)
                 .toBuilder()
                 .trustAll(true)
@@ -71,17 +60,6 @@ public class GetBcvUsdRate {
     }
 
     public Mono<Rate> newRate() {
-/*
-        Mono.fromCallable(() -> {
-            Jsoup.parse(new URL(""), (int) TimeUnit.SECONDS.toMillis(60));
-        })*/
-
-        return
-                //document()
-                vertx()
-                        .flatMap(bcvUsdRateParser::parse);
-
-        /*return getRate()
-                .flatMap(bcvUsdRateParser::parse);*/
+        return docuument().flatMap(bcvUsdRateParser::parse);
     }
 }

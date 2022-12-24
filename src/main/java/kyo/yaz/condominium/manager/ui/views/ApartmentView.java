@@ -78,8 +78,6 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
         configureGrid();
         configureForm();
 
-
-
         add(getToolbar(), getContent(), footer());
         closeEditor();
     }
@@ -155,7 +153,7 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
     private void updateGrid() {
         refreshData()
                 .subscribeOn(Schedulers.parallel())
-                .subscribe(this.emptySubscriber());
+                .subscribe(emptySubscriber());
     }
 
     private void initData() {

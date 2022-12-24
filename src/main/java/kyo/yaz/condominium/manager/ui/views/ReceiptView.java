@@ -6,6 +6,7 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -80,9 +81,6 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
         addClassName("list-view");
         setSizeFull();
         configureGrid();
-        gridPaginator.setPadding(true);
-        gridPaginator.setJustifyContentMode(JustifyContentMode.END);
-        gridPaginator.setAlignItems(Alignment.END);
 
         add(getToolbar(), grid, gridPaginator);
     }
@@ -100,7 +98,7 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
         grid.addColumn(ReceiptViewItem::debtAmount).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL);
 
 
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+
 
         grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
@@ -116,7 +114,10 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
                             });
                             button.setIcon(new Icon(VaadinIcon.TRASH));
                         }))
-                .setHeader(Labels.DELETE);
+                .setHeader(Labels.DELETE)
+                .setTextAlign(ColumnTextAlign.END)
+                .setFrozenToEnd(true)
+                .setFlexGrow(0);
 
         grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
@@ -126,8 +127,12 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
                             button.addClickListener(e -> addEntity(item.id()));
                             button.setIcon(new Icon(VaadinIcon.ANGLE_RIGHT));
                         }))
-                .setHeader(Labels.UPDATE);
+                .setHeader(Labels.UPDATE)
+                .setTextAlign(ColumnTextAlign.END)
+                .setFrozenToEnd(true)
+                .setFlexGrow(0);
 
+        grid.getColumns().forEach(col -> col.setAutoWidth(true));
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
 

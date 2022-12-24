@@ -16,8 +16,7 @@ import kyo.yaz.condominium.manager.core.domain.HttpClientResponse;
 import kyo.yaz.condominium.manager.core.domain.HttpLogConfig;
 import kyo.yaz.condominium.manager.core.service.HttpLogging;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -29,9 +28,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 @Scope("prototype")
 @RequiredArgsConstructor
+@Slf4j
 public class HttpClientVerticle extends AbstractVerticle {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     public static final String SEND = "http-send-request";
 
     private static final AtomicLong COUNTER = new AtomicLong(0);

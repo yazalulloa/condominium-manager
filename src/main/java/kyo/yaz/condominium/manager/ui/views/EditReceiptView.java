@@ -52,7 +52,7 @@ import java.util.Set;
 
 @Slf4j
 @PageTitle(ReceiptView.PAGE_TITLE)
-@Route(value = "receipts/:receipt_id/edit", layout = MainLayout.class)
+@Route(value = "receipts/:receipt_id", layout = MainLayout.class)
 public class EditReceiptView extends VerticalLayout implements BeforeEnterObserver, AbstractView {
 
     private final ComboBox<String> buildingComboBox = new ComboBox<>(Labels.Receipt.BUILDING_LABEL);
@@ -140,7 +140,7 @@ public class EditReceiptView extends VerticalLayout implements BeforeEnterObserv
                                 .updatedAt(receiptId != null ? ZonedDateTime.now() : null)
                                 .rateId(rate.id())
                                 .rate(rate.rate())
-                                .roundedRate(rate.roundedRate())
+                               // .roundedRate(rate.roundedRate())
                                 .source(rate.source())
                                 .dateOfRate(rate.dateOfRate())
                                 .build();

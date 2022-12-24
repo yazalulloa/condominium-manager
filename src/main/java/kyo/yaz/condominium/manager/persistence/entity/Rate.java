@@ -40,8 +40,8 @@ public class Rate {
     @JsonProperty
     private BigDecimal rate;
 
-    @JsonProperty
-    private BigDecimal roundedRate;
+    /*@JsonProperty
+    private BigDecimal roundedRate;*/
 
     @JsonProperty
     private LocalDate dateOfRate;
@@ -51,6 +51,9 @@ public class Rate {
 
     @JsonProperty
     private ZonedDateTime createdAt;
+
+    @JsonProperty
+    private String description;
 
 
     public enum Source {

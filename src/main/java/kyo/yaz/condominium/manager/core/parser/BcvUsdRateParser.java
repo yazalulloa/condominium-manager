@@ -27,7 +27,7 @@ public class BcvUsdRateParser {
 
 
     public Mono<Rate> parse(Document document) {
-        return Mono.defer(() -> {
+        return Mono.fromCallable(() -> {
             final var dolar = document.getElementById("dolar");
 
             final var valDolar = dolar
@@ -51,20 +51,21 @@ public class BcvUsdRateParser {
             final var rate = new BigDecimal(valDolar);
             final var dateOfRate = ZonedDateTime.parse(date).toLocalDate();
 
-            return sequenceService.nextSequence(Sequence.Type.RATES)
-                    .map(id -> {
-                        return Rate.builder()
-                                .id(id)
-                                .fromCurrency(Currency.USD)
-                                .toCurrency(Currency.VED)
-                                .rate(rate)
-                                .roundedRate(rate.setScale(2, RoundingMode.HALF_UP))
-                                .dateOfRate(dateOfRate)
-                                .createdAt(DateUtil.nowZonedWithUTC())
-                                .source(Rate.Source.BCV)
-                                .build();
-                    });
+            return Rate.builder()
 
+                    .fromCurrency(Currency.USD)
+                    .toCurrency(Currency.VED)
+                    .rate(rate)
+                    .dateOfRate(dateOfRate)
+
+                    .source(Rate.Source.BCV)
+                    .build();
+
+            /*return sequenceService.nextSequence(Sequence.Type.RATES)
+                    .map(id -> {
+
+                    });
+*/
         });
 
     }

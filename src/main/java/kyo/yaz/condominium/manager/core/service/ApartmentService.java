@@ -45,8 +45,12 @@ public class ApartmentService {
                 .sortings(sortings)
                 .build();
 
+        return paging(request);
+    }
+
+    public Mono<Paging<Apartment>> paging(ApartmentQueryRequest request) {
         final var listMono = repository.list(request);
-        final var totalCountMono = repository.count();
+        final var totalCountMono = countAll();
         final var queryCountMono = repository.count(request);
 
         return Mono.zip(totalCountMono, queryCountMono, listMono)
@@ -71,8 +75,8 @@ public class ApartmentService {
         return repository.delete(entity);
     }
 
-    public Mono<Apartment> save(Apartment apartment) {
-        return repository.save(apartment);
+    public Mono<Apartment> save(Apartment entity) {
+        return repository.save(entity);
     }
 
     public Mono<Long> countAll() {

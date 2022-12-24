@@ -66,8 +66,8 @@ public class Receipt {
     @JsonProperty
     private BigDecimal rate;
 
-    @JsonProperty
-    private BigDecimal roundedRate;
+    /*@JsonProperty
+    private BigDecimal roundedRate;*/
 
     @JsonProperty
     private LocalDate dateOfRate;

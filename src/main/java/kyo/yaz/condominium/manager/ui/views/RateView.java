@@ -3,70 +3,76 @@ package kyo.yaz.condominium.manager.ui.views;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
-import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
+import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.service.GetBcvUsdRate;
+import kyo.yaz.condominium.manager.core.service.RateService;
+import kyo.yaz.condominium.manager.core.service.SaveNewBcvRate;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
-import kyo.yaz.condominium.manager.persistence.repository.RateRepository;
 import kyo.yaz.condominium.manager.ui.MainLayout;
-import kyo.yaz.condominium.manager.ui.views.actions.DeleteEntity;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
+import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
+import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscriber;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @PageTitle(RateView.PAGE_TITLE)
 @Route(value = "rates", layout = MainLayout.class)
-public class RateView extends VerticalLayout implements DeleteEntity<Rate>, AbstractView {
+public class RateView extends VerticalLayout implements AbstractView {
 
     public static final String PAGE_TITLE = "Tasas de cambio";
 
     private final Grid<Rate> grid = new Grid<>();
     private final AtomicBoolean addingRate = new AtomicBoolean(false);
 
-    @Autowired
-    private UI ui;
+
+    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     @Autowired
     private GetBcvUsdRate getBcvUsdRate;
     @Autowired
-    private RateRepository rateRepository;
+    private RateService rateService;
 
-    private Text countOfRatesText;
+    @Autowired
+    private SaveNewBcvRate saveNewBcvRate;
+
+
+    private final Text queryCountText = new Text(null);
+    private final Text totalCountText = new Text(null);
+
+    private final DeleteDialog deleteDialog = new DeleteDialog();
 
 
     public RateView() {
+        super();
         init();
     }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-
-        refreshData()
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(this.refreshGridSubscriber());
+        initData();
     }
 
     private void init() {
@@ -74,51 +80,96 @@ public class RateView extends VerticalLayout implements DeleteEntity<Rate>, Abst
         setSizeFull();
         configureGrid();
 
-        add(getToolbar(), grid);
+        add(getToolbar(), grid, footer());
     }
+
+    private void initData() {
+        rateService.countAll()
+                .map(count -> (Runnable) () -> setCountText(count, count))
+                .doOnSuccess(this::uiAsyncAction)
+                .ignoreElement()
+                .and(Mono.empty())
+                .subscribeOn(Schedulers.parallel())
+                .subscribe(emptySubscriber("initData"));
+    }
+
+    private Component footer() {
+          /*gridPaginator.setPadding(true);
+        gridPaginator.setJustifyContentMode(JustifyContentMode.END);
+        gridPaginator.setAlignItems(Alignment.END);*/
+
+        final var verticalLayout = new VerticalLayout(totalCountText);
+        //verticalLayout.setAlignItems(Alignment.CENTER);
+
+        final var footer = new HorizontalLayout(gridPaginator, verticalLayout);
+
+        footer.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        footer.setFlexGrow(2, gridPaginator);
+        footer.setFlexGrow(1, verticalLayout);
+        //footer.setPadding(true);
+
+        return footer;
+    }
+
 
     private void configureGrid() {
         grid.addClassNames("rates-grid");
 
-        grid.addColumn(Rate::id).setHeader("ID");
-        grid.addColumn(Rate::rate).setHeader("Tasa");
-        grid.addColumn(rate -> ConvertUtil.format(rate.roundedRate(), rate.toCurrency())).setHeader("Tasa Redondeada");
-        grid.addColumn(Rate::dateOfRate).setHeader("Fecha de la tasa");
-        grid.addColumn(Rate::source).setHeader("Fuente de la tasa");
-        grid.addColumn(rate -> String.format("%s -> %s", rate.fromCurrency().name(), rate.toCurrency().name())).setHeader("Monedas");
-        grid.addColumn(Rate::createdAt).setHeader("Fecha de la tasa");
+        grid.setColumnReorderingAllowed(true);
+        grid.addColumn(Rate::id).setHeader(Labels.Rate.ID_LABEL).setSortable(true).setKey(Labels.Rate.ID_LABEL);
+        grid.addColumn(Rate::rate).setHeader(Labels.Rate.RATE_LABEL).setSortable(true).setKey(Labels.Rate.RATE_LABEL);
+        grid.addColumn(Rate::dateOfRate).setHeader(Labels.Rate.DATE_OF_RATE_LABEL).setSortable(true).setKey(Labels.Rate.DATE_OF_RATE_LABEL);
+        grid.addColumn(Rate::source).setHeader(Labels.Rate.SOURCE_LABEL).setSortable(true).setKey(Labels.Rate.SOURCE_LABEL);
+        grid.addColumn(rate -> String.format("%s -> %s", rate.fromCurrency().name(), rate.toCurrency().name())).setHeader(Labels.Rate.CURRENCIES_LABEL);
+        grid.addColumn(Rate::createdAt).setHeader(Labels.Rate.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Rate.CREATED_AT_LABEL);
+
+        grid.addColumn(
+                        new ComponentRenderer<>(Button::new, (button, item) -> {
+                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
+                                    ButtonVariant.LUMO_ERROR,
+                                    ButtonVariant.LUMO_TERTIARY);
+                            button.addClickListener(e -> {
+
+                                deleteDialog.setHeaderTitle(Labels.ASK_CONFIRMATION_DELETE_RATE.formatted(item.rate(), item.dateOfRate(), item.fromCurrency() + "->" + item.toCurrency()));
+                                deleteDialog.setDeleteAction(() -> delete(item));
+                                deleteDialog.open();
+                            });
+                            button.setIcon(new Icon(VaadinIcon.TRASH));
+                        }))
+                .setHeader(Labels.DELETE)
+                .setTextAlign(ColumnTextAlign.END)
+                .setFrozenToEnd(true)
+                .setFlexGrow(0);
+
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
-        grid.setWidthFull();
+        grid.setPageSize(gridPaginator.itemsPerPage());
+        grid.setSizeFull();
 
-        grid.setItems(q -> {
-            final var pageRequest = PageRequest.of(q.getPage(), q.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(q));
-            return rateRepository.findAllBy(pageRequest).toStream();
-        });
-
-        final var contextMenu = new RateContextMenu(grid, this);
-        add(grid, contextMenu);
+        //final var contextMenu = new RateContextMenu(grid, this);
+        add(grid);
 
         /*grid.setItems(query -> {
            return rateRepository.findAllBy(PageRequest.of(query.getPage(), query.getPageSize()) ).collectList().block().stream();
         });*/
     }
 
-    private Subscriber<Void> refreshGridSubscriber() {
+    private Subscriber<Void> refreshGridSubscriber(String tag) {
+
         return ViewUtil.emptySubscriber(throwable -> {
-            asyncNotification("Error Refreshing Grid" + throwable.getMessage());
-            logger().error("ERROR", throwable);
+            asyncNotification("Error Refreshing Grid " + tag + " " + throwable.getMessage());
+            logger().error("ERROR " + tag, throwable);
         });
     }
 
-    @Override
+
     public void delete(Rate rate) {
-        rateRepository.delete(rate)
+        rateService.delete(rate)
                 .then(refreshData())
                 .subscribeOn(Schedulers.parallel())
-                .subscribe(this.refreshGridSubscriber());
+                .subscribe(refreshGridSubscriber("delete"));
     }
 
-    private static class RateContextMenu extends GridContextMenu<Rate> {
+  /*  private static class RateContextMenu extends GridContextMenu<Rate> {
 
         public RateContextMenu(Grid<Rate> target, DeleteEntity<Rate> deleteRate) {
             super(target);
@@ -127,7 +178,7 @@ public class RateView extends VerticalLayout implements DeleteEntity<Rate>, Abst
 
             add(new Hr());
 
-            /*GridMenuItem<Rate> emailItem = addItem("Email",
+            *//*GridMenuItem<Rate> emailItem = addItem("Email",
                     e -> e.getItem().ifPresent(person -> {
                         // System.out.printf("Email: %s%n", person.getFullName());
                     }));
@@ -144,9 +195,9 @@ public class RateView extends VerticalLayout implements DeleteEntity<Rate>, Abst
                 phoneItem.setText(String.format("Call: %s",
                         person.getAddress().getPhone()));
                 return true;
-            });*/
+            });*//*
         }
-    }
+    }*/
 
     private HorizontalLayout getToolbar() {
         final var addButton = new Button("Add");
@@ -162,14 +213,12 @@ public class RateView extends VerticalLayout implements DeleteEntity<Rate>, Abst
                             addingRate.set(false);
                             addButton.setEnabled(true);
                         }))
-                        .subscribe(this.refreshGridSubscriber());
+                        .subscribe(this.refreshGridSubscriber("adding rate"));
             }
 
         });
 
-        countOfRatesText = new Text(null);
-
-        HorizontalLayout toolbar = new HorizontalLayout(addButton, countOfRatesText);
+        HorizontalLayout toolbar = new HorizontalLayout(addButton, queryCountText);
         toolbar.addClassName("toolbar");
         toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         return toolbar;
@@ -185,52 +234,49 @@ public class RateView extends VerticalLayout implements DeleteEntity<Rate>, Abst
         return log;
     }
 
-    private Mono<List<Rate>> listOfRates() {
-        return rateRepository.findAllBy(Pageable.unpaged())
-                .collectList();
+    private Mono<Paging<Rate>> pagingMono() {
+        return rateService.paging(gridPaginator.currentPage(), gridPaginator.itemsPerPage());
+    }
+
+    private void setCountText(long queryCount, long totalCount) {
+        queryCountText.setText(String.format("Tasas de cambio: %d", queryCount));
+        gridPaginator.set(queryCount);
+        totalCountText.setText(String.format("Total de Tasas de cambio: %d", totalCount));
     }
 
     private Mono<Void> refreshData() {
-        final var countRunnable = rateRepository.count()
-                .map(count -> String.format("Cantidad de tasas de cambio: %d", count))
-                .map(str -> (Runnable) () -> countOfRatesText.setText(str))
-                .onErrorResume(throwable -> Mono.just(() -> asyncNotification("Error al cargar cantidad de tasas de cambio " + throwable.getMessage())));
 
-        final var ratesRunnable = listOfRates()
-                .map(rates -> {
+        return pagingMono()
+                .map(paging -> (Runnable) () -> {
 
-                    return (Runnable) () -> {
+                    grid.setPageSize(gridPaginator.itemsPerPage());
+                    grid.setItems(paging.results());
 
-                        /*grid.setItems(rates);
-                        grid.getDataProvider().refreshAll();*/
-                    };
+                    setCountText(paging.queryCount(), paging.totalCount());
+
+                    //grid.setItems(query -> service.fetchPage(filterText.getValue(), query.getPage(), query.getPageSize()));
+                    //grid.setItems(list);
+                    grid.getDataProvider().refreshAll();
                 })
-                .onErrorResume(throwable -> Mono.just(() -> asyncNotification("Error al cargar tasas de cambio " + throwable.getMessage())));
-
-
-        return Mono.zip(countRunnable, ratesRunnable, (first, second) -> {
-
-                    final var list = new ArrayList<Runnable>();
-                    list.add(first);
-                    list.add(second);
-
-                    return list;
-                })
-                .doOnSuccess(list -> uiAsyncAction(() -> list.forEach(Runnable::run)))
+                .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
                 .and(Mono.empty());
     }
 
     private Mono<Void> newRate() {
 
-        return getBcvUsdRate.newRate()
-                .doOnSuccess(rate -> asyncNotification("Nueva tasa de cambio encontrada"))
-                .flatMap(rateRepository::save)
-                .doOnSuccess(rate -> asyncNotification("Tasa de cambio guardada"))
+        return saveNewBcvRate.saveNewRate()
+                .doOnSuccess(bool -> log.info("NEW_RATE_SAVED {}", bool))
+                .doOnSuccess(bool -> asyncNotification(bool ? "Nueva tasa de cambio encontrada" : "Tasa ya guardada"))
                 .then(refreshData())
-                .subscribeOn(Schedulers.parallel())
-                .doOnSuccess(rate -> asyncNotification("Actualizando"));
+                .subscribeOn(Schedulers.parallel());
 
+    }
+
+    private void updateGrid() {
+        refreshData()
+                .subscribeOn(Schedulers.parallel())
+                .subscribe(emptySubscriber("updateGrid"));
     }
 
 

@@ -57,12 +57,14 @@ public class ConvertUtil {
 
 
         return new BuildingViewItem(
-                building.id(), building.name(), building.rif(), building.reserveFund(), building.reserveFundCurrency(), building.mainCurrency(), building.currenciesToShowAmountToPay());
+                building.id(), building.name(), building.rif(), building.reserveFund(), building.reserveFundCurrency(), building.mainCurrency(),
+                building.currenciesToShowAmountToPay(), building.extraCharges());
     }
 
     public static Building building(BuildingViewItem item) {
 
-        return new Building(item.getId().toUpperCase(), item.getName(), item.getRif(), item.getReserveFund(), item.getReserveFundCurrency(), item.getMainCurrency(), item.getCurrenciesToShowAmountToPay());
+        return new Building(item.getId().toUpperCase(), item.getName(), item.getRif(), item.getReserveFund(), item.getReserveFundCurrency(), item.getMainCurrency(),
+                item.getCurrenciesToShowAmountToPay(), item.getExtraCharges());
     }
 
     public static ReceiptViewItem receipt(Receipt receipt) {

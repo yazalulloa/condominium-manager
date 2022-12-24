@@ -18,9 +18,12 @@ public interface AbstractView {
     Logger logger();
 
     default void showError(Throwable throwable) {
+        showError(throwable, "");
+    }
 
-        asyncNotification("Error" + throwable.getMessage());
-        logger().error("ERROR", throwable);
+    default void showError(Throwable throwable, String tag) {
+        asyncNotification("Error " + tag + " " + throwable.getMessage());
+        logger().error("ERROR " + tag + " ", throwable);
     }
 
     default <T> Subscriber<T> subscriber(Runnable runnable) {
@@ -28,7 +31,11 @@ public interface AbstractView {
     }
 
     default Subscriber<Void> emptySubscriber() {
-        return ViewUtil.emptySubscriber(this::showError);
+        return emptySubscriber("");
+    }
+
+    default Subscriber<Void> emptySubscriber(String tag) {
+        return ViewUtil.emptySubscriber(t -> showError(t, tag));
     }
 
     default void asyncNotification(String message) {
@@ -48,13 +55,13 @@ public interface AbstractView {
     }
 
     default void uiAsyncAction(Runnable runnable) {
-       if (runnable != null) {
-           ui(ui -> {
-               ui.access(() -> {
-                   runnable.run();
-                   ui.push();
-               });
-           });
-       }
+        if (runnable != null) {
+            ui(ui -> {
+                ui.access(() -> {
+                    runnable.run();
+                    ui.push();
+                });
+            });
+        }
     }
 }

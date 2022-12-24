@@ -23,6 +23,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EnableMongoRepositories()
+@ComponentScan
 
 @Theme(value = "condominium_manager")
 @Push(PushMode.MANUAL)
@@ -30,8 +31,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @NpmPackage(value = "lumo-css-framework", version = "4.0.10")
 @NpmPackage(value = "line-awesome", version = "1.3.0")
 @NpmPackage(value = "@vaadin-component-factory/vcf-nav", version = "1.0.6")
-@EnableAsync
-@ComponentScan
 @Slf4j
 public class Application implements AppShellConfigurator {
 

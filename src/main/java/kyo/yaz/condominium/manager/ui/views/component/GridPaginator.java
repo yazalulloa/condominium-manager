@@ -10,6 +10,8 @@ import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Optional;
 import java.util.TreeSet;
 
@@ -51,7 +53,9 @@ public class GridPaginator extends HorizontalLayout {
         if (totalCount == 0) {
             numberOfPages = 1;
         } else {
-            numberOfPages = (totalCount / pageSize) + 1;
+
+            numberOfPages = BigDecimal.valueOf(totalCount).divide(BigDecimal.valueOf(pageSize), 0, RoundingMode.UP)
+                    .longValue();
         }
 
         if (oldNumberOfPages != numberOfPages) {
