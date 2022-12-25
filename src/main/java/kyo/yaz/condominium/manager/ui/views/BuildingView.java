@@ -4,21 +4,26 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
-import com.vaadin.flow.component.html.Hr;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
+import com.vaadin.flow.router.RouteParameters;
 import kyo.yaz.condominium.manager.core.service.BuildingService;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.actions.DeleteEntity;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
-import kyo.yaz.condominium.manager.ui.views.form.CreateBuildingForm;
+import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
+import kyo.yaz.condominium.manager.ui.views.form.ExtraChargeForm;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
@@ -40,14 +45,10 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Grid<Building> grid = new Grid<>();
-
-    //private final TextField filterText = new TextField();
-
     private final Text countOfBuildingText = new Text(null);
-
     private final Button addBuildingButton = new Button("Añadir edificio");
+    private final DeleteDialog deleteDialog = new DeleteDialog();
 
-    private CreateBuildingForm createBuildingForm;
     @Autowired
     private BuildingService service;
 
@@ -69,18 +70,11 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
         addClassName("list-view");
         setSizeFull();
         configureGrid();
-        configureForm();
         add(getToolbar(), getContent());
-        closeEditor();
     }
 
     private Component getContent() {
-        HorizontalLayout content = new HorizontalLayout(grid, createBuildingForm);
-        content.setFlexGrow(2, grid);
-        content.setFlexGrow(1, createBuildingForm);
-        content.addClassNames("content");
-        content.setSizeFull();
-        return content;
+        return grid;
     }
 
     private void configureGrid() {
@@ -93,22 +87,35 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
         grid.addColumn(Building::mainCurrency).setHeader(Labels.Building.MAIN_CURRENCY_LABEL);
         grid.addColumn(Building::currenciesToShowAmountToPay).setHeader(Labels.Building.SHOW_PAYMENT_IN_CURRENCIES);
 
+        grid.addColumn(
+                        new ComponentRenderer<>(Button::new, (button, item) -> {
+                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
+                                    ButtonVariant.LUMO_ERROR,
+                                    ButtonVariant.LUMO_TERTIARY);
+                            button.addClickListener(e -> {
+
+                                deleteDialog.setHeaderTitle(Labels.ASK_CONFIRMATION_DELETE_BUILDING.formatted(item.id()));
+                                deleteDialog.setDeleteAction(() -> delete(item));
+                                deleteDialog.open();
+                            });
+                            button.setIcon(new Icon(VaadinIcon.TRASH));
+                        }))
+                .setHeader(Labels.DELETE)
+                .setTextAlign(ColumnTextAlign.END)
+                .setFrozenToEnd(true)
+                .setFlexGrow(0);
+
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
         grid.setWidthFull();
 
-        final var contextMenu = new BuildingView.BuildingContextMenu(grid, this);
-        add(grid, contextMenu);
+        grid.addSelectionListener(selection -> {
 
-        grid.asSingleSelect().addValueChangeListener(event -> editEntity(event.getValue()));
-    }
+            selection.getFirstSelectedItem()
+                    .ifPresent(building -> editEntity(building.id()));
+        });
 
-    private void configureForm() {
-        createBuildingForm = new CreateBuildingForm();
-        createBuildingForm.setWidth("25em");
-        createBuildingForm.setHeightFull();
-        createBuildingForm.addListener(CreateBuildingForm.SaveEvent.class, this::saveEntity);
-        createBuildingForm.addListener(CreateBuildingForm.DeleteEvent.class, this::deleteEntity);
-        createBuildingForm.addListener(CreateBuildingForm.CloseEvent.class, e -> closeEditor());
+
+        add(grid);
     }
 
     @Override
@@ -118,50 +125,6 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
                 .then(refreshData())
                 .subscribeOn(Schedulers.parallel())
                 .subscribe(this.refreshGridSubscriber());
-    }
-
-    private void saveEntity(CreateBuildingForm.SaveEvent event) {
-        service.save(ConvertUtil.building(event.getBuilding()))
-                .then(refreshData())
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(this.emptySubscriber());
-
-        closeEditor();
-    }
-
-    private void deleteEntity(CreateBuildingForm.DeleteEvent event) {
-        delete(ConvertUtil.building(event.getBuilding()));
-        closeEditor();
-    }
-
-    private static class BuildingContextMenu extends GridContextMenu<Building> {
-
-        public BuildingContextMenu(Grid<Building> target, DeleteEntity<Building> deleteBuilding) {
-            super(target);
-
-            addItem("Borrar", e -> e.getItem().ifPresent(deleteBuilding::delete));
-
-            add(new Hr());
-
-            /*GridMenuItem<Building> emailItem = addItem("Email",
-                    e -> e.getItem().ifPresent(person -> {
-                        // System.out.printf("Email: %s%n", person.getFullName());
-                    }));
-            GridMenuItem<Building> phoneItem = addItem("Call",
-                    e -> e.getItem().ifPresent(person -> {
-                        // System.out.printf("Phone: %s%n", person.getFullName());
-                    }));
-
-            setDynamicContentHandler(person -> {
-                // Do not show context menu when header is clicked
-                if (person == null)
-                    return false;
-                emailItem.setText(String.format("Email: %s", person.getEmail()));
-                phoneItem.setText(String.format("Call: %s",
-                        person.getAddress().getPhone()));
-                return true;
-            });*/
-        }
     }
 
     private Subscriber<Void> refreshGridSubscriber() {
@@ -196,31 +159,9 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
     }
 
     private HorizontalLayout getToolbar() {
-       /* filterText.setPlaceholder("Buscar");
-        filterText.setClearButtonVisible(true);
-        filterText.setValueChangeMode(ValueChangeMode.LAZY);
-        filterText.addValueChangeListener(e -> refreshData());*/
 
         addBuildingButton.setDisableOnClick(true);
-        addBuildingButton.addClickListener(click -> addEntity());
-
-
-       /* addButton.addClickListener(e -> {
-            if (addingRate.get()) {
-                Notification.show("Ya se esta buscando tasa de cambio");
-            } else {
-                addingRate.set(true);
-                Notification.show("Buscando Tasa de cambio");
-
-                newRate().doAfterTerminate(() -> uiAsyncAction(() -> {
-                            addingRate.set(false);
-                            addButton.setEnabled(true);
-                        }))
-                        .subscribe(this.refreshGridSubscriber());
-            }
-
-        });*/
-
+        addBuildingButton.addClickListener(click -> editEntity());
 
         HorizontalLayout toolbar = new HorizontalLayout(addBuildingButton, countOfBuildingText);
         toolbar.addClassName("toolbar");
@@ -228,27 +169,6 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
         return toolbar;
     }
 
-    public void editEntity(Building obj) {
-        if (obj == null) {
-            closeEditor();
-        } else {
-            createBuildingForm.setBuilding(ConvertUtil.viewItem(obj));
-            createBuildingForm.setVisible(true);
-            addClassName("editing");
-        }
-    }
-
-    private void closeEditor() {
-        createBuildingForm.setBuilding(null);
-        createBuildingForm.setVisible(false);
-        addBuildingButton.setEnabled(true);
-        removeClassName("editing");
-    }
-
-    private void addEntity() {
-        grid.asSingleSelect().clear();
-        editEntity(Building.builder().build());
-    }
 
     @Override
     public Component component() {
@@ -258,5 +178,15 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
     @Override
     public Logger logger() {
         return logger;
+    }
+
+    private void editEntity() {
+        editEntity("new");
+    }
+
+    private void editEntity(String id) {
+        grid.asSingleSelect().clear();
+        ui(ui -> ui.navigate(EditBuildingView.class, new RouteParameters("building_id", id)));
+        //editEntity(Apartment.builder().build());
     }
 }

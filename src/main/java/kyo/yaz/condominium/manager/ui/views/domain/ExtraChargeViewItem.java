@@ -1,35 +1,37 @@
-package kyo.yaz.condominium.manager.persistence.domain;
+package kyo.yaz.condominium.manager.ui.views.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import kyo.yaz.condominium.manager.core.domain.Currency;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
+import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Jacksonized
 @Builder(toBuilder = true)
-@Accessors(fluent = true)
 @ToString
 @Getter
+@Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@NoArgsConstructor
 @AllArgsConstructor
-public class ExtraCharge {
-
+public class ExtraChargeViewItem {
+    @NotBlank
     @JsonProperty
-    private final String aptNumber;
+    private String aptNumber;
+    @NotBlank
     @JsonProperty
-    private final String description;
+    private String description;
+    @NotNull
     @JsonProperty
-    private final BigDecimal amount;
+    private BigDecimal amount;
+    @NotNull
     @JsonProperty
-    private final Currency currency;
+    private Currency currency;
 }

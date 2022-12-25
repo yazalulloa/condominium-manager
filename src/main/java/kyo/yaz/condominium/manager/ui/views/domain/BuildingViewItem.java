@@ -53,5 +53,5 @@ public class BuildingViewItem {
     private Set<Currency> currenciesToShowAmountToPay;
 
     @JsonProperty
-    private List<ExtraCharge> extraCharges;
+    private List<ExtraChargeViewItem> extraCharges;
 }

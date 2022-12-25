@@ -4,6 +4,7 @@ import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
+import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
@@ -13,10 +14,8 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.time.ZonedDateTime;
+import java.util.*;
 import java.util.function.Function;
 
 public class ConvertUtil {
@@ -58,21 +57,27 @@ public class ConvertUtil {
 
         return new BuildingViewItem(
                 building.id(), building.name(), building.rif(), building.reserveFund(), building.reserveFundCurrency(), building.mainCurrency(),
-                building.currenciesToShowAmountToPay(), building.extraCharges());
+                building.currenciesToShowAmountToPay(), ConvertUtil.toList(building.extraCharges(), ConvertUtil::viewItem));
     }
 
     public static Building building(BuildingViewItem item) {
 
         return new Building(item.getId().toUpperCase(), item.getName(), item.getRif(), item.getReserveFund(), item.getReserveFundCurrency(), item.getMainCurrency(),
-                item.getCurrenciesToShowAmountToPay(), item.getExtraCharges());
+                item.getCurrenciesToShowAmountToPay(), ConvertUtil.toList(item.getExtraCharges(), ConvertUtil::extraCharge));
     }
 
     public static ReceiptViewItem receipt(Receipt receipt) {
+
+        final var createdAt = Optional.ofNullable(receipt.createdAt())
+                .map(zonedDateTime -> zonedDateTime.withZoneSameInstant(DateUtil.VE_ZONE))
+                .map(ZonedDateTime::toString)
+                .orElse(null);
+
         return ReceiptViewItem.builder()
                 .id(receipt.id())
                 .buildingId(receipt.buildingId())
                 .date(receipt.date())
-                .createdAt(receipt.createdAt().withZoneSameInstant(DateUtil.VE_ZONE).toString())
+                .createdAt(createdAt)
                 .build();
     }
 
@@ -98,7 +103,21 @@ public class ConvertUtil {
                 .build();
     }
 
+
+    public static ExtraCharge extraCharge(ExtraChargeViewItem viewItem) {
+        return new ExtraCharge(viewItem.getAptNumber(), viewItem.getDescription(), viewItem.getAmount(), viewItem.getCurrency());
+    }
+
+    public static ExtraChargeViewItem viewItem(ExtraCharge extraCharge) {
+        return new ExtraChargeViewItem(extraCharge.aptNumber(), extraCharge.description(), extraCharge.amount(), extraCharge.currency());
+    }
+
     public static <T, S> List<T> toList(Collection<S> collection, Function<S, T> function) {
+
+        if (collection == null) {
+            return Collections.emptyList();
+        }
+
         return collection.stream().map(function).toList();
     }
 

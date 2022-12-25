@@ -57,7 +57,7 @@ public class ApartmentService {
                 .map(tuple -> new Paging<>(tuple.getT1(), tuple.getT2(), tuple.getT3()));
     }
 
-    public Mono<List<String>> aptNumbers(String buildingId) {
+    public Mono<List<Apartment>> apartmentsByBuilding(String buildingId) {
         final var sortings = new LinkedHashSet<Sorting<ApartmentQueryRequest.SortField>>();
         sortings.add(ApartmentQueryRequest.sorting(ApartmentQueryRequest.SortField.NUMBER, Sort.Direction.ASC));
         final var request = ApartmentQueryRequest.builder()
@@ -65,7 +65,12 @@ public class ApartmentService {
                 .sortings(sortings)
                 .build();
 
-        return repository.find(request)
+        return repository.list(request);
+    }
+
+    public Mono<List<String>> aptNumbers(String buildingId) {
+        return apartmentsByBuilding(buildingId)
+                .flatMapIterable(s -> s)
                 .map(Apartment::apartmentId)
                 .map(Apartment.ApartmentId::number)
                 .collectList();

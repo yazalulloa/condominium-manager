@@ -3,13 +3,9 @@ package kyo.yaz.condominium.manager.ui.views.form;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
@@ -44,13 +40,13 @@ public class CreateBuildingForm extends FormLayout implements AbstractView {
     private final MultiSelectComboBox<Currency> currenciesToShowAmountToPayComboBox = new MultiSelectComboBox<>(Labels.Building.SHOW_PAYMENT_IN_CURRENCIES, Currency.values);
 
 
-    private final Button save = new Button(Labels.SAVE);
+   /* private final Button save = new Button(Labels.SAVE);
     private final Button delete = new Button(Labels.DELETE);
-    private final Button close = new Button(Labels.CANCEL);
+    private final Button close = new Button(Labels.CANCEL);*/
 
-    BuildingViewItem building;
+    BuildingViewItem building = BuildingViewItem.builder().build();
 
-    Binder<BuildingViewItem> binder = new BeanValidationBinder<>(BuildingViewItem.class);
+    public final Binder<BuildingViewItem> binder = new BeanValidationBinder<>(BuildingViewItem.class);
 
     public CreateBuildingForm() {
         addClassName("building-form");
@@ -65,31 +61,13 @@ public class CreateBuildingForm extends FormLayout implements AbstractView {
                 reserveFundField,
                 reserveFundCurrencyComboBox,
                 mainCurrencyComboBox,
-                currenciesToShowAmountToPayComboBox,
-                createButtonsLayout());
+                currenciesToShowAmountToPayComboBox);
 
         binder.bindInstanceFields(this);
     }
 
-    private HorizontalLayout createButtonsLayout() {
-        save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        save.addClickShortcut(Key.ENTER);
-        close.addClickShortcut(Key.ESCAPE);
-
-        save.addClickListener(event -> validateAndSave());
-        delete.addClickListener(event -> fireEvent(new CreateBuildingForm.DeleteEvent(this, building)));
-        close.addClickListener(event -> fireEvent(new CreateBuildingForm.CloseEvent(this)));
-
-
-        binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
-
-        return new HorizontalLayout(save, delete, close);
-    }
-
-    private void validateAndSave() {
+    public void validateAndSave() {
         try {
             binder.writeBean(building);
 
@@ -132,19 +110,6 @@ public class CreateBuildingForm extends FormLayout implements AbstractView {
     public static class SaveEvent extends BuildingFormEvent {
         SaveEvent(CreateBuildingForm source, BuildingViewItem building) {
             super(source, building);
-        }
-    }
-
-    public static class DeleteEvent extends BuildingFormEvent {
-        DeleteEvent(CreateBuildingForm source, BuildingViewItem building) {
-            super(source, building);
-        }
-
-    }
-
-    public static class CloseEvent extends BuildingFormEvent {
-        CloseEvent(CreateBuildingForm source) {
-            super(source, null);
         }
     }
 

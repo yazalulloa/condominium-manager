@@ -41,4 +41,8 @@ public class BuildingService {
                 .collectList()
                 .map(HashSet::new);
     }
+
+    public Mono<Building> find(String id) {
+        return repository.findById(id);
+    }
 }

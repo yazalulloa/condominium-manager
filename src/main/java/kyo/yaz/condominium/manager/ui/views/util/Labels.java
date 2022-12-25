@@ -15,6 +15,10 @@ public class Labels {
     public static final String NEW_EXPENSE = "Nuevo Gasto";
     public static final String NEW_DEBT = "Nueva Deuda";
     public static final String ASK_CONFIRMATION_DELETE_RATE = "Esta seguro de borrar la tasa de cambio\n %s %s %s?";
+    public static final String ASK_CONFIRMATION_DELETE_BUILDING = "Esta seguro de borrar el edificio\n %s?";
+    public static final String COPY = "Copiar";
+    public static final String ADD = "Añadir";
+    public static final String EXTRA_CHARGE_TITLE = "Cargo Extra";
 
     public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";
@@ -92,6 +96,14 @@ public class Labels {
         public static final String CURRENCIES_LABEL = "Monedas";
         public static final String CREATED_AT_LABEL = "Creado en";
 
+
+    }
+
+    public static class ExtraCharge {
+        public static final String APT_LABEL = "Apartamento";
+        public static final String DESCRIPTION_LABEL = "Descripcion";
+        public static final String AMOUNT_LABEL = "Monto";
+        public static final String CURRENCY_LABEL = "Moneda";
 
     }
 }
