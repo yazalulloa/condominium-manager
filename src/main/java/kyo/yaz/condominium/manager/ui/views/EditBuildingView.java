@@ -215,7 +215,7 @@ public class EditBuildingView extends VerticalLayout implements BeforeEnterObser
         });
 
         createBuildingForm.addListener(CreateBuildingForm.SaveEvent.class, event -> {
-
+            saveBtn.setEnabled(false);
             final var building = ConvertUtil.building(event.getBuilding());
 
             final var list = ConvertUtil.toList(extraCharges, ConvertUtil::extraCharge);

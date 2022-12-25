@@ -21,10 +21,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
 import kyo.yaz.condominium.manager.core.service.BuildingService;
 import kyo.yaz.condominium.manager.core.service.ReceiptService;
+import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
-import kyo.yaz.condominium.manager.ui.views.domain.ReceiptViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ import java.util.List;
 @Route(value = "receipts", layout = MainLayout.class)
 public class ReceiptView extends VerticalLayout implements AbstractView {
     public static final String PAGE_TITLE = Labels.Receipt.VIEW_PAGE_TITLE;
-    private final Grid<ReceiptViewItem> grid = new Grid<>();
+    private final Grid<Receipt> grid = new Grid<>();
     private final ComboBox<String> buildingComboBox = new ComboBox<>();
 
     private final TextField filterText = new TextField();
@@ -50,14 +50,15 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
 
     private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
 
-    @Autowired
-    private BuildingService buildingService;
+
+    private final BuildingService buildingService;
+    private final ReceiptService receiptService;
 
     @Autowired
-    private ReceiptService receiptService;
-
-    public ReceiptView() {
+    public ReceiptView(BuildingService buildingService, ReceiptService receiptService) {
         super();
+        this.buildingService = buildingService;
+        this.receiptService = receiptService;
         init();
     }
 
@@ -90,14 +91,14 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
         grid.setColumnReorderingAllowed(true);
 
 
-        grid.addColumn(ReceiptViewItem::id).setHeader(Labels.Receipt.ID_LABEL).setSortable(true).setKey(Labels.Receipt.ID_LABEL);
-        grid.addColumn(ReceiptViewItem::buildingId).setHeader(Labels.Receipt.BUILDING_LABEL).setSortable(true).setKey(Labels.Receipt.BUILDING_LABEL);
-        grid.addColumn(ReceiptViewItem::date).setHeader(Labels.Receipt.DATE_LABEL).setSortable(true).setKey(Labels.Receipt.DATE_LABEL);
-        grid.addColumn(ReceiptViewItem::expensesAmount).setHeader(Labels.Receipt.EXPENSE_LABEL);
-        grid.addColumn(ReceiptViewItem::debtReceiptsAmount).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL);
-        grid.addColumn(ReceiptViewItem::debtAmount).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL);
-
-
+        grid.addColumn(Receipt::id).setHeader(Labels.Receipt.ID_LABEL).setSortable(true).setKey(Labels.Receipt.ID_LABEL);
+        grid.addColumn(Receipt::buildingId).setHeader(Labels.Receipt.BUILDING_LABEL).setSortable(true).setKey(Labels.Receipt.BUILDING_LABEL);
+        grid.addColumn(Receipt::date).setHeader(Labels.Receipt.DATE_LABEL).setSortable(true).setKey(Labels.Receipt.DATE_LABEL);
+        grid.addColumn(Receipt::expensesAmount).setHeader(Labels.Receipt.EXPENSE_LABEL);
+        grid.addColumn(Receipt::debtReceiptsAmount).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL);
+        grid.addColumn(Receipt::debtAmount).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL);
+        grid.addColumn(receipt -> receipt.rate().rate()).setHeader(Labels.Receipt.RATE_LABEL).setSortable(true).setKey(Labels.Receipt.RATE_LABEL);
+        grid.addColumn(Receipt::createdAt).setHeader(Labels.Receipt.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Receipt.CREATED_AT_LABEL);
 
 
         grid.addColumn(
@@ -119,27 +120,15 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
                 .setFrozenToEnd(true)
                 .setFlexGrow(0);
 
-        grid.addColumn(
-                        new ComponentRenderer<>(Button::new, (button, item) -> {
-                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
-                                    ButtonVariant.LUMO_SUCCESS,
-                                    ButtonVariant.LUMO_TERTIARY);
-                            button.addClickListener(e -> addEntity(item.id()));
-                            button.setIcon(new Icon(VaadinIcon.ANGLE_RIGHT));
-                        }))
-                .setHeader(Labels.UPDATE)
-                .setTextAlign(ColumnTextAlign.END)
-                .setFrozenToEnd(true)
-                .setFlexGrow(0);
-
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
 
-        //final var contextMenu = new ApartmentView.ApartmentContextMenu(grid, this);
-        //add(grid, contextMenu);
+        grid.addSelectionListener(selection -> {
 
-        //grid.asSingleSelect().addValueChangeListener(event -> editEntity(event.getValue()));
+            selection.getFirstSelectedItem()
+                    .ifPresent(building -> addEntity(building.id()));
+        });
     }
 
     private Mono<Runnable> setCount() {
@@ -215,8 +204,6 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
                     grid.setPageSize(gridPaginator.itemsPerPage());
                     grid.setItems(list);
 
-                    //grid.setItems(query -> service.fetchPage(filterText.getValue(), query.getPage(), query.getPageSize()));
-                    //grid.setItems(list);
                     grid.getDataProvider().refreshAll();
                 });
 
@@ -231,7 +218,7 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
                 .and(Mono.empty());
     }
 
-    private Mono<List<ReceiptViewItem>> entityList() {
+    private Mono<List<Receipt>> entityList() {
         return receiptService.list(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
     }
 
@@ -246,6 +233,5 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
     private void addEntity(String id) {
         grid.asSingleSelect().clear();
         ui(ui -> ui.navigate(EditReceiptView.class, new RouteParameters("receipt_id", id)));
-        //editEntity(Apartment.builder().build());
     }
 }

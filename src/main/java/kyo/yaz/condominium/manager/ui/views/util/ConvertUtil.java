@@ -1,7 +1,6 @@
 package kyo.yaz.condominium.manager.ui.views.util;
 
 import kyo.yaz.condominium.manager.core.domain.Currency;
-import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
@@ -14,7 +13,6 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.Function;
 
@@ -66,7 +64,7 @@ public class ConvertUtil {
                 item.getCurrenciesToShowAmountToPay(), ConvertUtil.toList(item.getExtraCharges(), ConvertUtil::extraCharge));
     }
 
-    public static ReceiptViewItem receipt(Receipt receipt) {
+   /* public static ReceiptViewItem receipt(Receipt receipt) {
 
         final var createdAt = Optional.ofNullable(receipt.createdAt())
                 .map(zonedDateTime -> zonedDateTime.withZoneSameInstant(DateUtil.VE_ZONE))
@@ -79,6 +77,10 @@ public class ConvertUtil {
                 .date(receipt.date())
                 .createdAt(createdAt)
                 .build();
+    }*/
+
+    public static ReceiptFormItem formItem(Receipt receipt) {
+        return new ReceiptFormItem(receipt.buildingId(), receipt.year(), receipt.month(), receipt.rate(), receipt.date());
     }
 
     public static Expense expense(ExpenseViewItem item) {

@@ -17,6 +17,7 @@ import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
 import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -112,20 +113,9 @@ public class ExtraChargeForm extends FormLayout implements AbstractView {
 
     }
 
-    public static abstract class FormEvent extends ComponentEvent<ExtraChargeForm> {
-        private final ExtraChargeViewItem obj;
 
-        protected FormEvent(ExtraChargeForm source, ExtraChargeViewItem obj) {
-            super(source, false);
-            this.obj = obj;
-        }
 
-        public ExtraChargeViewItem getObj() {
-            return obj;
-        }
-    }
-
-    public static class SaveEvent extends FormEvent {
+    public static class SaveEvent extends FormEvent<ExtraChargeForm, ExtraChargeViewItem> {
         SaveEvent(ExtraChargeForm source, ExtraChargeViewItem obj) {
             super(source, obj);
         }

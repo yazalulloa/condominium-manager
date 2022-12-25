@@ -1,8 +1,11 @@
 package kyo.yaz.condominium.manager.ui.views.base;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEvent;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.reactivestreams.Subscriber;
 import org.slf4j.Logger;
@@ -46,7 +49,7 @@ public interface AbstractView {
         component().getUI().ifPresent(uiConsumer);
     }
 
-    default void uiAsyncAction(Collection<Runnable> runnable) {
+    default void uiAsyncAction(Iterable<Runnable> runnable) {
         uiAsyncAction(() -> runnable.forEach(Runnable::run));
     }
 
@@ -64,4 +67,6 @@ public interface AbstractView {
             });
         }
     }
+
+
 }
