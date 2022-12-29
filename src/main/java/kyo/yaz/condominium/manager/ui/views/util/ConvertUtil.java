@@ -1,6 +1,7 @@
 package kyo.yaz.condominium.manager.ui.views.util;
 
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
@@ -55,13 +56,13 @@ public class ConvertUtil {
 
         return new BuildingViewItem(
                 building.id(), building.name(), building.rif(), building.reserveFund(), building.reserveFundCurrency(), building.mainCurrency(),
-                building.currenciesToShowAmountToPay(), ConvertUtil.toList(building.extraCharges(), ConvertUtil::viewItem));
+                building.currenciesToShowAmountToPay(), ConvertUtil.toList(building.extraCharges(), ConvertUtil::viewItem), ObjectUtil.aBoolean(building.fixedPay()), building.fixedPayAmount(), building.fixedPayCurrency());
     }
 
     public static Building building(BuildingViewItem item) {
 
         return new Building(item.getId().toUpperCase(), item.getName(), item.getRif(), item.getReserveFund(), item.getReserveFundCurrency(), item.getMainCurrency(),
-                item.getCurrenciesToShowAmountToPay(), ConvertUtil.toList(item.getExtraCharges(), ConvertUtil::extraCharge));
+                item.getCurrenciesToShowAmountToPay(), ConvertUtil.toList(item.getExtraCharges(), ConvertUtil::extraCharge), item.isFixedPay(), item.getFixedPayAmount(), item.getFixedPayCurrency());
     }
 
    /* public static ReceiptViewItem receipt(Receipt receipt) {
@@ -92,6 +93,10 @@ public class ConvertUtil {
                 .build();
     }
 
+    public static ExpenseViewItem viewItem(Expense expense) {
+        return new ExpenseViewItem(expense.description(), expense.amount(), expense.currency(), expense.type());
+    }
+
     public static Debt debt(DebtViewItem item) {
         return Debt.builder()
                 .aptNumber(item.getAptNumber())
@@ -103,6 +108,10 @@ public class ConvertUtil {
                 .previousPaymentAmount(item.getPreviousPaymentAmount())
                 .previousPaymentAmountCurrency(item.getPreviousPaymentAmountCurrency())
                 .build();
+    }
+
+    public static DebtViewItem viewItem(Debt item) {
+        return new DebtViewItem(item.aptNumber(), item.name(), item.receipts(), item.amount(), item.currency(), item.months(), item.previousPaymentAmount(), item.previousPaymentAmountCurrency());
     }
 
 

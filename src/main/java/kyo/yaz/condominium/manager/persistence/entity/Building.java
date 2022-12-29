@@ -34,23 +34,24 @@ public class Building {
     @Id
     @JsonProperty
     private final String id;
-
     @JsonProperty
     private final String name;
-
     @JsonProperty
     private final String rif;
     @JsonProperty
     private final BigDecimal reserveFund;
     @JsonProperty
     private final Currency reserveFundCurrency;
-
     @JsonProperty
     private final Currency mainCurrency;
-
     @JsonProperty
     private final Set<Currency> currenciesToShowAmountToPay;
-
     @JsonProperty
     private final List<ExtraCharge> extraCharges;
+    @JsonProperty
+    private final Boolean fixedPay;
+    @JsonProperty
+    private final BigDecimal fixedPayAmount;
+    @JsonProperty
+    private final Currency fixedPayCurrency;
 }

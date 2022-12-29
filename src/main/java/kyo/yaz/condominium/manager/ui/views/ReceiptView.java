@@ -19,12 +19,15 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
-import kyo.yaz.condominium.manager.core.service.BuildingService;
-import kyo.yaz.condominium.manager.core.service.ReceiptService;
+import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
+import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
+import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
+import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
+import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -47,11 +50,10 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
 
     private final Text countText = new Text(null);
     private final Button addEntityButton = new Button(Labels.Receipt.ADD_BUTTON_LABEL);
-
+    private final BuildingService buildingService;
     private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
 
-
-    private final BuildingService buildingService;
+    private final DeleteDialog deleteDialog = new DeleteDialog();
     private final ReceiptService receiptService;
 
     @Autowired
@@ -94,11 +96,12 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
         grid.addColumn(Receipt::id).setHeader(Labels.Receipt.ID_LABEL).setSortable(true).setKey(Labels.Receipt.ID_LABEL);
         grid.addColumn(Receipt::buildingId).setHeader(Labels.Receipt.BUILDING_LABEL).setSortable(true).setKey(Labels.Receipt.BUILDING_LABEL);
         grid.addColumn(Receipt::date).setHeader(Labels.Receipt.DATE_LABEL).setSortable(true).setKey(Labels.Receipt.DATE_LABEL);
-        grid.addColumn(Receipt::expensesAmount).setHeader(Labels.Receipt.EXPENSE_LABEL);
+        grid.addColumn(receipt -> ConvertUtil.format(receipt.totalCommonExpenses(), receipt.totalCommonExpensesCurrency())).setHeader(Labels.Receipt.EXPENSE_COMMON_LABEL);
+        grid.addColumn(receipt -> ConvertUtil.format(receipt.totalUnCommonExpenses(), receipt.totalUnCommonExpensesCurrency())).setHeader(Labels.Receipt.EXPENSE_UNCOMMON_LABEL);
         grid.addColumn(Receipt::debtReceiptsAmount).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL);
-        grid.addColumn(Receipt::debtAmount).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL);
+        grid.addColumn(receipt -> ConvertUtil.format(receipt.totalDebt(), receipt.totalDebtCurrency())).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL);
         grid.addColumn(receipt -> receipt.rate().rate()).setHeader(Labels.Receipt.RATE_LABEL).setSortable(true).setKey(Labels.Receipt.RATE_LABEL);
-        grid.addColumn(Receipt::createdAt).setHeader(Labels.Receipt.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Receipt.CREATED_AT_LABEL);
+        grid.addColumn(receipt -> DateUtil.formatVe(receipt.createdAt())).setHeader(Labels.Receipt.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Receipt.CREATED_AT_LABEL);
 
 
         grid.addColumn(
@@ -108,9 +111,9 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
                                     ButtonVariant.LUMO_TERTIARY);
                             button.addClickListener(e -> {
 
-                                receiptService.delete(item.id())
-                                        .doAfterTerminate(this::updateGrid)
-                                        .subscribe(emptySubscriber());
+                                deleteDialog.setHeaderTitle(Labels.Receipt.ASK_CONFIRMATION_DELETE.formatted(item.id(), item.buildingId(), item.date()));
+                                deleteDialog.setDeleteAction(() -> delete(item));
+                                deleteDialog.open();
 
                             });
                             button.setIcon(new Icon(VaadinIcon.TRASH));
@@ -129,6 +132,12 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
             selection.getFirstSelectedItem()
                     .ifPresent(building -> addEntity(building.id()));
         });
+    }
+
+    private void delete(Receipt receipt) {
+        receiptService.delete(receipt.id())
+                .doAfterTerminate(this::updateGrid)
+                .subscribe(emptySubscriber());
     }
 
     private Mono<Runnable> setCount() {
@@ -234,4 +243,6 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
         grid.asSingleSelect().clear();
         ui(ui -> ui.navigate(EditReceiptView.class, new RouteParameters("receipt_id", id)));
     }
+
+
 }

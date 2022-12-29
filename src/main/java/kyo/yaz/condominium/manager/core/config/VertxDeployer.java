@@ -10,7 +10,6 @@ import kyo.yaz.condominium.manager.core.vertx.codecs.DefaultJacksonMessageCodec;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
@@ -18,22 +17,8 @@ import java.util.Set;
 @Configuration
 public class VertxDeployer {
 
-
     @Bean
     public Vertx vertx(VerticleFactory verticleFactory) {
-        log.info("VERTX BEAN");
-
-        return deployVertx(verticleFactory);
-    }
-
-    @Bean
-    public EventBus eventBus(Vertx vertx) {
-        log.info("EventBus BEAN");
-
-        return configureEventBus(vertx);
-    }
-
-    private Vertx deployVertx(VerticleFactory verticleFactory) {
         final var options = new VertxOptions();
 
         final var vertx = Vertx.vertx(options);
@@ -50,8 +35,8 @@ public class VertxDeployer {
         return vertx;
     }
 
-    private EventBus configureEventBus(Vertx vertx) {
-        //final var vertx = vertxCachedResultSupplier.get();
+    @Bean
+    public EventBus eventBus(Vertx vertx) {
         final var eventBus = vertx.eventBus();
         final var defaultJacksonMessageCodec = new DefaultJacksonMessageCodec();
         eventBus.registerCodec(defaultJacksonMessageCodec);

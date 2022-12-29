@@ -21,6 +21,7 @@ import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
 import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
+import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
@@ -38,7 +39,7 @@ public class ExtraChargeForm extends FormLayout implements AbstractView {
     private final BigDecimalField amountField = new BigDecimalField(Labels.ExtraCharge.AMOUNT_LABEL);
 
     @PropertyId("currency")
-    private final ComboBox<Currency> currencyComboBox = new ComboBox<>(Labels.ExtraCharge.CURRENCY_LABEL, Currency.values);
+    private final ComboBox<Currency> currencyComboBox = ViewUtil.currencyComboBox(Labels.ExtraCharge.CURRENCY_LABEL);
 
     private final Button addBtn = new Button(Labels.ADD);
     private final Button cancelBtn = new Button(Labels.CANCEL);
@@ -46,13 +47,13 @@ public class ExtraChargeForm extends FormLayout implements AbstractView {
 
     ExtraChargeViewItem extraCharge;
 
-    public ExtraChargeForm(Collection<String> apartments) {
+
+    public ExtraChargeForm() {
         super();
         addClassName("extra-charge-form");
 
-        currencyComboBox.setItemLabelGenerator(Currency::name);
+
         aptNumberComboBox.setAllowCustomValue(false);
-        currencyComboBox.setAllowCustomValue(false);
 
         add(
                 aptNumberComboBox,
@@ -63,8 +64,12 @@ public class ExtraChargeForm extends FormLayout implements AbstractView {
 
         binder.bindInstanceFields(this);
         setExtraCharge(new ExtraChargeViewItem());
+    }
+
+    public void setApartments(Collection<String> apartments) {
 
         aptNumberComboBox.setItems(apartments);
+
     }
 
     @Override
@@ -113,17 +118,15 @@ public class ExtraChargeForm extends FormLayout implements AbstractView {
 
     }
 
-
+    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
+                                                                  ComponentEventListener<T> listener) {
+        return getEventBus().addListener(eventType, listener);
+    }
 
     public static class SaveEvent extends FormEvent<ExtraChargeForm, ExtraChargeViewItem> {
         SaveEvent(ExtraChargeForm source, ExtraChargeViewItem obj) {
             super(source, obj);
         }
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
     }
 
 }

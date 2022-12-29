@@ -21,6 +21,7 @@ import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
 import kyo.yaz.condominium.manager.ui.views.domain.ExpenseViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
+import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
@@ -34,12 +35,12 @@ public class ExpenseForm extends FormLayout implements AbstractView {
     private final BigDecimalField amountField = new BigDecimalField(Labels.Expense.AMOUNT_LABEL);
 
     @PropertyId("currency")
-    private final ComboBox<Currency> currencyComboBox = new ComboBox<>(Labels.Expense.CURRENCY_LABEL, Currency.values);
+    private final ComboBox<Currency> currencyComboBox = ViewUtil.currencyComboBox(Labels.Expense.CURRENCY_LABEL);
 
     @PropertyId("type")
     private final ComboBox<Expense.Type> typeComboBox = new ComboBox<>(Labels.Expense.TYPE_LABEL, Expense.Type.values);
 
-    private final Button saveBtn = new Button(Labels.SAVE);
+    private final Button addBtn = new Button(Labels.ADD);
     private final Button deleteBtn = new Button(Labels.DELETE);
     private final Button cancelBtn = new Button(Labels.CANCEL);
     private final Binder<ExpenseViewItem> binder = new BeanValidationBinder<>(ExpenseViewItem.class);
@@ -49,12 +50,11 @@ public class ExpenseForm extends FormLayout implements AbstractView {
     public ExpenseForm() {
         addClassName("expense-form");
 
-        currencyComboBox.setItemLabelGenerator(Currency::name);
-        typeComboBox.setItemLabelGenerator(Expense.Type::name);
 
-        currencyComboBox.setAllowCustomValue(false);
+
+
+
         typeComboBox.setAllowCustomValue(false);
-        currencyComboBox.setAutoOpen(true);
         typeComboBox.setAutoOpen(true);
 
         add(
@@ -69,23 +69,23 @@ public class ExpenseForm extends FormLayout implements AbstractView {
     }
 
     private HorizontalLayout createButtonsLayout() {
-        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
         cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        saveBtn.addClickShortcut(Key.ENTER);
+        addBtn.addClickShortcut(Key.ENTER);
         cancelBtn.addClickShortcut(Key.ESCAPE);
 
-        saveBtn.addClickListener(event -> validateAndSave());
+        addBtn.addClickListener(event -> validateAndSave());
         deleteBtn.addClickListener(event -> fireEvent(new DeleteEvent(this, expense)));
         cancelBtn.addClickListener(event -> {
             binder.readBean(null);
         });
 
 
-        binder.addStatusChangeListener(e -> saveBtn.setEnabled(binder.isValid()));
+        binder.addStatusChangeListener(e -> addBtn.setEnabled(binder.isValid()));
 
-        return new HorizontalLayout(saveBtn, deleteBtn, cancelBtn);
+        return new HorizontalLayout(addBtn, deleteBtn, cancelBtn);
     }
 
     private void validateAndSave() {
@@ -116,6 +116,11 @@ public class ExpenseForm extends FormLayout implements AbstractView {
 
     }
 
+    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
+                                                                  ComponentEventListener<T> listener) {
+        return getEventBus().addListener(eventType, listener);
+    }
+
     public static abstract class FormEvent extends ComponentEvent<ExpenseForm> {
         private final ExpenseViewItem obj;
 
@@ -140,10 +145,5 @@ public class ExpenseForm extends FormLayout implements AbstractView {
             super(source, obj);
         }
 
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
     }
 }

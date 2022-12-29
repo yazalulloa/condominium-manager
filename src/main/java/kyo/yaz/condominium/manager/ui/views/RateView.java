@@ -17,15 +17,13 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import kyo.yaz.condominium.manager.core.domain.Paging;
-import kyo.yaz.condominium.manager.core.service.GetBcvUsdRate;
-import kyo.yaz.condominium.manager.core.service.RateService;
+import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.core.service.SaveNewBcvRate;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
-import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -46,26 +44,17 @@ public class RateView extends VerticalLayout implements AbstractView {
 
     private final Grid<Rate> grid = new Grid<>();
     private final AtomicBoolean addingRate = new AtomicBoolean(false);
-
-
-    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
-    @Autowired
-    private GetBcvUsdRate getBcvUsdRate;
-    @Autowired
-    private RateService rateService;
-
-    @Autowired
-    private SaveNewBcvRate saveNewBcvRate;
-
-
-    private final Text queryCountText = new Text(null);
+    private final Text queryCountText = new Text(null);    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final Text totalCountText = new Text(null);
-
     private final DeleteDialog deleteDialog = new DeleteDialog();
-
-
-    public RateView() {
+    private final RateService rateService;
+    private final SaveNewBcvRate saveNewBcvRate;
+    @Autowired
+    public RateView(RateService rateService, SaveNewBcvRate saveNewBcvRate) {
         super();
+
+        this.rateService = rateService;
+        this.saveNewBcvRate = saveNewBcvRate;
         init();
     }
 
@@ -110,7 +99,6 @@ public class RateView extends VerticalLayout implements AbstractView {
 
         return footer;
     }
-
 
     private void configureGrid() {
         grid.addClassNames("rates-grid");
@@ -161,12 +149,36 @@ public class RateView extends VerticalLayout implements AbstractView {
         });
     }
 
-
     public void delete(Rate rate) {
         rateService.delete(rate)
                 .then(refreshData())
                 .subscribeOn(Schedulers.parallel())
                 .subscribe(refreshGridSubscriber("delete"));
+    }
+
+    private HorizontalLayout getToolbar() {
+        final var addButton = new Button("Add");
+        addButton.setDisableOnClick(true);
+        addButton.addClickListener(e -> {
+            if (addingRate.get()) {
+                Notification.show("Ya se esta buscando tasa de cambio");
+            } else {
+                addingRate.set(true);
+                Notification.show("Buscando Tasa de cambio");
+
+                newRate().doAfterTerminate(() -> uiAsyncAction(() -> {
+                            addingRate.set(false);
+                            addButton.setEnabled(true);
+                        }))
+                        .subscribe(this.refreshGridSubscriber("adding rate"));
+            }
+
+        });
+
+        HorizontalLayout toolbar = new HorizontalLayout(addButton, queryCountText);
+        toolbar.addClassName("toolbar");
+        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        return toolbar;
     }
 
   /*  private static class RateContextMenu extends GridContextMenu<Rate> {
@@ -198,41 +210,6 @@ public class RateView extends VerticalLayout implements AbstractView {
             });*//*
         }
     }*/
-
-    private HorizontalLayout getToolbar() {
-        final var addButton = new Button("Add");
-        addButton.setDisableOnClick(true);
-        addButton.addClickListener(e -> {
-            if (addingRate.get()) {
-                Notification.show("Ya se esta buscando tasa de cambio");
-            } else {
-                addingRate.set(true);
-                Notification.show("Buscando Tasa de cambio");
-
-                newRate().doAfterTerminate(() -> uiAsyncAction(() -> {
-                            addingRate.set(false);
-                            addButton.setEnabled(true);
-                        }))
-                        .subscribe(this.refreshGridSubscriber("adding rate"));
-            }
-
-        });
-
-        HorizontalLayout toolbar = new HorizontalLayout(addButton, queryCountText);
-        toolbar.addClassName("toolbar");
-        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        return toolbar;
-    }
-
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return log;
-    }
 
     private Mono<Paging<Rate>> pagingMono() {
         return rateService.paging(gridPaginator.currentPage(), gridPaginator.itemsPerPage());
@@ -266,7 +243,7 @@ public class RateView extends VerticalLayout implements AbstractView {
     private Mono<Void> newRate() {
 
         return saveNewBcvRate.saveNewRate()
-                .doOnSuccess(bool -> log.info("NEW_RATE_SAVED {}", bool))
+                .doOnSuccess(bool -> logger().info("NEW_RATE_SAVED {}", bool))
                 .doOnSuccess(bool -> asyncNotification(bool ? "Nueva tasa de cambio encontrada" : "Tasa ya guardada"))
                 .then(refreshData())
                 .subscribeOn(Schedulers.parallel());
@@ -277,6 +254,16 @@ public class RateView extends VerticalLayout implements AbstractView {
         refreshData()
                 .subscribeOn(Schedulers.parallel())
                 .subscribe(emptySubscriber("updateGrid"));
+    }
+
+    @Override
+    public Component component() {
+        return this;
+    }
+
+    @Override
+    public Logger logger() {
+        return log;
     }
 
 

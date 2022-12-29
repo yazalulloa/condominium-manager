@@ -25,30 +25,30 @@ import java.util.Set;
 public class DebtViewItem {
 
     @NotBlank
-    @JsonProperty("apt_number")
+    @JsonProperty
     private String aptNumber;
 
     @NotBlank
-    @JsonProperty("name")
+    @JsonProperty
     private String name;
 
-    @JsonProperty("receipts")
+    @JsonProperty
     private int receipts;
 
     @NotNull
-    @JsonProperty("amount")
+    @JsonProperty
     private BigDecimal amount;
 
     @NotNull
-    @JsonProperty("currency")
+    @JsonProperty
     private Currency currency;
 
     @JsonProperty
     private Set<Month> months;
 
-    @JsonProperty("previous_payment_amount")
+    @JsonProperty
     private BigDecimal previousPaymentAmount;
 
-    @JsonProperty("previous_payment_amount_currency")
+    @JsonProperty
     private Currency previousPaymentAmountCurrency;
 }

@@ -2,6 +2,7 @@ package kyo.yaz.condominium.manager.ui.views.util;
 
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import kyo.yaz.condominium.manager.core.domain.Currency;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -18,13 +19,13 @@ public class ViewUtil {
 
     public static final List<Integer> ITEM_PER_PAGE_OPTIONS = List.of(5, 10, 15, 20, 30, 50, 100);
 
+    private ViewUtil() {
+    }
+
     public static ComboBox<Integer> itemPerPageComboBox() {
         final var itemPerPageComboBox = new ComboBox<>(null, ITEM_PER_PAGE_OPTIONS);
         itemPerPageComboBox.setValue(20);
         return itemPerPageComboBox;
-    }
-
-    private ViewUtil() {
     }
 
     public static <T> Subscriber<T> subscriber(Runnable onComplete, Consumer<Throwable> errorConsumer) {
@@ -107,6 +108,17 @@ public class ViewUtil {
         final var comboBox = new ComboBox<>(Labels.YEAR, selectableYears);
 
         comboBox.setValue(now.getYear());
+        comboBox.setAllowCustomValue(false);
+        return comboBox;
+    }
+
+    public static ComboBox<Currency> currencyComboBox(String label) {
+        return currencyComboBox(label, Currency.VED);
+    }
+
+    public static ComboBox<Currency> currencyComboBox(String label, Currency defaultValue) {
+        final var comboBox = new ComboBox<>(label, Currency.values);
+        comboBox.setValue(defaultValue);
         comboBox.setAllowCustomValue(false);
         return comboBox;
     }

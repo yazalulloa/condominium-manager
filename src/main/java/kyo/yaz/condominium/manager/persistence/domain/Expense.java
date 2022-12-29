@@ -24,7 +24,7 @@ import java.math.BigDecimal;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @AllArgsConstructor
-public class Expense {
+public class Expense implements IAmountCurrency {
 
     @NotBlank
     @JsonProperty

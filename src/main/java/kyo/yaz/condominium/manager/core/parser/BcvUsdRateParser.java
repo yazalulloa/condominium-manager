@@ -1,10 +1,8 @@
 package kyo.yaz.condominium.manager.core.parser;
 
 import kyo.yaz.condominium.manager.core.domain.Currency;
-import kyo.yaz.condominium.manager.core.service.SequenceService;
-import kyo.yaz.condominium.manager.core.util.DateUtil;
+import kyo.yaz.condominium.manager.core.service.entity.SequenceService;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
-import kyo.yaz.condominium.manager.persistence.entity.Sequence;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +10,6 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.ZonedDateTime;
 
 @Component()

@@ -6,10 +6,7 @@ import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.HighlightConditions;
 import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
 import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
@@ -50,7 +47,7 @@ public class MainLayout extends AppLayout {
         addToDrawer(header, scroller, createFooter());
     }
 
-    private AppNav  createNavigation() {
+    private AppNav createNavigation() {
 
         return new AppNav()
                 .addItem(new AppNavItem(BuildingView.PAGE_TITLE, BuildingView.class, "la la-globe"))

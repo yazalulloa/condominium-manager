@@ -145,6 +145,11 @@ public class CreateApartmentForm extends FormLayout implements AbstractView {
         return logger;
     }
 
+    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
+                                                                  ComponentEventListener<T> listener) {
+        return getEventBus().addListener(eventType, listener);
+    }
+
     public static abstract class ApartmentFormEvent extends ComponentEvent<CreateApartmentForm> {
         private final ApartmentViewItem Apartment;
 
@@ -175,10 +180,5 @@ public class CreateApartmentForm extends FormLayout implements AbstractView {
         CloseEvent(CreateApartmentForm source) {
             super(source, null);
         }
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
     }
 }

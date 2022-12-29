@@ -17,7 +17,6 @@ import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.persistence.repository.RateBlockingRepository;
 import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
-import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
 import kyo.yaz.condominium.manager.ui.views.domain.ReceiptFormItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
@@ -42,11 +41,14 @@ public class ReceiptForm extends FormLayout implements AbstractView {
     @PropertyId("date")
     private final DatePicker datePicker = ViewUtil.datePicker(Labels.Receipt.RECEIPT_DATE_LABEL);
     private final Binder<ReceiptFormItem> binder = new BeanValidationBinder<>(ReceiptFormItem.class);
-
+    private final RateBlockingRepository rateRepository;
     private ReceiptFormItem item;
 
-
-    private final RateBlockingRepository rateRepository;
+    public ReceiptForm(RateBlockingRepository rateRepository) {
+        super();
+        this.rateRepository = rateRepository;
+        init();
+    }
 
     @Override
     public Component component() {
@@ -56,12 +58,6 @@ public class ReceiptForm extends FormLayout implements AbstractView {
     @Override
     public Logger logger() {
         return log;
-    }
-
-    public ReceiptForm(RateBlockingRepository rateRepository) {
-        super();
-        this.rateRepository = rateRepository;
-        init();
     }
 
     private void init() {
@@ -110,13 +106,6 @@ public class ReceiptForm extends FormLayout implements AbstractView {
         binder.readBean(item);
     }
 
-    public void disable() {
-        buildingComboBox.setEnabled(false);
-        yearPicker.setEnabled(false);
-        monthPicker.setEnabled(false);
-        rateComboBox.setEnabled(false);
-        datePicker.setEnabled(false);
-    }
 
     public void validateAndSave() {
         try {
@@ -130,14 +119,14 @@ public class ReceiptForm extends FormLayout implements AbstractView {
         }
     }
 
+    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
+                                                                  ComponentEventListener<T> listener) {
+        return getEventBus().addListener(eventType, listener);
+    }
+
     public static class SaveEvent extends FormEvent<ReceiptForm, ReceiptFormItem> {
         SaveEvent(ReceiptForm source, ReceiptFormItem obj) {
             super(source, obj);
         }
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
     }
 }

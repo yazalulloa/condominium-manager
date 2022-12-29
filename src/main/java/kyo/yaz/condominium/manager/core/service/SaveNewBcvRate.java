@@ -1,5 +1,7 @@
 package kyo.yaz.condominium.manager.core.service;
 
+import kyo.yaz.condominium.manager.core.service.entity.RateService;
+import kyo.yaz.condominium.manager.core.service.entity.SequenceService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;

@@ -6,17 +6,11 @@ import java.util.Random;
 
 public class RandomUtil {
     public static final Random RANDOM = new SecureRandom();
-
-    public enum Type {
-        ALPHANUMERIC, HEXADECIMAL, NUMERIC, CHARS
-    }
-
-
-    private static final int DEFAULT_LENGTH = 6;
     public static final char[] CHARS = "abcdefghjkmnpqrstuvwxyzABCDEFGHIJKMNPQRSTUVWXYZ".toCharArray();
     public static final char[] ALPHANUMERIC = "abcdefghjkmnpqrstuvwxyzABCDEFGHIJKMNPQRSTUVWXYZ0123456789".toCharArray();
     public static final char[] NUMERIC = "1234567890".toCharArray();
     public static final char[] HEXADECIMAL = "0123456789ABCDEF".toCharArray();
+    private static final int DEFAULT_LENGTH = 6;
 
     public static String getID() {
         return getID(DEFAULT_LENGTH, Type.ALPHANUMERIC);
@@ -85,5 +79,9 @@ public class RandomUtil {
 
     public static BigDecimal randomBigDecimal(int integer, int fraction) {
         return new BigDecimal(randomIntStr(integer) + "." + randomIntStr(fraction));
+    }
+
+    public enum Type {
+        ALPHANUMERIC, HEXADECIMAL, NUMERIC, CHARS
     }
 }

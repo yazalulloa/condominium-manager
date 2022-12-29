@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.core.service;
+package kyo.yaz.condominium.manager.core.service.entity;
 
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;

@@ -25,6 +25,24 @@ public class HttpLogging {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    public static boolean isJson(MediaType type) {
+        final var mediaType = type == null ? MediaType.APPLICATION_JSON : type;
+
+        return mediaType.equals(MediaType.APPLICATION_JSON)
+                || mediaType.equals(MediaType.APPLICATION_PROBLEM_JSON);
+    }
+
+    public static boolean isText(MediaType type) {
+        final var mediaType = type == null ? MediaType.APPLICATION_JSON : type;
+
+        return mediaType.equals(MediaType.TEXT_PLAIN);
+    }
+
+    public static boolean isFormData(MediaType type) {
+        final var mediaType = type == null ? MediaType.APPLICATION_JSON : type;
+
+        return mediaType.equals(MediaType.MULTIPART_FORM_DATA);
+    }
 
     public void logRequest(long requestCounter, boolean prettyJson, HttpClientRequest clientRequest, HttpRequest<Buffer> httpRequest) {
 
@@ -145,26 +163,6 @@ public class HttpLogging {
             logger.error("LOGGING_RESPONSE", e);
         }
 
-    }
-
-
-    public static boolean isJson(MediaType type) {
-        final var mediaType = type == null ? MediaType.APPLICATION_JSON : type;
-
-        return mediaType.equals(MediaType.APPLICATION_JSON)
-                || mediaType.equals(MediaType.APPLICATION_PROBLEM_JSON);
-    }
-
-    public static boolean isText(MediaType type) {
-        final var mediaType = type == null ? MediaType.APPLICATION_JSON : type;
-
-        return mediaType.equals(MediaType.TEXT_PLAIN);
-    }
-
-    public static boolean isFormData(MediaType type) {
-        final var mediaType = type == null ? MediaType.APPLICATION_JSON : type;
-
-        return mediaType.equals(MediaType.MULTIPART_FORM_DATA);
     }
 
     private String url(String url, Set<String> exclude) {

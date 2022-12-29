@@ -19,6 +19,8 @@ public class Labels {
     public static final String COPY = "Copiar";
     public static final String ADD = "Añadir";
     public static final String EXTRA_CHARGE_TITLE = "Cargo Extra";
+    public static final String REQUIRED = "Requerido";
+    public static final String DEACTIVATED = "Desactivado";
 
     public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";
@@ -45,6 +47,9 @@ public class Labels {
         public static final String MAIN_CURRENCY_LABEL = "Moneda Principal";
 
         public static final String SHOW_PAYMENT_IN_CURRENCIES = "Monedas a mostrar al pagar";
+        public static final String FIXED_PAY_LABEL = "Monto fijo";
+        public static final String FIXED_PAY_AMOUNT_LABEL = "Monto fijo monto";
+        public static final String FIXED_PAY_CURRENCY_LABEL = "Monto fijo moneda";
     }
 
 
@@ -55,12 +60,14 @@ public class Labels {
         public static final String ID_LABEL = "ID";
         public static final String BUILDING_LABEL = "Edificio";
         public static final String DATE_LABEL = "Fecha";
-        public static final String EXPENSE_LABEL = "Gastos";
+        public static final String EXPENSE_COMMON_LABEL = "Gastos comunes";
+        public static final String EXPENSE_UNCOMMON_LABEL = "Gastos no comunes";
         public static final String DEBT_RECEIPT_TOTAL_NUMBER_LABEL = "Cantidad de recibos de deuda";
         public static final String DEBT_RECEIPT_TOTAL_AMOUNT_LABEL = "Monto total de deuda";
         public static final String CREATED_AT_LABEL = "Fecha de creacion";
         public static final String RECEIPT_DATE_LABEL = "Fecha de recibo";
         public static final String RATE_LABEL = "Tasa de cambio";
+        public static final String ASK_CONFIRMATION_DELETE = "Esta seguro de borrar el recibo\n %s %s %s?";
     }
 
     public static class Expense {
@@ -73,6 +80,7 @@ public class Labels {
     public static class Debt {
 
         public static final String APT_NUMBER_LABEL = "Nro. de apartamento";
+        public static final String APT_LABEL = "Apartamento";
 
         public static final String NAME_LABEL = "Nombre";
 

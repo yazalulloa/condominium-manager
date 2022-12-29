@@ -59,6 +59,7 @@ public class HttpClientRequest {
     public static HttpClientRequest of(HttpMethod httpMethod, String url) {
         return HttpClientRequest.builder().httpMethod(httpMethod).url(url).build();
     }
+
     public static HttpClientRequest options(String url) {
         return of(HttpMethod.OPTIONS, url);
     }

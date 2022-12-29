@@ -9,17 +9,9 @@ import java.text.NumberFormat;
 public enum Currency {
 
 
-
     USD, VED;
 
     public static final Currency[] values = values();
-
-    public NumberFormat numberFormat() {
-        if (this == Currency.USD) {
-            return ConvertUtil.US_FORMAT;
-        }
-        return ConvertUtil.VE_FORMAT;
-    }
 
     public static BigDecimal toCurrency(BigDecimal amount, Currency currencyAmount, BigDecimal rate, Currency currencyRate) {
         if (currencyAmount == currencyRate) {
@@ -32,5 +24,12 @@ public enum Currency {
             return amount.multiply(rate);
         }
 
+    }
+
+    public NumberFormat numberFormat() {
+        if (this == Currency.USD) {
+            return ConvertUtil.US_FORMAT;
+        }
+        return ConvertUtil.VE_FORMAT;
     }
 }

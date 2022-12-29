@@ -26,7 +26,7 @@ import java.util.Set;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class Debt {
+public class Debt implements IAmountCurrency {
 
     @NotBlank
     @JsonProperty("apt_number")

@@ -16,8 +16,8 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import kyo.yaz.condominium.manager.core.domain.Paging;
-import kyo.yaz.condominium.manager.core.service.ApartmentService;
-import kyo.yaz.condominium.manager.core.service.BuildingService;
+import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
+import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.actions.DeleteEntity;
@@ -49,20 +49,18 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
 
     private final Text queryCountText = new Text(null);
     private final Text totalCountText = new Text(null);
-
+    private final Button addApartmentButton = new Button("Añadir apartamento");
+    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private CreateApartmentForm createApartmentForm;
 
-    private final Button addApartmentButton = new Button("Añadir apartamento");
-    @Autowired
-    private ApartmentService service;
+    private final ApartmentService service;
+    private final BuildingService buildingService;
 
     @Autowired
-    private BuildingService buildingService;
-
-    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
-
-    public ApartmentView() {
+    public ApartmentView(ApartmentService service, BuildingService buildingService) {
         super();
+        this.service = service;
+        this.buildingService = buildingService;
         init();
     }
 
@@ -259,16 +257,6 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
         editEntity(Apartment.builder().build());
     }
 
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return log;
-    }
-
     private void saveEntity(CreateApartmentForm.SaveEvent event) {
         service.save(ConvertUtil.apartment(event.getApartment()))
                 .then(refreshData())
@@ -281,6 +269,16 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
     private void deleteEntity(CreateApartmentForm.DeleteEvent event) {
         delete(ConvertUtil.apartment(event.getApartment()));
         closeEditor();
+    }
+
+    @Override
+    public Component component() {
+        return this;
+    }
+
+    @Override
+    public Logger logger() {
+        return log;
     }
 
     private static class ApartmentContextMenu extends GridContextMenu<Apartment> {
@@ -312,5 +310,7 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
             });*/
         }
     }
+
+
 }
 

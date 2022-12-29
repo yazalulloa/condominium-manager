@@ -18,14 +18,11 @@ import java.util.TreeSet;
 public class GridPaginator extends HorizontalLayout {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private long totalCount = 0;
-    private long numberOfPages = 0;
-
     private final ComboBox<Integer> itemsPerPageComBox = ViewUtil.itemPerPageComboBox();
     private final ComboBox<Integer> pageComboBox = new ComboBox<>();
-
     private final Runnable runnable;
+    private long totalCount = 0;
+    private long numberOfPages = 0;
 
 
     public GridPaginator(Runnable runnable) {
@@ -157,7 +154,9 @@ public class GridPaginator extends HorizontalLayout {
     }
 
     public boolean goToFirstPage() {
-        if (pageComboBox.getValue() != 1) {
+        final var value = pageComboBox.getValue();
+
+        if (value != null && value != 1) {
             pageComboBox.setValue(1);
             return true;
         }

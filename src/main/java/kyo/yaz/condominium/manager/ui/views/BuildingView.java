@@ -17,13 +17,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouteParameters;
-import kyo.yaz.condominium.manager.core.service.BuildingService;
+import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.actions.DeleteEntity;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
-import kyo.yaz.condominium.manager.ui.views.form.ExtraChargeForm;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
@@ -35,6 +34,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
+import java.util.Optional;
 
 @PageTitle(BuildingView.PAGE_TITLE)
 @Route(value = "buildings", layout = MainLayout.class)
@@ -49,11 +49,12 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
     private final Button addBuildingButton = new Button("Añadir edificio");
     private final DeleteDialog deleteDialog = new DeleteDialog();
 
-    @Autowired
-    private BuildingService service;
+    private final BuildingService service;
 
-    public BuildingView() {
+    @Autowired
+    public BuildingView(BuildingService service) {
         super();
+        this.service = service;
         init();
     }
 
@@ -86,6 +87,17 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
         grid.addColumn(building -> ConvertUtil.format(building.reserveFund(), building.reserveFundCurrency())).setHeader(Labels.Building.RESERVE_FUND_LABEL);
         grid.addColumn(Building::mainCurrency).setHeader(Labels.Building.MAIN_CURRENCY_LABEL);
         grid.addColumn(Building::currenciesToShowAmountToPay).setHeader(Labels.Building.SHOW_PAYMENT_IN_CURRENCIES);
+        grid.addColumn(building -> {
+
+            final var fixedPay = Optional.ofNullable(building.fixedPay()).orElse(false);
+
+            if (fixedPay) {
+
+                return ConvertUtil.format(building.fixedPayAmount(), building.fixedPayCurrency());
+            } else {
+                return Labels.DEACTIVATED;
+            }
+        }).setHeader(Labels.Building.FIXED_PAY_LABEL);
 
         grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
@@ -141,14 +153,12 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
     private Mono<Void> refreshData() {
 
         final var ratesRunnable = listOfBuildings()
-                .map(list -> {
-
-                    return (Runnable) () -> {
-                        countOfBuildingText.setText(String.format("Edificios: %d", list.size()));
-                        grid.setItems(list);
-                        grid.getDataProvider().refreshAll();
-                    };
+                .map(list -> (Runnable) () -> {
+                    countOfBuildingText.setText(String.format("Edificios: %d", list.size()));
+                    grid.setItems(list);
+                    grid.getDataProvider().refreshAll();
                 })
+                .doOnError(throwable -> logger.error("ERROR", throwable))
                 .onErrorResume(throwable -> Mono.just(() -> asyncNotification("Error al cargar edificios " + throwable.getMessage())));
 
 

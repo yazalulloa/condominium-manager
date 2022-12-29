@@ -6,13 +6,14 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import kyo.yaz.condominium.manager.core.util.NetworkUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
-import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * The entry point of the Spring Boot application.
@@ -36,7 +37,10 @@ public class Application implements AppShellConfigurator {
 
     public static void main(String[] args) {
 
-        log.info("PUBLIC_IP {}", NetworkUtil.getPublicIp());
+        Single.fromCallable(NetworkUtil::getPublicIp)
+                .subscribeOn(Schedulers.io())
+                .subscribe(ip -> log.info("PUBLIC_IP {}", ip), throwable -> log.error("FAILED_TO_GET_PUBLIC_IP", throwable));
+
         SpringApplication.run(Application.class, args);
     }
 

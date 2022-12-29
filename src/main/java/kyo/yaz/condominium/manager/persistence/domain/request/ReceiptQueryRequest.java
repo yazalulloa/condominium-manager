@@ -21,15 +21,17 @@ import java.util.Set;
 @AllArgsConstructor
 public class ReceiptQueryRequest {
 
-    private Long id;
     private final String buildingId;
     private final LocalDate date;
     private final String expense;
-
     private final Pageable page;
-
     @Builder.Default
     private final Set<Sorting<SortField>> sortings = Collections.emptySet();
+    private Long id;
+
+    public static Sorting<SortField> sorting(SortField sortField, Sort.Direction direction) {
+        return new Sorting<>(sortField, direction);
+    }
 
     public enum SortField implements MongoSortField {
         ID("id"),
@@ -45,9 +47,5 @@ public class ReceiptQueryRequest {
         public String field() {
             return field;
         }
-    }
-
-    public static Sorting<SortField> sorting(SortField sortField, Sort.Direction direction) {
-        return new Sorting<>(sortField, direction);
     }
 }

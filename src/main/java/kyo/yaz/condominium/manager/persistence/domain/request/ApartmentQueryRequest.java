@@ -41,6 +41,10 @@ public class ApartmentQueryRequest {
     @Builder.Default
     private final Set<Sorting<SortField>> sortings = Collections.emptySet();
 
+    public static Sorting<SortField> sorting(SortField sortField, Sort.Direction direction) {
+        return new Sorting<>(sortField, direction);
+    }
+
     public enum SortField implements MongoSortField {
         BUILDING_ID("_id.building_id"),
         NUMBER("_id.number"),
@@ -57,9 +61,5 @@ public class ApartmentQueryRequest {
         public String field() {
             return field;
         }
-    }
-
-    public static Sorting<SortField> sorting(SortField sortField, Sort.Direction direction) {
-        return new Sorting<>(sortField, direction);
     }
 }

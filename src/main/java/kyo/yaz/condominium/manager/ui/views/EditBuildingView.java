@@ -7,7 +7,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -18,8 +17,8 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import kyo.yaz.condominium.manager.core.service.ApartmentService;
-import kyo.yaz.condominium.manager.core.service.BuildingService;
+import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
+import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
 import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
@@ -42,28 +41,27 @@ import java.util.Set;
 @Route(value = "buildings/:building_id", layout = MainLayout.class)
 public class EditBuildingView extends VerticalLayout implements BeforeEnterObserver, AbstractView {
 
-    private String buildingIdParam;
-
     private final CreateBuildingForm createBuildingForm = new CreateBuildingForm();
-
     private final Grid<ExtraChargeViewItem> extraChargeGrid = new Grid<>(ExtraChargeViewItem.class, false);
-
-
     private final Set<ExtraChargeViewItem> extraCharges = new HashSet<>();
 
-    private ExtraChargeForm extraChargeForm;
-
-
+    private final H3 extraChargeTitle = new H3(Labels.EXTRA_CHARGE_TITLE);
+    private final ExtraChargeForm extraChargeForm = new ExtraChargeForm();
     private final Button saveBtn = new Button(Labels.SAVE);
-
     private final Button cancelBtn = new Button(Labels.CANCEL);
-    @Autowired
-    private BuildingService buildingService;
-    @Autowired
-    private ApartmentService apartmentService;
+    private String buildingIdParam;
 
-    public EditBuildingView() {
+    private final BuildingService buildingService;
+
+    private final ApartmentService apartmentService;
+
+    private boolean extraChargesVisible;
+
+    @Autowired
+    public EditBuildingView(BuildingService buildingService, ApartmentService apartmentService) {
         super();
+        this.buildingService = buildingService;
+        this.apartmentService = apartmentService;
     }
 
     @Override
@@ -78,20 +76,28 @@ public class EditBuildingView extends VerticalLayout implements BeforeEnterObser
         configureGrid();
         configureListeners();
 
-        add(getContent(), extraChargeGrid, createButtonsLayout());
+        add(getContent());
+        if (extraChargesVisible) {
+            add(extraChargeGrid);
+        }
+        add(createButtonsLayout());
+
     }
 
     private Component getContent() {
 
 
-        final var extraChargeTitle = new H3(Labels.EXTRA_CHARGE_TITLE);
 
-        final var verticalLayout = new VerticalLayout(extraChargeTitle, extraChargeForm);
+        final var content = new HorizontalLayout(createBuildingForm);
+        content.add(createBuildingForm);
 
+        if (extraChargesVisible) {
+            final var verticalLayout = new VerticalLayout(extraChargeTitle, extraChargeForm);
+            content.add(verticalLayout);
+            content.setFlexGrow(2, createBuildingForm);
+            content.setFlexGrow(1, verticalLayout);
+        }
 
-        final var content = new HorizontalLayout(createBuildingForm, verticalLayout);
-        content.setFlexGrow(2, createBuildingForm);
-        content.setFlexGrow(1, verticalLayout);
         content.addClassNames("content");
         content.setWidthFull();
         return content;
@@ -104,7 +110,6 @@ public class EditBuildingView extends VerticalLayout implements BeforeEnterObser
         extraChargeGrid.addColumn(ExtraChargeViewItem::getDescription).setHeader(Labels.ExtraCharge.DESCRIPTION_LABEL);
         extraChargeGrid.addColumn(ExtraChargeViewItem::getAmount).setHeader(Labels.ExtraCharge.AMOUNT_LABEL).setSortable(true).setKey(Labels.ExtraCharge.AMOUNT_LABEL);
         extraChargeGrid.addColumn(ExtraChargeViewItem::getCurrency).setHeader(Labels.ExtraCharge.CURRENCY_LABEL).setSortable(true).setKey(Labels.ExtraCharge.CURRENCY_LABEL);
-
 
         extraChargeGrid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
@@ -191,14 +196,15 @@ public class EditBuildingView extends VerticalLayout implements BeforeEnterObser
                     return (Runnable) () -> {
                         extraCharges.addAll(viewItem.getExtraCharges());
                         createBuildingForm.setBuilding(viewItem);
-                        extraChargeForm = new ExtraChargeForm(list);
-                        extraChargeForm.setVisible(!list.isEmpty());
+                        extraChargeForm.setApartments(list);
+
+                        extraChargesVisible = !list.isEmpty();
                         init();
                     };
                 })
                 .defaultIfEmpty(() -> {
-                    extraChargeForm = new ExtraChargeForm(Collections.emptySet());
-                    extraChargeForm.setVisible(false);
+                    extraChargesVisible = false;
+
                     init();
                 })
                 .doOnSuccess(this::uiAsyncAction)

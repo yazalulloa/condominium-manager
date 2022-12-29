@@ -33,11 +33,9 @@ public class HttpClientVerticle extends AbstractVerticle {
     public static final String SEND = "http-send-request";
 
     private static final AtomicLong COUNTER = new AtomicLong(0);
-
+    private final HttpLogging httpLogging = new HttpLogging();
     private WebClient webClient;
     private WebClient trustAll;
-
-    private final HttpLogging httpLogging = new HttpLogging();
 
     @Override
     public void start() {

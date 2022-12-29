@@ -22,6 +22,7 @@ import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
 import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
+import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import reactor.core.publisher.Mono;
@@ -45,35 +46,29 @@ public class DebtForm extends FormLayout implements AbstractView {
     @PropertyId("amount")
     private final BigDecimalField amountField = new BigDecimalField(Labels.Debt.AMOUNT_LABEL);
     @PropertyId("currency")
-    private final ComboBox<Currency> currencyComboBox = new ComboBox<>(Labels.Debt.CURRENCY_LABEL, Currency.values);
+    private final ComboBox<Currency> currencyComboBox = ViewUtil.currencyComboBox(Labels.Debt.CURRENCY_LABEL);
     @PropertyId("months")
     private final MultiSelectComboBox<Month> monthComboBox = new MultiSelectComboBox<>(Labels.Debt.MONTHS_LABEL, Month.values());
     @PropertyId("previousPaymentAmount")
     private final BigDecimalField previousPaymentAmountField = new BigDecimalField(Labels.Debt.PREVIOUS_AMOUNT_PAYED_LABEL);
     @PropertyId("previousPaymentAmountCurrency")
-    private final ComboBox<Currency> previousPaymentAmountCurrencyComboBox = new ComboBox<>(Labels.Debt.PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL, Currency.values);
+    private final ComboBox<Currency> previousPaymentAmountCurrencyComboBox = ViewUtil.currencyComboBox(Labels.Debt.PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL);
 
 
-    private final Button saveBtn = new Button(Labels.SAVE);
+    private final Button addBtn = new Button(Labels.ADD);
     private final Button deleteBtn = new Button(Labels.DELETE);
     private final Button cancelBtn = new Button(Labels.CANCEL);
     private final Binder<DebtViewItem> binder = new BeanValidationBinder<>(DebtViewItem.class);
 
     DebtViewItem debt;
 
-    private String buildingId;
-
     public DebtForm(Function<String, Mono<String>> nameFunction) {
         addClassName("debt-form");
 
-        currencyComboBox.setItemLabelGenerator(Currency::name);
-        monthComboBox.setItemLabelGenerator(Month::name);
-        previousPaymentAmountCurrencyComboBox.setItemLabelGenerator(Currency::name);
 
+        monthComboBox.setItemLabelGenerator(Month::name);
         aptNumberComboBox.setAllowCustomValue(false);
-        currencyComboBox.setAllowCustomValue(false);
         monthComboBox.setAllowCustomValue(false);
-        previousPaymentAmountCurrencyComboBox.setAllowCustomValue(false);
 
         add(
                 aptNumberComboBox,
@@ -107,34 +102,32 @@ public class DebtForm extends FormLayout implements AbstractView {
     }
 
     public void clearAptNumbers() {
-        this.buildingId = null;
-        aptNumberComboBox.setItems(Collections.emptyList());
+        setAptNumbers(Collections.emptyList());
     }
 
-    public void setAptNumbers(String buildingId, Collection<String> collection) {
-        this.buildingId = buildingId;
+    public void setAptNumbers(Collection<String> collection) {
 
         aptNumberComboBox.setItems(collection);
     }
 
     private HorizontalLayout createButtonsLayout() {
-        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
         cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        saveBtn.addClickShortcut(Key.ENTER);
+        addBtn.addClickShortcut(Key.ENTER);
         cancelBtn.addClickShortcut(Key.ESCAPE);
 
-        saveBtn.addClickListener(event -> validateAndSave());
+        addBtn.addClickListener(event -> validateAndSave());
         deleteBtn.addClickListener(event -> fireEvent(new DebtForm.DeleteEvent(this, debt)));
         cancelBtn.addClickListener(event -> {
             binder.readBean(null);
         });
 
 
-        binder.addStatusChangeListener(e -> saveBtn.setEnabled(binder.isValid()));
+        binder.addStatusChangeListener(e -> addBtn.setEnabled(binder.isValid()));
 
-        return new HorizontalLayout(saveBtn, deleteBtn, cancelBtn);
+        return new HorizontalLayout(addBtn, deleteBtn, cancelBtn);
     }
 
     private void validateAndSave() {
@@ -164,6 +157,11 @@ public class DebtForm extends FormLayout implements AbstractView {
         binder.readBean(debt);
     }
 
+    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
+                                                                  ComponentEventListener<T> listener) {
+        return getEventBus().addListener(eventType, listener);
+    }
+
     public static abstract class FormEvent extends ComponentEvent<DebtForm> {
         private final DebtViewItem obj;
 
@@ -188,10 +186,5 @@ public class DebtForm extends FormLayout implements AbstractView {
             super(source, obj);
         }
 
-    }
-
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
     }
 }

@@ -32,6 +32,10 @@ public class RateQueryRequest {
     @Builder.Default
     private final Set<Sorting<SortField>> sortings = Collections.emptySet();
 
+    public static Sorting<RateQueryRequest.SortField> sorting(SortField sortField, Sort.Direction direction) {
+        return new Sorting<>(sortField, direction);
+    }
+
     public enum SortField implements MongoSortField {
         ID("id"),
         RATE("rate"),
@@ -48,9 +52,5 @@ public class RateQueryRequest {
         public String field() {
             return field;
         }
-    }
-
-    public static Sorting<RateQueryRequest.SortField> sorting(SortField sortField, Sort.Direction direction) {
-        return new Sorting<>(sortField, direction);
     }
 }

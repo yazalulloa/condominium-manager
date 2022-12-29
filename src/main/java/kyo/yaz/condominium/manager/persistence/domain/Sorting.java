@@ -22,6 +22,10 @@ public class Sorting<T extends Enum<T> & MongoSortField> {
         this.direction = Objects.requireNonNull(direction);
     }
 
+    public static <S extends Enum<S> & MongoSortField> Sorting<S> of(S field, Sort.Direction direction) {
+        return new Sorting<>(field, direction);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -33,10 +37,6 @@ public class Sorting<T extends Enum<T> & MongoSortField> {
     @Override
     public int hashCode() {
         return Objects.hash(field);
-    }
-
-    public static <S extends Enum<S> & MongoSortField> Sorting<S> of(S field, Sort.Direction direction) {
-        return new Sorting<>(field, direction);
     }
 }
 

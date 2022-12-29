@@ -14,10 +14,12 @@ import com.itextpdf.layout.property.VerticalAlignment;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
+import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
+import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
@@ -26,11 +28,14 @@ import lombok.extern.jackson.Jacksonized;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 @Jacksonized
 @SuperBuilder(toBuilder = true)
 @Accessors(fluent = true)
@@ -72,6 +77,53 @@ public class CreatePdfReceipt {
         document.add(new Paragraph(receipt().date().toString()));
         document.add(new Paragraph("PROPIETARIO: " + apartment().name()));
         document.add(new Paragraph("APT: " + apartment().apartmentId().number()));
+
+        final var ownExtraCharges = receipt.extraCharges().stream()
+                .filter(extraCharge -> extraCharge.aptNumber().equals(apartment.apartmentId().number()))
+                .filter(extraCharge -> DecimalUtil.greaterThanZero(extraCharge.amount()))
+                .toList();
+
+        /*if (aptInfo.fixedPay() != null) {
+
+            final var payment = totalPayment(BigDecimal.valueOf(aptInfo.fixedPay()), currencyType, usdExchangeRate, ownExtraCharges, true)
+                    .setScale(2, RoundingMode.HALF_UP);
+
+
+            final var paragraph = new Paragraph(new Text(receiptValue + currencyType.numberFormat().format(payment)).setBold().setUnderline());
+            document.add(paragraph);
+            consumer.accept(payment);
+            //document.add(new Paragraph(receiptValue + Util.veFormat.format(aptInfo.fixedPay() * usdExchangeRate)));
+        } else {
+
+            //document.add(new Paragraph("MONTO DE GASTOS NO COMUNES POR C/U: " + currencyType.numberFormat().format(unCommonPay)));
+            final var aliquotAmount = Util.percentageOf(BigDecimal.valueOf(aptInfo.aliquot()), totalCommon);
+            // document.add(new Paragraph("MONTO POR ALIQUOTA: " + currencyType.numberFormat().format(aliquotAmount)));
+            final var beforePay = aliquotAmount.add(unCommonPay);//.setScale(2, RoundingMode.UP);
+            final var payment = totalPayment(beforePay, currencyType, usdExchangeRate, ownExtraCharges, true).setScale(2, RoundingMode.HALF_UP);
+
+            final var showVes = !buildingName.contains("TULIPANES") && !buildingName.contains("ANTONIETA");
+
+            if (showVes) {
+                final var paragraph = new Paragraph(new Text(receiptValue + currencyType.numberFormat().format(payment)).setUnderline());
+                document.add(paragraph);
+            }
+
+            consumer.accept(payment);
+            if (currencyType == CurrencyType.VES) {
+
+                if (showVes) {
+                    document.add(new Paragraph(String.format(usdExchangeRateTitle, usdExchangeDate, Util.veFormat.format(usdExchangeRate))));
+                }
+
+                final var usdReceiptValue = payment.divide(usdExchangeRate, 2, RoundingMode.HALF_UP);
+                //payment.divide(BigDecimal.valueOf(usdExchangeRate), MathContext.UNLIMITED);
+                document.add(new Paragraph(new Text(receiptValue + Util.usFormat.format(usdReceiptValue))).setUnderline());
+            }
+
+            document.add(new Paragraph("ALIQUOTA: " + aptInfo.aliquot()));
+        }*/
+
+        document.add(new Paragraph("\n"));
     }
 
     private Cell tableCell() {

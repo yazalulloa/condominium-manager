@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import kyo.yaz.condominium.manager.core.domain.Currency;
-import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
@@ -27,14 +26,17 @@ import java.util.Set;
 public class BuildingViewItem {
 
     @NotBlank
+    @NotNull
     @JsonProperty
     private String id;
 
     @NotBlank
+    @NotNull
     @JsonProperty
     private String name;
 
     @NotBlank
+    @NotNull
     @JsonProperty
     private String rif;
     @NotNull
@@ -54,4 +56,10 @@ public class BuildingViewItem {
 
     @JsonProperty
     private List<ExtraChargeViewItem> extraCharges;
+    @JsonProperty
+    private boolean fixedPay;
+    @JsonProperty
+    private BigDecimal fixedPayAmount;
+    @JsonProperty
+    private Currency fixedPayCurrency;
 }

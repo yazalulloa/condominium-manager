@@ -1,17 +1,13 @@
 package kyo.yaz.condominium.manager.ui.views.base;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.reactivestreams.Subscriber;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.function.Consumer;
 
 public interface AbstractView {
