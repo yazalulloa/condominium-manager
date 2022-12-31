@@ -1,50 +1,63 @@
 package kyo.yaz.condominium.manager.ui.views;
 
 import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.UploadI18N;
+import com.vaadin.flow.component.upload.receivers.FileBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
+import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.VaadinSession;
+import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
+import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.MainLayout;
-import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.FileInputStream;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
-@Slf4j
+
 @PageTitle(ReceiptView.PAGE_TITLE)
 @Route(value = "receipts", layout = MainLayout.class)
-public class ReceiptView extends VerticalLayout implements AbstractView {
+public class ReceiptView extends BaseVerticalLayout {
     public static final String PAGE_TITLE = Labels.Receipt.VIEW_PAGE_TITLE;
     private final Grid<Receipt> grid = new Grid<>();
     private final ComboBox<String> buildingComboBox = new ComboBox<>();
+
+    private final Set<String> buildingIds = new LinkedHashSet<>();
 
     private final TextField filterText = new TextField();
 
@@ -56,22 +69,20 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
     private final DeleteDialog deleteDialog = new DeleteDialog();
     private final ReceiptService receiptService;
 
+    private final LoadCsvReceipt loadCsvReceipt;
+
+    private final VerticalLayout progressLayout = new VerticalLayout();
+
+    private final CreatePdfReceiptService createPdfReceiptService;
+
     @Autowired
-    public ReceiptView(BuildingService buildingService, ReceiptService receiptService) {
+    public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService) {
         super();
         this.buildingService = buildingService;
         this.receiptService = receiptService;
+        this.loadCsvReceipt = loadCsvReceipt;
+        this.createPdfReceiptService = createPdfReceiptService;
         init();
-    }
-
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return log;
     }
 
     @Override
@@ -84,8 +95,17 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
         addClassName("list-view");
         setSizeFull();
         configureGrid();
+        VaadinSession.getCurrent().setAttribute("receipt", null);
 
-        add(getToolbar(), grid, gridPaginator);
+        final var progressBar = new ProgressBar();
+        progressBar.setIndeterminate(true);
+
+        final var progressBarLabel = new Div();
+        progressBarLabel.setText("Procesando archivo...");
+        progressLayout.add(progressBarLabel, progressBar);
+        progressLayout.setVisible(false);
+
+        add(getToolbar(), progressLayout, grid, gridPaginator);
     }
 
     private void configureGrid() {
@@ -99,10 +119,60 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
         grid.addColumn(receipt -> ConvertUtil.format(receipt.totalCommonExpenses(), receipt.totalCommonExpensesCurrency())).setHeader(Labels.Receipt.EXPENSE_COMMON_LABEL);
         grid.addColumn(receipt -> ConvertUtil.format(receipt.totalUnCommonExpenses(), receipt.totalUnCommonExpensesCurrency())).setHeader(Labels.Receipt.EXPENSE_UNCOMMON_LABEL);
         grid.addColumn(Receipt::debtReceiptsAmount).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL);
-        grid.addColumn(receipt -> ConvertUtil.format(receipt.totalDebt(), receipt.totalDebtCurrency())).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL);
+        grid.addColumn(Receipt::totalDebt).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL);
         grid.addColumn(receipt -> receipt.rate().rate()).setHeader(Labels.Receipt.RATE_LABEL).setSortable(true).setKey(Labels.Receipt.RATE_LABEL);
         grid.addColumn(receipt -> DateUtil.formatVe(receipt.createdAt())).setHeader(Labels.Receipt.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Receipt.CREATED_AT_LABEL);
 
+
+        grid.addColumn(
+                        new ComponentRenderer<>(Anchor::new, (anchor, item) -> {
+
+                            anchor.setHref(new StreamResource(createPdfReceiptService.fileName(item), () -> {
+
+                                try {
+                                    final var path = createPdfReceiptService.zip(item)
+                                            .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                                            .blockingGet();
+
+                                    return new FileInputStream(path);
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }));
+
+
+                            anchor.getElement().setAttribute("download", true);
+                            final var downloadButton = new Button(new Icon(VaadinIcon.DOWNLOAD_ALT));
+                            anchor.add(downloadButton);
+                        }))
+                .setHeader(Labels.DOWNLOAD)
+                .setTextAlign(ColumnTextAlign.END)
+                .setFrozenToEnd(true)
+                .setFlexGrow(0);
+
+
+        grid.addColumn(
+                        new ComponentRenderer<>(Button::new, (button, item) -> {
+                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
+                                    ButtonVariant.LUMO_SUCCESS,
+                                    ButtonVariant.LUMO_TERTIARY);
+                            button.addClickListener(e -> {
+                                final var newItem = item.toBuilder()
+                                        .id(null)
+                                        .createdAt(null)
+                                        .updatedAt(null)
+                                        .build();
+
+                                saveReceiptInSession(newItem);
+                                addEntity("copy");
+
+                            });
+                            button.setIcon(new Icon(VaadinIcon.COPY));
+                        }))
+                .setHeader(Labels.COPY)
+                .setTextAlign(ColumnTextAlign.END)
+                .setFrozenToEnd(true)
+                .setFlexGrow(0);
 
         grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
@@ -111,7 +181,7 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
                                     ButtonVariant.LUMO_TERTIARY);
                             button.addClickListener(e -> {
 
-                                deleteDialog.setHeaderTitle(Labels.Receipt.ASK_CONFIRMATION_DELETE.formatted(item.id(), item.buildingId(), item.date()));
+                                deleteDialog.setText(Labels.Receipt.ASK_CONFIRMATION_DELETE.formatted(item.id(), item.buildingId(), item.date()));
                                 deleteDialog.setDeleteAction(() -> delete(item));
                                 deleteDialog.open();
 
@@ -149,7 +219,10 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
         final var countMono = setCount();
 
         final var setBuildingsIds = buildingService.buildingIds()
-                .map(buildingIds -> (Runnable) () -> buildingComboBox.setItems(buildingIds));
+                .map(set -> (Runnable) () -> {
+                    buildingIds.addAll(set);
+                    buildingComboBox.setItems(buildingIds);
+                });
 
         final var list = List.of(countMono, setBuildingsIds);
 
@@ -175,8 +248,6 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
         addEntityButton.setDisableOnClick(true);
         addEntityButton.addClickListener(click -> addEntity());
 
-
-        //buildingComboBox.setHelperText(Labels.Apartment.BUILDING_LABEL);
         buildingComboBox.setPlaceholder(Labels.Apartment.BUILDING_LABEL);
         buildingComboBox.setClearButtonVisible(true);
         buildingComboBox.setAutoOpen(true);
@@ -186,10 +257,98 @@ public class ReceiptView extends VerticalLayout implements AbstractView {
             }
         });
 
-        HorizontalLayout toolbar = new HorizontalLayout(filterText, buildingComboBox, addEntityButton, countText);
+        final var buffer = new FileBuffer();
+        final var upload = new Upload(buffer);
+        upload.setDropAllowed(true);
+        upload.setAutoUpload(true);
+        upload.setAcceptedFileTypes(".xlsx");
+        upload.setMaxFiles(1);
+        int maxFileSizeInBytes = 2 * 1024 * 1024; // 10MB
+        upload.setMaxFileSize(maxFileSizeInBytes);
+
+
+        final var i18n = new UploadI18N();
+        i18n.setAddFiles(new UploadI18N.AddFiles().setOne("Seleccione un archivo"));
+        upload.setI18n(i18n);
+
+
+        upload.addSucceededListener(event -> {
+            final var inputStream = buffer.getInputStream();
+
+            final var dialog = new Dialog();
+
+
+            final var comboBox = new ComboBox<String>();
+            comboBox.setItems(buildingIds);
+            comboBox.setPlaceholder(Labels.Apartment.BUILDING_LABEL);
+            comboBox.setClearButtonVisible(false);
+            comboBox.setAutoOpen(true);
+
+
+            final var processBtn = new Button("Procesar");
+            processBtn.setEnabled(false);
+            processBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
+
+            final var cancelBtn = new Button(Labels.CANCEL);
+            cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+
+            comboBox.addValueChangeListener(e -> {
+                processBtn.setEnabled(true);
+            });
+
+            cancelBtn.addClickListener(e -> {
+                dialog.close();
+                upload.clearFileList();
+            });
+
+            processBtn.addClickListener(v -> {
+
+                processBtn.setEnabled(false);
+                final var buildingId = comboBox.getValue();
+                progressLayout.setVisible(true);
+
+                loadCsvReceipt.load(buildingId, inputStream)
+                        .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                        .subscribe(singleObserver(receipt -> {
+
+                            ui(ui -> {
+                                ui.access(() -> {
+
+                                    saveReceiptInSession(receipt);
+                                    addEntity("file");
+                                });
+                            });
+
+                        }, t -> {
+                            showError(t);
+                            uiAsyncAction(() -> progressLayout.setVisible(false));
+                        }));
+
+
+                upload.clearFileList();
+                dialog.close();
+            });
+
+            dialog.setModal(true);
+            dialog.add(comboBox);
+            dialog.getFooter().add(processBtn);
+            dialog.getFooter().add(cancelBtn);
+            dialog.open();
+
+        });
+
+        upload.addFileRejectedListener(event -> viewHelper.showError(event.getErrorMessage()));
+
+        upload.addFailedListener(event -> showError(event.getReason()));
+
+        HorizontalLayout toolbar = new HorizontalLayout(filterText, buildingComboBox, addEntityButton, upload, countText);
         toolbar.addClassName("toolbar");
         toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         return toolbar;
+    }
+
+    private void saveReceiptInSession(Receipt receipt) {
+        VaadinSession.getCurrent().setAttribute("receipt", receipt);
     }
 
     private void setCountText(Long count) {

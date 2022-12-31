@@ -1,13 +1,11 @@
 package kyo.yaz.condominium.manager.ui.views.form;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -18,15 +16,13 @@ import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
-import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ExpenseViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 
-@Slf4j
-public class ExpenseForm extends FormLayout implements AbstractView {
+
+public class ExpenseForm extends BaseForm {
 
     @PropertyId("description")
     private final TextField descriptionField = new TextField(Labels.Expense.DESCRIPTION_LABEL);
@@ -49,9 +45,6 @@ public class ExpenseForm extends FormLayout implements AbstractView {
 
     public ExpenseForm() {
         addClassName("expense-form");
-
-
-
 
 
         typeComboBox.setAllowCustomValue(false);
@@ -94,21 +87,12 @@ public class ExpenseForm extends FormLayout implements AbstractView {
             fireEvent(new SaveEvent(this, expense));
             setExpense(ExpenseViewItem.builder().build());
         } catch (ValidationException e) {
-            log.error("ERROR_VALIDATING", e);
+            logger().error("ERROR_VALIDATING", e);
             asyncNotification(e.getMessage());
 
         }
     }
 
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return log;
-    }
 
     public void setExpense(ExpenseViewItem expense) {
         this.expense = expense;

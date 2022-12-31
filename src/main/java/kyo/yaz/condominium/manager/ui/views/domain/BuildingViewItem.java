@@ -50,6 +50,10 @@ public class BuildingViewItem {
     @JsonProperty
     private Currency mainCurrency;
 
+    @NotNull
+    @JsonProperty
+    private Currency debtCurrency;
+
     @NotEmpty
     @JsonProperty
     private Set<Currency> currenciesToShowAmountToPay;
@@ -60,6 +64,4 @@ public class BuildingViewItem {
     private boolean fixedPay;
     @JsonProperty
     private BigDecimal fixedPayAmount;
-    @JsonProperty
-    private Currency fixedPayCurrency;
 }

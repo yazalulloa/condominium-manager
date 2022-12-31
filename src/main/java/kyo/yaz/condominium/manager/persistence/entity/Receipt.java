@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Jacksonized
 @Builder(toBuilder = true)
@@ -58,9 +57,9 @@ public class Receipt {
     @JsonProperty
     private final List<Debt> debts;
     @JsonProperty
-    private final BigDecimal totalDebt;
+    private final List<AptTotal> aptTotals;
     @JsonProperty
-    private final Currency totalDebtCurrency;
+    private final BigDecimal totalDebt;
     @JsonProperty
     private final Integer debtReceiptsAmount;
     @JsonProperty
@@ -71,5 +70,24 @@ public class Receipt {
     private final ZonedDateTime updatedAt;
     @JsonProperty
     private final Rate rate;
+
+    @Jacksonized
+    @Builder(toBuilder = true)
+    @Accessors(fluent = true)
+    @ToString
+    @Getter
+    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class AptTotal {
+        @JsonProperty
+        private final String number;
+        @JsonProperty
+        private final String name;
+        @JsonProperty
+        private final BigDecimal amount;
+        @JsonProperty
+        private final List<ExtraCharge> extraCharges;
+
+    }
 
 }

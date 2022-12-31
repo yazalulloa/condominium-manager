@@ -45,6 +45,8 @@ public class Building {
     @JsonProperty
     private final Currency mainCurrency;
     @JsonProperty
+    private final Currency debtCurrency;
+    @JsonProperty
     private final Set<Currency> currenciesToShowAmountToPay;
     @JsonProperty
     private final List<ExtraCharge> extraCharges;
@@ -52,6 +54,4 @@ public class Building {
     private final Boolean fixedPay;
     @JsonProperty
     private final BigDecimal fixedPayAmount;
-    @JsonProperty
-    private final Currency fixedPayCurrency;
 }

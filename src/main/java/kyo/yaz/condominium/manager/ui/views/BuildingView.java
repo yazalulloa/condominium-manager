@@ -11,24 +11,22 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouteParameters;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
+import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.actions.DeleteEntity;
-import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.reactivestreams.Subscriber;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -39,10 +37,8 @@ import java.util.Optional;
 @PageTitle(BuildingView.PAGE_TITLE)
 @Route(value = "buildings", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
-public class BuildingView extends VerticalLayout implements AbstractView, DeleteEntity<Building> {
+public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Building> {
     public static final String PAGE_TITLE = "Edificios";
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Grid<Building> grid = new Grid<>();
     private final Text countOfBuildingText = new Text(null);
@@ -89,11 +85,11 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
         grid.addColumn(Building::currenciesToShowAmountToPay).setHeader(Labels.Building.SHOW_PAYMENT_IN_CURRENCIES);
         grid.addColumn(building -> {
 
-            final var fixedPay = Optional.ofNullable(building.fixedPay()).orElse(false);
+            final var fixedPay = ObjectUtil.aBoolean(building.fixedPay());
 
             if (fixedPay) {
 
-                return ConvertUtil.format(building.fixedPayAmount(), building.fixedPayCurrency());
+                return ConvertUtil.format(building.fixedPayAmount(), building.mainCurrency());
             } else {
                 return Labels.DEACTIVATED;
             }
@@ -106,7 +102,7 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
                                     ButtonVariant.LUMO_TERTIARY);
                             button.addClickListener(e -> {
 
-                                deleteDialog.setHeaderTitle(Labels.ASK_CONFIRMATION_DELETE_BUILDING.formatted(item.id()));
+                                deleteDialog.setText(Labels.ASK_CONFIRMATION_DELETE_BUILDING.formatted(item.id()));
                                 deleteDialog.setDeleteAction(() -> delete(item));
                                 deleteDialog.open();
                             });
@@ -142,7 +138,7 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
     private Subscriber<Void> refreshGridSubscriber() {
         return ViewUtil.emptySubscriber(throwable -> {
             asyncNotification("Error Refreshing Grid" + throwable.getMessage());
-            logger.error("ERROR", throwable);
+            logger().error("ERROR", throwable);
         });
     }
 
@@ -158,7 +154,7 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
                     grid.setItems(list);
                     grid.getDataProvider().refreshAll();
                 })
-                .doOnError(throwable -> logger.error("ERROR", throwable))
+                .doOnError(throwable -> logger().error("ERROR", throwable))
                 .onErrorResume(throwable -> Mono.just(() -> asyncNotification("Error al cargar edificios " + throwable.getMessage())));
 
 
@@ -177,17 +173,6 @@ public class BuildingView extends VerticalLayout implements AbstractView, Delete
         toolbar.addClassName("toolbar");
         toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         return toolbar;
-    }
-
-
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return logger;
     }
 
     private void editEntity() {

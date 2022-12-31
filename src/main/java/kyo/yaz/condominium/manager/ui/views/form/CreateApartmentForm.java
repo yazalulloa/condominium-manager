@@ -1,13 +1,11 @@
 package kyo.yaz.condominium.manager.ui.views.form;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -17,19 +15,15 @@ import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
-import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ApartmentViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
-public class CreateApartmentForm extends FormLayout implements AbstractView {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+public class CreateApartmentForm extends BaseForm {
 
     @PropertyId("building_id")
     private final ComboBox<String> buildingField = new ComboBox<>(Labels.Apartment.BUILDING_LABEL);
@@ -117,7 +111,8 @@ public class CreateApartmentForm extends FormLayout implements AbstractView {
 
             fireEvent(new SaveEvent(this, apartment));
         } catch (ValidationException e) {
-            logger.error("ERROR_VALIDATING", e);
+            logger().error("ERROR_VALIDATING", e);
+
             asyncNotification(e.getMessage());
 
         }
@@ -133,16 +128,6 @@ public class CreateApartmentForm extends FormLayout implements AbstractView {
 
         emailsForm.clearEmailComponents();
         emailsForm.setEmails(emails);
-    }
-
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return logger;
     }
 
     public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,

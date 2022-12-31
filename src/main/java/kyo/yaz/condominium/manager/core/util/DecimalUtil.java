@@ -111,4 +111,8 @@ public class DecimalUtil {
     public static boolean isFractionPartEqualsToZero(BigDecimal value) {
         return equalsToZero(fractionPart(value));
     }
+
+    public static BigDecimal scale(BigDecimal value) {
+        return value.setScale(2, RoundingMode.HALF_UP);
+    }
 }

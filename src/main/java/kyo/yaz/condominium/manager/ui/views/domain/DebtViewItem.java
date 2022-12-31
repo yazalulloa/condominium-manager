@@ -39,10 +39,6 @@ public class DebtViewItem {
     @JsonProperty
     private BigDecimal amount;
 
-    @NotNull
-    @JsonProperty
-    private Currency currency;
-
     @JsonProperty
     private Set<Month> months;
 

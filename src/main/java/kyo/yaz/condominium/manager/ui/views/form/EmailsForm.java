@@ -17,7 +17,7 @@ import java.util.Set;
 
 public class EmailsForm extends VerticalLayout {
 
-    private List<Component> emailComponents = new ArrayList<Component>();
+    private final List<Component> emailComponents = new ArrayList<Component>();
 
     public EmailsForm() {
         this(null);

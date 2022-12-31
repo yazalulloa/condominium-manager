@@ -1,5 +1,6 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
 import java.util.Iterator;
@@ -81,5 +83,10 @@ public class RateService {
                 .map(List::iterator)
                 .filter(Iterator::hasNext)
                 .map(Iterator::next);
+    }
+
+    public Single<Rate> getLast(Currency fromCurrency, Currency toCurrency) {
+        return RxJava3Adapter.monoToMaybe(last(fromCurrency, toCurrency))
+                .switchIfEmpty(Single.error(new RuntimeException("Last rate not found")));
     }
 }

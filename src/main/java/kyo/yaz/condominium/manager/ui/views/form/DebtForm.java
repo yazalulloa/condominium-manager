@@ -45,8 +45,6 @@ public class DebtForm extends FormLayout implements AbstractView {
     private final IntegerField receiptsField = new IntegerField(Labels.Debt.RECEIPT_LABEL);
     @PropertyId("amount")
     private final BigDecimalField amountField = new BigDecimalField(Labels.Debt.AMOUNT_LABEL);
-    @PropertyId("currency")
-    private final ComboBox<Currency> currencyComboBox = ViewUtil.currencyComboBox(Labels.Debt.CURRENCY_LABEL);
     @PropertyId("months")
     private final MultiSelectComboBox<Month> monthComboBox = new MultiSelectComboBox<>(Labels.Debt.MONTHS_LABEL, Month.values());
     @PropertyId("previousPaymentAmount")
@@ -75,7 +73,6 @@ public class DebtForm extends FormLayout implements AbstractView {
                 nameField,
                 receiptsField,
                 amountField,
-                currencyComboBox,
                 monthComboBox,
                 previousPaymentAmountField,
                 previousPaymentAmountCurrencyComboBox,

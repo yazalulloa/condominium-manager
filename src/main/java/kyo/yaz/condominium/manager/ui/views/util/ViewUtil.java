@@ -89,10 +89,11 @@ public class ViewUtil {
     public static ComboBox<Month> monthPicker(ZoneId zoneId) {
         LocalDate now = LocalDate.now(zoneId);
 
-        final var comboBox = new ComboBox<Month>(Labels.MONTH, Month.values());
+        final var comboBox = new ComboBox<>(Labels.MONTH, Month.values());
 
         comboBox.setValue(now.getMonth());
         comboBox.setAllowCustomValue(false);
+        comboBox.setAutoOpen(true);
         return comboBox;
     }
 
@@ -109,6 +110,7 @@ public class ViewUtil {
 
         comboBox.setValue(now.getYear());
         comboBox.setAllowCustomValue(false);
+        comboBox.setAutoOpen(true);
         return comboBox;
     }
 
@@ -120,6 +122,7 @@ public class ViewUtil {
         final var comboBox = new ComboBox<>(label, Currency.values);
         comboBox.setValue(defaultValue);
         comboBox.setAllowCustomValue(false);
+        comboBox.setAutoOpen(true);
         return comboBox;
     }
 

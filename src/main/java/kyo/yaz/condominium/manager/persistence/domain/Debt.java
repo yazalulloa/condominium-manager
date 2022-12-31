@@ -12,8 +12,6 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Month;
 import java.util.Set;
@@ -26,33 +24,20 @@ import java.util.Set;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class Debt implements IAmountCurrency {
-
-    @NotBlank
-    @JsonProperty("apt_number")
-    private final String aptNumber;
-
-    @NotBlank
-    @JsonProperty("name")
-    private final String name;
-
-    @JsonProperty("receipts")
-    private final int receipts;
-
-    @NotNull
-    @JsonProperty("amount")
-    private final BigDecimal amount;
-
-    @NotNull
-    @JsonProperty("currency")
-    private final Currency currency;
+public class Debt {
 
     @JsonProperty
+    private final String aptNumber;
+    @JsonProperty
+    private final String name;
+    @JsonProperty
+    private final int receipts;
+    @JsonProperty
+    private final BigDecimal amount;
+    @JsonProperty
     private final Set<Month> months;
-
-    @JsonProperty("previous_payment_amount")
+    @JsonProperty
     private final BigDecimal previousPaymentAmount;
-
-    @JsonProperty("previous_payment_amount_currency")
+    @JsonProperty
     private final Currency previousPaymentAmountCurrency;
 }

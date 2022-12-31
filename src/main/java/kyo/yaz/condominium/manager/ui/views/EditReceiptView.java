@@ -1,8 +1,8 @@
 package kyo.yaz.condominium.manager.ui.views;
 
 import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
@@ -17,14 +17,16 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
+import kyo.yaz.condominium.manager.core.service.entity.SaveReceipt;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.persistence.repository.RateBlockingRepository;
 import kyo.yaz.condominium.manager.ui.MainLayout;
-import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.domain.ExpenseViewItem;
 import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
@@ -35,22 +37,19 @@ import kyo.yaz.condominium.manager.ui.views.form.ReceiptForm;
 import kyo.yaz.condominium.manager.ui.views.util.AppUtil;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Slf4j
 @PageTitle(ReceiptView.PAGE_TITLE)
 @Route(value = "receipts/:receipt_id", layout = MainLayout.class)
-public class EditReceiptView extends HorizontalLayout implements BeforeEnterObserver, AbstractView {
+public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterObserver {
 
 
     /* private final H4 idField = new H4();
@@ -60,10 +59,10 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
     private final Grid<ExtraChargeViewItem> extraChargeGrid = new Grid<>();
     private final Button saveBtn = new Button(Labels.SAVE);
     private final Button cancelBtn = new Button(Labels.CANCEL);
-    private final Set<ExpenseViewItem> expenses = new HashSet<>();
-    private final Set<DebtViewItem> debts = new HashSet<>();
+    private final Set<ExpenseViewItem> expenses = new LinkedHashSet<>();
+    private final Set<DebtViewItem> debts = new LinkedHashSet<>();
     private final ExtraChargeForm extraChargeForm = new ExtraChargeForm();
-    private final Set<ExtraChargeViewItem> extraCharges = new HashSet<>();
+    private final Set<ExtraChargeViewItem> extraCharges = new LinkedHashSet<>();
     private ExpenseForm expenseForm;
     private DebtForm debtForm;
     private Long receiptId;
@@ -76,13 +75,16 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
     private final BuildingService buildingService;
     private final RateBlockingRepository rateRepository;
 
+    private final SaveReceipt saveReceipt;
+
     @Autowired
-    public EditReceiptView(ApartmentService apartmentService, ReceiptService receiptService, BuildingService buildingService, RateBlockingRepository rateRepository) {
+    public EditReceiptView(ApartmentService apartmentService, ReceiptService receiptService, BuildingService buildingService, RateBlockingRepository rateRepository, SaveReceipt saveReceipt) {
         super();
         this.apartmentService = apartmentService;
         this.receiptService = receiptService;
         this.buildingService = buildingService;
         this.rateRepository = rateRepository;
+        this.saveReceipt = saveReceipt;
         init();
     }
 
@@ -91,8 +93,6 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
         setSizeFull();
         configureGrids();
         getContent();
-        //add(getContent(), createButtonsLayout());
-        setFlexGrow(1);
         configureListeners();
     }
 
@@ -127,13 +127,13 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
                     .rate(formItem.getRate())
                     .build();
 
-            receiptService.save(build)
-                    .subscribeOn(Schedulers.parallel())
-                    .subscribe(receipt -> {
+            saveReceipt.save(build)
+                    .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                    .subscribe(singleObserver(receipt -> {
                         logger().info("Navigating");
                         uiAsyncAction(this::navigateBack);
 
-                    }, this::showError);
+                    }, this::showError));
         });
 
         saveBtn.addClickListener(event -> receiptForm.validateAndSave());
@@ -143,29 +143,13 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
         return new HorizontalLayout(saveBtn, cancelBtn);
     }
 
-    private void navigateBack() {
-        ui(ui -> ui.navigate(ReceiptView.class));
-    }
+    private void getContent() {
 
-    private Mono<Runnable> setAptNumbers(String buildingId) {
-        return apartmentService.aptNumbers(buildingId)
-                .map(list -> () -> {
-                    log.info("APARTMENTS_LIST: " + list);
-                    debtForm.setAptNumbers(list);
-                    debtForm.setVisible(true);
-                    extraChargeForm.setApartments(list);
-                    extraChargeForm.setVisible(true);
-                });
-    }
-
-    private VerticalLayout receiptInfo() {
         receiptForm = new ReceiptForm(rateRepository);
-
 
         receiptForm.buildingComboBox().addValueChangeListener(event -> {
             if (receiptId == null) {
                 final var value = event.getValue();
-                log.info("BUILDING_VALUE: " + value);
 
                 if (value == null) {
                     debtForm.setVisible(false);
@@ -182,11 +166,45 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
             }
         });
 
+        expenseForm = new ExpenseForm();
+        debtForm = new DebtForm(aptNumber -> {
+            final var buildingId = receiptForm.buildingComboBox().getValue();
+            return apartmentService.read(buildingId, aptNumber).map(Apartment::name);
+        });
+        debtForm.setVisible(false);
+        extraChargeForm.setVisible(false);
 
-        return new VerticalLayout(receiptForm,
-                createButtonsLayout(),
-                new H3(Labels.EXPENSES),
-                expenseGrid, new H3(Labels.DEBTS), debtGrid, new H3(Labels.EXTRA_CHARGE_TITLE), extraChargeGrid);
+        expenseForm.setWidth(25, Unit.PERCENTAGE);
+        final var expensesLayout = new HorizontalLayout(new VerticalLayout(new H3(Labels.EXPENSES), expenseGrid), expenseForm);
+        //expensesLayout.setFlexGrow(2, expenseGrid);
+        //expensesLayout.setFlexGrow(1, expenseForm);
+        final var debtsLayout = new HorizontalLayout(new VerticalLayout(new H3(Labels.DEBTS), debtGrid), debtForm);
+        debtForm.setWidth(25, Unit.PERCENTAGE);
+        //debtsLayout.setFlexGrow(2, debtGrid);
+        //debtsLayout.setFlexGrow(1, debtForm);
+        final var extraChargesLayout = new HorizontalLayout(new VerticalLayout(new H3(Labels.EXTRA_CHARGE_TITLE), extraChargeGrid), extraChargeForm);
+        extraChargeForm.setWidth(25, Unit.PERCENTAGE);
+        //extraChargesLayout.setFlexGrow(2, extraChargeGrid);
+        //extraChargesLayout.setFlexGrow(1, extraChargeForm);
+
+
+        add(receiptForm, createButtonsLayout(), expensesLayout, debtsLayout, extraChargesLayout);
+
+        setSizeFull();
+    }
+
+    private void navigateBack() {
+        ui(ui -> ui.navigate(ReceiptView.class));
+    }
+
+    private Mono<Runnable> setAptNumbers(String buildingId) {
+        return apartmentService.aptNumbers(buildingId)
+                .map(list -> () -> {
+                    debtForm.setAptNumbers(list);
+                    debtForm.setVisible(true);
+                    extraChargeForm.setApartments(list);
+                    extraChargeForm.setVisible(true);
+                });
     }
 
     private void configureGrids() {
@@ -194,8 +212,7 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
         expenseGrid.setAllRowsVisible(true);
         expenseGrid.setColumnReorderingAllowed(true);
         expenseGrid.addColumn(ExpenseViewItem::getDescription).setHeader(Labels.Expense.DESCRIPTION_LABEL);
-        expenseGrid.addColumn(ExpenseViewItem::getAmount).setHeader(Labels.Expense.AMOUNT_LABEL).setSortable(true).setKey(Labels.Expense.AMOUNT_LABEL);
-        expenseGrid.addColumn(ExpenseViewItem::getCurrency).setHeader(Labels.Expense.CURRENCY_LABEL).setSortable(true).setKey(Labels.Expense.CURRENCY_LABEL);
+        expenseGrid.addColumn(item -> ConvertUtil.format(item.getAmount(), item.getCurrency())).setHeader(Labels.Expense.AMOUNT_LABEL).setSortable(true).setKey(Labels.Expense.AMOUNT_LABEL);
         expenseGrid.addColumn(ExpenseViewItem::getType).setHeader(Labels.Expense.TYPE_LABEL).setSortable(true).setKey(Labels.Expense.TYPE_LABEL);
 
         expenseGrid.addColumn(
@@ -231,13 +248,18 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
         expenseGrid.setItems(expenses);
         expenseGrid.setSizeFull();
 
+        expenseGrid.addSelectionListener(selection -> {
+
+            selection.getFirstSelectedItem()
+                    .ifPresent(expenseForm::setExpense);
+        });
+
         debtGrid.addClassNames("debt-grid");
         debtGrid.setAllRowsVisible(true);
         debtGrid.setColumnReorderingAllowed(true);
         debtGrid.addColumn(item -> item.getAptNumber() + " " + item.getName()).setHeader(Labels.Debt.APT_LABEL).setSortable(true).setKey(Labels.Debt.APT_LABEL);
         debtGrid.addColumn(DebtViewItem::getReceipts).setHeader(Labels.Debt.RECEIPT_LABEL).setSortable(true).setKey(Labels.Debt.RECEIPT_LABEL);
         debtGrid.addColumn(DebtViewItem::getAmount).setHeader(Labels.Debt.AMOUNT_LABEL).setSortable(true).setKey(Labels.Debt.AMOUNT_LABEL);
-        debtGrid.addColumn(DebtViewItem::getCurrency).setHeader(Labels.Debt.CURRENCY_LABEL).setSortable(true).setKey(Labels.Debt.CURRENCY_LABEL);
         debtGrid.addColumn(item -> {
 
             return Optional.ofNullable(item.getMonths())
@@ -281,6 +303,12 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
         debtGrid.getColumns().forEach(col -> col.setAutoWidth(true));
         debtGrid.setItems(debts);
         debtGrid.setSizeFull();
+
+        debtGrid.addSelectionListener(selection -> {
+
+            selection.getFirstSelectedItem()
+                    .ifPresent(debtForm::setDebt);
+        });
 
         configureExtraChargeGridGrid();
     }
@@ -382,28 +410,8 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
         });
         debtForm.setVisible(false);
         extraChargeForm.setVisible(false);
+
         return new VerticalLayout(new H3(Labels.NEW_EXPENSE), expenseForm, new H3(Labels.NEW_DEBT), debtForm, new H3(Labels.EXTRA_CHARGE_TITLE), extraChargeForm);
-    }
-
-    //private Component getContent() {
-    private void getContent() {
-        /*if (receiptId == null) {
-            idField.setVisible(false);
-            createdAtField.setVisible(false);
-        }*/
-
-        final var receiptInfo = receiptInfo();
-        receiptInfo.setHeightFull();
-        final var forms = forms();
-
-        add(receiptInfo, forms);
-
-        /*
-        HorizontalLayout content = new HorizontalLayout(receiptInfo, forms);
-        content.addClassNames("content");
-        content.setSizeFull();
-        return content;
-        */
     }
 
 
@@ -411,11 +419,27 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
     public void beforeEnter(BeforeEnterEvent event) {
         receiptId = event.getRouteParameters().get("receipt_id")
                 .map(s -> {
-                    try {
-                        return Long.parseLong(s);
-                    } catch (Exception e) {
-                        return null;
+
+                    switch (s) {
+                        case "new": {
+                            return null;
+                        }
+                        case "file", "copy": {
+                            final var obj = VaadinSession.getCurrent().getAttribute("receipt");
+                            if (obj instanceof Receipt) {
+                                receipt = (Receipt) obj;
+                            }
+                        }
+                        default: {
+                            try {
+                                return Long.parseLong(s);
+                            } catch (Exception e) {
+                                return null;
+                            }
+                        }
                     }
+
+
                 })
                 .orElse(null);
     }
@@ -437,60 +461,47 @@ public class EditReceiptView extends HorizontalLayout implements BeforeEnterObse
         });
     }
 
-    @Override
-    public Component component() {
-        return this;
-    }
+    private Mono<Runnable> initReceipt() {
 
-    @Override
-    public Logger logger() {
-        return log;
+        return Mono.justOrEmpty(receipt)
+                .map(Receipt::buildingId)
+                .flatMap(this::setAptNumbers)
+                .map(runnable -> {
+                    return (Runnable) () -> {
+                        debts.addAll(ConvertUtil.toList(receipt.debts(), ConvertUtil::viewItem));
+                        expenses.addAll(ConvertUtil.toList(receipt.expenses(), ConvertUtil::viewItem));
+                        extraCharges.addAll(ConvertUtil.toList(receipt.extraCharges(), ConvertUtil::viewItem));
+
+                        setExpensesInGrid();
+                        setExtraChargesInGrid();
+                        setDebtsInGrid();
+
+                        receiptForm.setItem(ConvertUtil.formItem(receipt));
+                        receiptForm.buildingComboBox().setEnabled(receipt.createdAt() == null);
+                        receiptForm.buildingComboBox().setValue(receipt.buildingId());
+
+                        //idField.setText(Labels.Receipt.ID_LABEL + "" + receipt.id());
+                        // createdAtField.setText(Labels.Receipt.CREATED_AT_LABEL + " " + receipt.createdAt().withZoneSameInstant(DateUtil.VE_ZONE));
+
+                        runnable.run();
+                    };
+                });
     }
 
     private void initData() {
 
 
         final var setBuildingId = buildingService.buildingIds()
-                .map(buildingIds -> {
-                    return (Runnable) () -> {
-                        receiptForm.buildingComboBox().setItems(buildingIds);
-                        Optional.ofNullable(receiptId)
-                                .map(Object::toString)
-                                .ifPresent(receiptForm.buildingComboBox()::setValue);
-
-                    };
-                });
+                .map(buildingIds -> (Runnable) () -> receiptForm.buildingComboBox().setItems(buildingIds));
 
         final var receiptMono = Mono.justOrEmpty(receiptId)
                 .flatMap(receiptService::find)
                 .flatMap(receipt -> {
 
                     EditReceiptView.this.receipt = receipt;
-
-
-                    return setAptNumbers(receipt.buildingId())
-                            .map(runnable -> {
-                                return (Runnable) () -> {
-                                    debts.addAll(ConvertUtil.toList(receipt.debts(), ConvertUtil::viewItem));
-                                    expenses.addAll(ConvertUtil.toList(receipt.expenses(), ConvertUtil::viewItem));
-                                    extraCharges.addAll(ConvertUtil.toList(receipt.extraCharges(), ConvertUtil::viewItem));
-
-                                    setExpensesInGrid();
-                                    setExtraChargesInGrid();
-                                    setDebtsInGrid();
-
-                                    receiptForm.setItem(ConvertUtil.formItem(receipt));
-                                    receiptForm.buildingComboBox().setEnabled(false);
-
-                                    //idField.setText(Labels.Receipt.ID_LABEL + "" + receipt.id());
-                                    // createdAtField.setText(Labels.Receipt.CREATED_AT_LABEL + " " + receipt.createdAt().withZoneSameInstant(DateUtil.VE_ZONE));
-
-                                    runnable.run();
-                                };
-                            });
-
-
+                    return initReceipt();
                 })
+                .switchIfEmpty(initReceipt())
                 .defaultIfEmpty(AppUtil.emptyRunnable());
 
         Mono.zip(setBuildingId, receiptMono)

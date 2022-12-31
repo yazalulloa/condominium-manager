@@ -1,21 +1,26 @@
 package kyo.yaz.condominium.manager.ui.views.util;
 
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
+import kyo.yaz.condominium.manager.persistence.domain.IAmountCurrency;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.domain.*;
+import org.springframework.data.util.Pair;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class ConvertUtil {
     public static final NumberFormat VE_FORMAT;
@@ -55,14 +60,15 @@ public class ConvertUtil {
 
 
         return new BuildingViewItem(
-                building.id(), building.name(), building.rif(), building.reserveFund(), building.reserveFundCurrency(), building.mainCurrency(),
-                building.currenciesToShowAmountToPay(), ConvertUtil.toList(building.extraCharges(), ConvertUtil::viewItem), ObjectUtil.aBoolean(building.fixedPay()), building.fixedPayAmount(), building.fixedPayCurrency());
+                building.id(), building.name(), building.rif(), building.reserveFund(), building.reserveFundCurrency(), building.mainCurrency(), building.debtCurrency(),
+                building.currenciesToShowAmountToPay(), ConvertUtil.toList(building.extraCharges(), ConvertUtil::viewItem), ObjectUtil.aBoolean(building.fixedPay()),
+                building.fixedPayAmount());
     }
 
     public static Building building(BuildingViewItem item) {
 
-        return new Building(item.getId().toUpperCase(), item.getName(), item.getRif(), item.getReserveFund(), item.getReserveFundCurrency(), item.getMainCurrency(),
-                item.getCurrenciesToShowAmountToPay(), ConvertUtil.toList(item.getExtraCharges(), ConvertUtil::extraCharge), item.isFixedPay(), item.getFixedPayAmount(), item.getFixedPayCurrency());
+        return new Building(item.getId().toUpperCase(), item.getName(), item.getRif(), item.getReserveFund(), item.getReserveFundCurrency(), item.getMainCurrency(), item.getDebtCurrency(),
+                item.getCurrenciesToShowAmountToPay(), ConvertUtil.toList(item.getExtraCharges(), ConvertUtil::extraCharge), item.isFixedPay(), item.getFixedPayAmount());
     }
 
    /* public static ReceiptViewItem receipt(Receipt receipt) {
@@ -103,7 +109,6 @@ public class ConvertUtil {
                 .name(item.getName())
                 .receipts(item.getReceipts())
                 .amount(item.getAmount())
-                .currency(item.getCurrency())
                 .months(item.getMonths())
                 .previousPaymentAmount(item.getPreviousPaymentAmount())
                 .previousPaymentAmountCurrency(item.getPreviousPaymentAmountCurrency())
@@ -111,7 +116,7 @@ public class ConvertUtil {
     }
 
     public static DebtViewItem viewItem(Debt item) {
-        return new DebtViewItem(item.aptNumber(), item.name(), item.receipts(), item.amount(), item.currency(), item.months(), item.previousPaymentAmount(), item.previousPaymentAmountCurrency());
+        return new DebtViewItem(item.aptNumber(), item.name(), item.receipts(), item.amount(), item.months(), item.previousPaymentAmount(), item.previousPaymentAmountCurrency());
     }
 
 
@@ -141,5 +146,36 @@ public class ConvertUtil {
                 .orElse(BigDecimal.ZERO);
 
         return numberFormat.format(decimal);
+    }
+
+    public static <T extends IAmountCurrency> Pair<BigDecimal, Currency> pair(Collection<T> collection, BigDecimal usdRate) {
+        return pair(collection, r -> true, usdRate);
+    }
+
+    public static <T extends IAmountCurrency> Pair<BigDecimal, Currency> pair(Collection<T> collection, Predicate<T> predicate, BigDecimal usdRate) {
+
+
+        final var usdAmount = collection.stream().filter(predicate)
+                .filter(o -> o.currency() == Currency.USD)
+                .map(IAmountCurrency::amount)
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
+
+        final var vedAmount = collection.stream().filter(predicate)
+                .filter(o -> o.currency() == Currency.VED)
+                .map(IAmountCurrency::amount)
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
+
+
+        if (DecimalUtil.greaterThanZero(vedAmount)) {
+            final var amount = usdAmount.multiply(usdRate)
+                    .add(vedAmount)
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            return Pair.of(amount, Currency.VED);
+        }
+
+        return Pair.of(usdAmount, Currency.USD);
     }
 }

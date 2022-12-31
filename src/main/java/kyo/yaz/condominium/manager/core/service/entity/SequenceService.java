@@ -1,9 +1,11 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.persistence.entity.Sequence;
 import kyo.yaz.condominium.manager.persistence.repository.SequenceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -13,6 +15,10 @@ public class SequenceService {
     @Autowired
     public SequenceService(SequenceRepository repository) {
         this.repository = repository;
+    }
+
+    public Single<Long> rxNextSequence(Sequence.Type type) {
+        return RxJava3Adapter.monoToSingle(nextSequence(type));
     }
 
     public Mono<Long> nextSequence(Sequence.Type type) {

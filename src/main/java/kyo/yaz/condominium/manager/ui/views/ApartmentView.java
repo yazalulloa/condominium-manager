@@ -21,13 +21,11 @@ import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.actions.DeleteEntity;
-import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.form.CreateApartmentForm;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -35,10 +33,10 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 
-@Slf4j
+
 @PageTitle(ApartmentView.PAGE_TITLE)
 @Route(value = "apartments", layout = MainLayout.class)
-public class ApartmentView extends VerticalLayout implements AbstractView, DeleteEntity<Apartment> {
+public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Apartment> {
     public static final String PAGE_TITLE = "Apartamentos";
 
     private final Grid<Apartment> grid = new Grid<>();
@@ -81,19 +79,14 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
     }
 
     private Component footer() {
-          /*gridPaginator.setPadding(true);
-        gridPaginator.setJustifyContentMode(JustifyContentMode.END);
-        gridPaginator.setAlignItems(Alignment.END);*/
 
         final var verticalLayout = new VerticalLayout(totalCountText);
-        //verticalLayout.setAlignItems(Alignment.CENTER);
 
         final var footer = new HorizontalLayout(gridPaginator, verticalLayout);
 
         footer.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         footer.setFlexGrow(2, gridPaginator);
         footer.setFlexGrow(1, verticalLayout);
-        //footer.setPadding(true);
 
         return footer;
     }
@@ -110,7 +103,6 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
     private void configureGrid() {
         grid.addClassNames("apartments-grid");
         grid.setColumnReorderingAllowed(true);
-
 
         grid.addColumn(apartment -> apartment.apartmentId().buildingId()).setHeader(Labels.Apartment.BUILDING_LABEL).setSortable(true).setKey(Labels.Apartment.BUILDING_LABEL);
         grid.addColumn(apartment -> apartment.apartmentId().number()).setHeader(Labels.Apartment.NUMBER_LABEL).setSortable(true).setKey(Labels.Apartment.NUMBER_LABEL);
@@ -188,7 +180,6 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
 
     private Mono<Void> refreshData() {
 
-
         return pagingMono()
                 .map(paging -> (Runnable) () -> {
 
@@ -197,8 +188,6 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
 
                     setCountText(paging.queryCount(), paging.totalCount());
 
-                    //grid.setItems(query -> service.fetchPage(filterText.getValue(), query.getPage(), query.getPageSize()));
-                    //grid.setItems(list);
                     grid.getDataProvider().refreshAll();
                 })
                 .doOnSuccess(this::uiAsyncAction)
@@ -271,16 +260,6 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
         closeEditor();
     }
 
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return log;
-    }
-
     private static class ApartmentContextMenu extends GridContextMenu<Apartment> {
 
         public ApartmentContextMenu(Grid<Apartment> target, DeleteEntity<Apartment> deleteApartment) {
@@ -289,25 +268,6 @@ public class ApartmentView extends VerticalLayout implements AbstractView, Delet
             addItem("Borrar", e -> e.getItem().ifPresent(deleteApartment::delete));
 
             add(new Hr());
-
-            /*GridMenuItem<Apartment> emailItem = addItem("Email",
-                    e -> e.getItem().ifPresent(person -> {
-                        // System.out.printf("Email: %s%n", person.getFullName());
-                    }));
-            GridMenuItem<Apartment> phoneItem = addItem("Call",
-                    e -> e.getItem().ifPresent(person -> {
-                        // System.out.printf("Phone: %s%n", person.getFullName());
-                    }));
-
-            setDynamicContentHandler(person -> {
-                // Do not show context menu when header is clicked
-                if (person == null)
-                    return false;
-                emailItem.setText(String.format("Email: %s", person.getEmail()));
-                phoneItem.setText(String.format("Call: %s",
-                        person.getAddress().getPhone()));
-                return true;
-            });*/
         }
     }
 

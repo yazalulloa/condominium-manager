@@ -17,6 +17,7 @@
         <vaadin.version>23.3.1</vaadin.version>
         <vertx.version>4.3.6</vertx.version>
         <mapstruct.version>1.5.3.Final</mapstruct.version>
+        <poi.version>5.2.2</poi.version>
     </properties>
 
     <parent>
@@ -162,6 +163,13 @@
          </dependency>-->
 
         <dependency>
+            <groupId>io.projectreactor.addons</groupId>
+            <artifactId>reactor-adapter</artifactId>
+            <version>3.5.0</version>
+        </dependency>
+
+
+        <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
         </dependency>
@@ -234,6 +242,19 @@
             <version>7.1.17</version>
             <type>pom</type>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
     </dependencies>
 
     <build>

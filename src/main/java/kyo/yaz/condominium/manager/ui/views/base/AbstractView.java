@@ -56,10 +56,16 @@ public interface AbstractView {
     default void uiAsyncAction(Runnable runnable) {
         if (runnable != null) {
             ui(ui -> {
-                ui.access(() -> {
-                    runnable.run();
-                    ui.push();
-                });
+
+                if (ui.isAttached()) {
+                    ui.access(() -> {
+                        runnable.run();
+                        ui.push();
+                    });
+                } else {
+                    logger().info("UI is not attached");
+                }
+
             });
         }
     }

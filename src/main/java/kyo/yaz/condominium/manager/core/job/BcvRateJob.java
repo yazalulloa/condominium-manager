@@ -8,6 +8,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.concurrent.TimeUnit;
+
 @Component
 @Slf4j
 public class BcvRateJob {
@@ -19,11 +21,19 @@ public class BcvRateJob {
         this.saveNewBcvRate = saveNewBcvRate;
     }
 
+    @Async
+    @Scheduled(initialDelay = 5, fixedRate = 86400, timeUnit = TimeUnit.SECONDS)
+    public void runAsStart() {
+        saveNewBcvRate();
+    }
 
     @Async
     @Scheduled(cron = "${app.bcv_job_cron_expression}")
     public void scheduleFixedRateTaskAsync() {
+        saveNewBcvRate();
+    }
 
+    private void saveNewBcvRate() {
         log.info("RUN JOB");
 
         saveNewBcvRate.saveNewRate()
@@ -32,6 +42,5 @@ public class BcvRateJob {
                 .retry()
                 .subscribe(bool -> log.info("NEW_RATE_SAVED {}", bool),
                         throwable -> log.error("ERROR", throwable));
-
     }
 }

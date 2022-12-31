@@ -1,13 +1,11 @@
 package kyo.yaz.condominium.manager.ui.views.form;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -18,17 +16,15 @@ import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
-import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 
 import java.util.Collection;
 
-@Slf4j
-public class ExtraChargeForm extends FormLayout implements AbstractView {
+
+public class ExtraChargeForm extends BaseForm {
     @PropertyId("aptNumber")
     private final ComboBox<String> aptNumberComboBox = new ComboBox<>(Labels.ExtraCharge.APT_LABEL);
 
@@ -72,15 +68,6 @@ public class ExtraChargeForm extends FormLayout implements AbstractView {
 
     }
 
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return log;
-    }
 
     private HorizontalLayout createButtonsLayout() {
         addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -106,7 +93,7 @@ public class ExtraChargeForm extends FormLayout implements AbstractView {
             fireEvent(new ExtraChargeForm.SaveEvent(this, extraCharge));
             setExtraCharge(new ExtraChargeViewItem());
         } catch (ValidationException e) {
-            log.error("ERROR_VALIDATING", e);
+            logger().error("ERROR_VALIDATING", e);
             asyncNotification(e.getMessage());
 
         }

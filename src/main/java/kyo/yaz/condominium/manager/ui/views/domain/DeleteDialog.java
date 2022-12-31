@@ -1,11 +1,9 @@
 package kyo.yaz.condominium.manager.ui.views.domain;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 
-public class DeleteDialog extends Dialog {
+public class DeleteDialog extends ConfirmDialog {
 
     private Runnable deleteAction = () -> {
     };
@@ -13,8 +11,19 @@ public class DeleteDialog extends Dialog {
     public DeleteDialog() {
         super();
 
+        setCancelable(true);
+        addCancelListener(e -> close());
+        setCancelText(Labels.CANCEL);
 
-        final var deleteButton = new Button(Labels.DELETE, (e) -> {
+        setConfirmText(Labels.DELETE);
+        addConfirmListener(e -> {
+            deleteAction.run();
+            this.close();
+        });
+
+
+
+      /*  final var deleteButton = new Button(Labels.DELETE, (e) -> {
             deleteAction.run();
             this.close();
         });
@@ -25,10 +34,10 @@ public class DeleteDialog extends Dialog {
         deleteButton.getStyle().set("margin-right", "auto");
         this.getFooter().add(deleteButton);
 
-        final var cancelButton = new Button(Labels.CANCEL, (e) -> this.close());
-        cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        this.getFooter().add(cancelButton);
-        this.setModal(true);
+        final var cancelBtn = new Button(Labels.CANCEL, (e) -> this.close());
+        cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        this.getFooter().add(cancelBtn);
+        this.setModal(true);*/
     }
 
     public void setDeleteAction(Runnable deleteAction) {

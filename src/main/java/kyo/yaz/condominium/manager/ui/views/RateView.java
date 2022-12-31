@@ -17,38 +17,38 @@ import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import kyo.yaz.condominium.manager.core.domain.Paging;
-import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.core.service.SaveNewBcvRate;
+import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.ui.MainLayout;
-import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscriber;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Slf4j
+
 @PageTitle(RateView.PAGE_TITLE)
 @Route(value = "rates", layout = MainLayout.class)
-public class RateView extends VerticalLayout implements AbstractView {
+public class RateView extends BaseVerticalLayout {
 
     public static final String PAGE_TITLE = "Tasas de cambio";
 
     private final Grid<Rate> grid = new Grid<>();
     private final AtomicBoolean addingRate = new AtomicBoolean(false);
-    private final Text queryCountText = new Text(null);    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
+    private final Text queryCountText = new Text(null);
+    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final Text totalCountText = new Text(null);
     private final DeleteDialog deleteDialog = new DeleteDialog();
     private final RateService rateService;
     private final SaveNewBcvRate saveNewBcvRate;
+
     @Autowired
     public RateView(RateService rateService, SaveNewBcvRate saveNewBcvRate) {
         super();
@@ -118,7 +118,7 @@ public class RateView extends VerticalLayout implements AbstractView {
                                     ButtonVariant.LUMO_TERTIARY);
                             button.addClickListener(e -> {
 
-                                deleteDialog.setHeaderTitle(Labels.ASK_CONFIRMATION_DELETE_RATE.formatted(item.rate(), item.dateOfRate(), item.fromCurrency() + "->" + item.toCurrency()));
+                                deleteDialog.setText(Labels.ASK_CONFIRMATION_DELETE_RATE.formatted(item.rate(), item.dateOfRate(), item.fromCurrency() + "->" + item.toCurrency()));
                                 deleteDialog.setDeleteAction(() -> delete(item));
                                 deleteDialog.open();
                             });
@@ -181,36 +181,6 @@ public class RateView extends VerticalLayout implements AbstractView {
         return toolbar;
     }
 
-  /*  private static class RateContextMenu extends GridContextMenu<Rate> {
-
-        public RateContextMenu(Grid<Rate> target, DeleteEntity<Rate> deleteRate) {
-            super(target);
-
-            addItem("Borrar", e -> e.getItem().ifPresent(deleteRate::delete));
-
-            add(new Hr());
-
-            *//*GridMenuItem<Rate> emailItem = addItem("Email",
-                    e -> e.getItem().ifPresent(person -> {
-                        // System.out.printf("Email: %s%n", person.getFullName());
-                    }));
-            GridMenuItem<Rate> phoneItem = addItem("Call",
-                    e -> e.getItem().ifPresent(person -> {
-                        // System.out.printf("Phone: %s%n", person.getFullName());
-                    }));
-
-            setDynamicContentHandler(person -> {
-                // Do not show context menu when header is clicked
-                if (person == null)
-                    return false;
-                emailItem.setText(String.format("Email: %s", person.getEmail()));
-                phoneItem.setText(String.format("Call: %s",
-                        person.getAddress().getPhone()));
-                return true;
-            });*//*
-        }
-    }*/
-
     private Mono<Paging<Rate>> pagingMono() {
         return rateService.paging(gridPaginator.currentPage(), gridPaginator.itemsPerPage());
     }
@@ -255,16 +225,5 @@ public class RateView extends VerticalLayout implements AbstractView {
                 .subscribeOn(Schedulers.parallel())
                 .subscribe(emptySubscriber("updateGrid"));
     }
-
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return log;
-    }
-
 
 }

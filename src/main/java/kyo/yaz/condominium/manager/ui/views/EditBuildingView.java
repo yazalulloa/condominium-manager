@@ -20,14 +20,12 @@ import com.vaadin.flow.router.Route;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.ui.MainLayout;
-import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
 import kyo.yaz.condominium.manager.ui.views.form.CreateBuildingForm;
 import kyo.yaz.condominium.manager.ui.views.form.ExtraChargeForm;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -36,10 +34,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-@Slf4j
+
 @PageTitle(BuildingView.PAGE_TITLE)
 @Route(value = "buildings/:building_id", layout = MainLayout.class)
-public class EditBuildingView extends VerticalLayout implements BeforeEnterObserver, AbstractView {
+public class EditBuildingView extends BaseVerticalLayout implements BeforeEnterObserver {
 
     private final CreateBuildingForm createBuildingForm = new CreateBuildingForm();
     private final Grid<ExtraChargeViewItem> extraChargeGrid = new Grid<>(ExtraChargeViewItem.class, false);
@@ -85,7 +83,6 @@ public class EditBuildingView extends VerticalLayout implements BeforeEnterObser
     }
 
     private Component getContent() {
-
 
 
         final var content = new HorizontalLayout(createBuildingForm);
@@ -171,16 +168,6 @@ public class EditBuildingView extends VerticalLayout implements BeforeEnterObser
                 .orElse(null);
     }
 
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return log;
-    }
-
     private void initData() {
 
         final var aptNumbersMono = Mono.justOrEmpty(buildingIdParam)
@@ -253,9 +240,6 @@ public class EditBuildingView extends VerticalLayout implements BeforeEnterObser
         saveBtn.addClickListener(event -> createBuildingForm.validateAndSave());
 
         cancelBtn.addClickListener(event -> navigateBack());
-
-
-        //binder.addStatusChangeListener(e -> saveBtn.setEnabled(binder.isValid()));
 
         return new HorizontalLayout(saveBtn, cancelBtn);
     }

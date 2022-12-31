@@ -1,13 +1,16 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.repository.BuildingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
-import java.util.HashSet;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -37,12 +40,17 @@ public class BuildingService {
     public Mono<Set<String>> buildingIds() {
         return repository.findAll()
                 .map(Building::id)
-                .sort()
+                .sort(Comparator.naturalOrder())
                 .collectList()
-                .map(HashSet::new);
+                .map(LinkedHashSet::new);
     }
 
     public Mono<Building> find(String id) {
         return repository.findById(id);
+    }
+
+    public Single<Building> get(String id) {
+        return RxJava3Adapter.monoToMaybe(find(id))
+                .switchIfEmpty(Single.error(new RuntimeException("Building not found")));
     }
 }
