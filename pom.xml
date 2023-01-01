@@ -354,6 +354,26 @@
         <profile>
             <!-- Production mode is activated using -Pproduction -->
             <id>production</id>
+            <properties>
+                <vaadin.productionMode>true</vaadin.productionMode>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>vaadin</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>com.vaadin</groupId>
+                            <artifactId>vaadin-dev-server</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
+
+            </dependencies>
+
             <build>
                 <plugins>
                     <plugin>
@@ -399,22 +419,22 @@
                     </plugin>
 
                     <!-- Runs the integration tests (*IT) after the server is started -->
-                   <!-- <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <trimStackTrace>false</trimStackTrace>
-                            <enableAssertions>true</enableAssertions>
-                        </configuration>
-                    </plugin>-->
+                    <!-- <plugin>
+                         <groupId>org.apache.maven.plugins</groupId>
+                         <artifactId>maven-failsafe-plugin</artifactId>
+                         <executions>
+                             <execution>
+                                 <goals>
+                                     <goal>integration-test</goal>
+                                     <goal>verify</goal>
+                                 </goals>
+                             </execution>
+                         </executions>
+                         <configuration>
+                             <trimStackTrace>false</trimStackTrace>
+                             <enableAssertions>true</enableAssertions>
+                         </configuration>
+                     </plugin>-->
                 </plugins>
             </build>
         </profile>
