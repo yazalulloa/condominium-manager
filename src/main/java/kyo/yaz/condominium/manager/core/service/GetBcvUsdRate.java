@@ -21,14 +21,16 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class GetBcvUsdRate {
 
-    @Value("${app.bcv_url}")
-    private String url;
+    private final String url;
+    private final EventBus eventBus;
+    private final BcvUsdRateParser bcvUsdRateParser;
 
     @Autowired
-    private EventBus eventBus;
-
-    @Autowired
-    private BcvUsdRateParser bcvUsdRateParser;
+    public GetBcvUsdRate(@Value("${app.bcv_url}") String url, EventBus eventBus, BcvUsdRateParser bcvUsdRateParser) {
+        this.url = url;
+        this.eventBus = eventBus;
+        this.bcvUsdRateParser = bcvUsdRateParser;
+    }
 
     private Mono<Document> docuument() {
         final HttpClientRequest httpClientRequest = HttpClientRequest.get(url)

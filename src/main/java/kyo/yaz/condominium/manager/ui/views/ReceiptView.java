@@ -28,6 +28,7 @@ import com.vaadin.flow.router.RouteParameters;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
+import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
 import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
@@ -74,14 +75,16 @@ public class ReceiptView extends BaseVerticalLayout {
     private final VerticalLayout progressLayout = new VerticalLayout();
 
     private final CreatePdfReceiptService createPdfReceiptService;
+    private final SendEmailReceipts sendEmailReceipts;
 
     @Autowired
-    public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService) {
+    public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts) {
         super();
         this.buildingService = buildingService;
         this.receiptService = receiptService;
         this.loadCsvReceipt = loadCsvReceipt;
         this.createPdfReceiptService = createPdfReceiptService;
+        this.sendEmailReceipts = sendEmailReceipts;
         init();
     }
 
@@ -150,6 +153,23 @@ public class ReceiptView extends BaseVerticalLayout {
                 .setFrozenToEnd(true)
                 .setFlexGrow(0);
 
+        grid.addColumn(
+                        new ComponentRenderer<>(Button::new, (button, item) -> {
+                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
+                                    ButtonVariant.LUMO_SUCCESS,
+                                    ButtonVariant.LUMO_TERTIARY_INLINE);
+                            button.addClickListener(e -> {
+                               sendEmailReceipts.send(item)
+                                       .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                                       .subscribe(completableObserver(() -> {}, this::showError));
+
+                            });
+                            button.setIcon(new Icon(VaadinIcon.ENVELOPE));
+                        }))
+                .setHeader(Labels.SEND_EMAIL)
+                .setTextAlign(ColumnTextAlign.END)
+                .setFrozenToEnd(true)
+                .setFlexGrow(0);
 
         grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
@@ -236,54 +256,30 @@ public class ReceiptView extends BaseVerticalLayout {
                 .subscribe(emptySubscriber());
     }
 
-    private HorizontalLayout getToolbar() {
-        filterText.setPlaceholder("Buscar");
-        filterText.setClearButtonVisible(true);
-        filterText.setValueChangeMode(ValueChangeMode.LAZY);
-        filterText.addValueChangeListener(e -> {
-            if (!gridPaginator.goToFirstPage()) {
-                updateGrid();
-            }
-        });
-        addEntityButton.setDisableOnClick(true);
-        addEntityButton.addClickListener(click -> addEntity());
-
-        buildingComboBox.setPlaceholder(Labels.Apartment.BUILDING_LABEL);
-        buildingComboBox.setClearButtonVisible(true);
-        buildingComboBox.setAutoOpen(true);
-        buildingComboBox.addValueChangeListener(o -> {
-            if (!gridPaginator.goToFirstPage()) {
-                updateGrid();
-            }
-        });
-
+    private Upload upload() {
         final var buffer = new FileBuffer();
         final var upload = new Upload(buffer);
         upload.setDropAllowed(true);
         upload.setAutoUpload(true);
         upload.setAcceptedFileTypes(".xlsx");
         upload.setMaxFiles(1);
-        int maxFileSizeInBytes = 2 * 1024 * 1024; // 10MB
+        int maxFileSizeInBytes = 2 * 1024 * 1024;
         upload.setMaxFileSize(maxFileSizeInBytes);
-
 
         final var i18n = new UploadI18N();
         i18n.setAddFiles(new UploadI18N.AddFiles().setOne("Seleccione un archivo"));
         upload.setI18n(i18n);
-
 
         upload.addSucceededListener(event -> {
             final var inputStream = buffer.getInputStream();
 
             final var dialog = new Dialog();
 
-
             final var comboBox = new ComboBox<String>();
             comboBox.setItems(buildingIds);
             comboBox.setPlaceholder(Labels.Apartment.BUILDING_LABEL);
             comboBox.setClearButtonVisible(false);
             comboBox.setAutoOpen(true);
-
 
             final var processBtn = new Button("Procesar");
             processBtn.setEnabled(false);
@@ -292,9 +288,7 @@ public class ReceiptView extends BaseVerticalLayout {
             final var cancelBtn = new Button(Labels.CANCEL);
             cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-            comboBox.addValueChangeListener(e -> {
-                processBtn.setEnabled(true);
-            });
+            comboBox.addValueChangeListener(e -> processBtn.setEnabled(true));
 
             cancelBtn.addClickListener(e -> {
                 dialog.close();
@@ -311,12 +305,9 @@ public class ReceiptView extends BaseVerticalLayout {
                         .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
                         .subscribe(singleObserver(receipt -> {
 
-                            ui(ui -> {
-                                ui.access(() -> {
-
-                                    saveReceiptInSession(receipt);
-                                    addEntity("file");
-                                });
+                            uiAsyncAction(() -> {
+                                saveReceiptInSession(receipt);
+                                addEntity("file");
                             });
 
                         }, t -> {
@@ -340,8 +331,32 @@ public class ReceiptView extends BaseVerticalLayout {
         upload.addFileRejectedListener(event -> viewHelper.showError(event.getErrorMessage()));
 
         upload.addFailedListener(event -> showError(event.getReason()));
+        return upload;
+    }
 
-        HorizontalLayout toolbar = new HorizontalLayout(filterText, buildingComboBox, addEntityButton, upload, countText);
+    private HorizontalLayout getToolbar() {
+        filterText.setPlaceholder("Buscar");
+        filterText.setClearButtonVisible(true);
+        filterText.setValueChangeMode(ValueChangeMode.LAZY);
+        filterText.addValueChangeListener(e -> {
+            if (!gridPaginator.goToFirstPage()) {
+                updateGrid();
+            }
+        });
+        addEntityButton.setDisableOnClick(true);
+        addEntityButton.addClickListener(click -> addEntity());
+
+        buildingComboBox.setPlaceholder(Labels.Apartment.BUILDING_LABEL);
+        buildingComboBox.setClearButtonVisible(true);
+        buildingComboBox.setAutoOpen(true);
+        buildingComboBox.addValueChangeListener(o -> {
+            if (!gridPaginator.goToFirstPage()) {
+                updateGrid();
+            }
+        });
+
+
+        HorizontalLayout toolbar = new HorizontalLayout(filterText, buildingComboBox, addEntityButton, upload(), countText);
         toolbar.addClassName("toolbar");
         toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         return toolbar;

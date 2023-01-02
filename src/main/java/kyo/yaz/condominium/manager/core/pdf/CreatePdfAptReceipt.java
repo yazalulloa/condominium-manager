@@ -1,14 +1,12 @@
 package kyo.yaz.condominium.manager.core.pdf;
 
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvasConstants;
 import com.itextpdf.layout.Document;
-import com.itextpdf.layout.borders.Border;
-import com.itextpdf.layout.element.*;
-import com.itextpdf.layout.property.HorizontalAlignment;
+import com.itextpdf.layout.element.Div;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.property.TextAlignment;
-import com.itextpdf.layout.property.VerticalAlignment;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.core.util.ObjectUtil;
@@ -18,13 +16,11 @@ import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import lombok.experimental.SuperBuilder;
-import lombok.extern.jackson.Jacksonized;
 
-import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Path;
@@ -34,36 +30,21 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Jacksonized
-@SuperBuilder(toBuilder = true)
+
+@Builder(toBuilder = true)
 @Accessors(fluent = true)
 @ToString
 @Getter
-public class CreatePdfAptReceipt {
+public class CreatePdfAptReceipt extends CreatePdfReceipt {
 
-    private final String title; //"AVISO DE COBRO"
+    private final String title;
 
     private final Path path;
     private final Receipt receipt;
     private final Apartment apartment;
     private final Building building;
 
-    public void createPdf() throws FileNotFoundException {
-        final var writer = new PdfWriter(path.toFile());
-
-        // Creating a PdfDocument object
-        final var pdf = new PdfDocument(writer);
-
-        try (final var document = new Document(pdf)) {
-
-            document.setMargins(24, 24, 24, 24);
-            document.setFontSize(10);
-            addContent(document);
-        }
-
-    }
-
-    public void addContent(Document document) {
+    protected void addContent(Document document) {
 
         final var receiptValue = "VALOR RECIBO: ";
         final var usdExchangeRateTitle = "TASA DE CAMBIO AL DÍA %s: %s";
@@ -136,13 +117,13 @@ public class CreatePdfAptReceipt {
             div.add(new Paragraph("\n"));
             div.add(new Paragraph(new Text("CARGOS EXTRA").setBold().setUnderline()));
 
-            final var table = getTable(2);
-            table.addHeaderCell(tableCell().add(new Paragraph("DESCRIPCIÓN")));
-            table.addHeaderCell(tableCell().add(new Paragraph("MONTO")));
+            final var table = PdfUtil.table(2);
+            table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("DESCRIPCIÓN")));
+            table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("MONTO")));
             aptTotal.extraCharges().forEach(charge -> {
 
-                table.addCell(tableCell().add(new Paragraph(charge.description())));
-                table.addCell(tableCell().add(new Paragraph(ConvertUtil.format(charge.amount(), charge.currency()))));
+                table.addCell(PdfUtil.tableCell().add(new Paragraph(charge.description())));
+                table.addCell(PdfUtil.tableCell().add(new Paragraph(ConvertUtil.format(charge.amount(), charge.currency()))));
             });
 
             div.add(table);
@@ -182,39 +163,29 @@ public class CreatePdfAptReceipt {
 
     }
 
-    private Cell tableCell() {
-        final var cell = new Cell();
-        cell.setHorizontalAlignment(HorizontalAlignment.CENTER);
-        cell.setVerticalAlignment(VerticalAlignment.MIDDLE);
-        cell.setTextAlignment(TextAlignment.CENTER);
-        //cell.setBackgroundColor(Color.);
-        cell.setBorder(Border.NO_BORDER);
-        cell.setPadding(1);
-        return cell;
-    }
 
     private Table debtTable(List<Debt> debts) {
 
 
         final var bool = debts.stream().map(Debt::previousPaymentAmount).map(Objects::nonNull).reduce(Boolean::logicalOr).orElse(false);
 
-        final var table = getTable(bool ? 6 : 5);
+        final var table = PdfUtil.table(bool ? 6 : 5);
 
-        table.addHeaderCell(tableCell().add(new Paragraph("APTO")));
-        table.addHeaderCell(tableCell().add(new Paragraph("PROPIETARIO")));
-        table.addHeaderCell(tableCell().add(new Paragraph("RECIBOS")));
-        table.addHeaderCell(tableCell().add(new Paragraph("DEUDA")));
-        table.addHeaderCell(tableCell().add(new Paragraph("DESCRIPCIÓN")));
+        table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("APTO")));
+        table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("PROPIETARIO")));
+        table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("RECIBOS")));
+        table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("DEUDA")));
+        table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("DESCRIPCIÓN")));
 
         if (bool) {
-            table.addHeaderCell(tableCell().add(new Paragraph("ABONO")));
+            table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("ABONO")));
         }
 
         debts.forEach(debt -> {
-            table.addCell(tableCell().add(new Paragraph(debt.aptNumber())));
-            table.addCell(tableCell().add(new Paragraph(debt.name())));
-            table.addCell(tableCell().add(new Paragraph(String.valueOf(debt.receipts()))));
-            table.addCell(tableCell().add(new Paragraph(ConvertUtil.format(debt.amount(), building().debtCurrency()))));
+            table.addCell(PdfUtil.tableCell().add(new Paragraph(debt.aptNumber())));
+            table.addCell(PdfUtil.tableCell().add(new Paragraph(debt.name())));
+            table.addCell(PdfUtil.tableCell().add(new Paragraph(String.valueOf(debt.receipts()))));
+            table.addCell(PdfUtil.tableCell().add(new Paragraph(ConvertUtil.format(debt.amount(), building().debtCurrency()))));
 
             final var months = Optional.ofNullable(debt.months())
                     .orElseGet(Collections::emptySet)
@@ -227,9 +198,9 @@ public class CreatePdfAptReceipt {
                     .orElse("");
 
 
-            table.addCell(tableCell().add(new Paragraph(!months.isEmpty() ? months : DecimalUtil.equalsToZero(debt.amount()) ? "SOLVENTE" : "")));
+            table.addCell(PdfUtil.tableCell().add(new Paragraph(!months.isEmpty() ? months : DecimalUtil.equalsToZero(debt.amount()) ? "SOLVENTE" : "")));
             if (bool) {
-                table.addCell(tableCell().add(new Paragraph(previousPaymentAmount)));
+                table.addCell(PdfUtil.tableCell().add(new Paragraph(previousPaymentAmount)));
             }
         });
 
@@ -239,18 +210,18 @@ public class CreatePdfAptReceipt {
     private Table expensesTable(String totalTitle, BigDecimal total, List<Expense> expenses) {
 
 
-        final var table = getTable(2);
+        final var table = PdfUtil.table(2);
 
-        table.addHeaderCell(tableCell().add(new Paragraph("DESCRIPCIÓN")));
-        table.addHeaderCell(tableCell().add(new Paragraph("MONTO")));
+        table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("DESCRIPCIÓN")));
+        table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("MONTO")));
 
         expenses.forEach(expense -> {
-            final var description = tableCell()
+            final var description = PdfUtil.tableCell()
                     .setTextAlignment(TextAlignment.LEFT)
                     .add(new Paragraph(expense.description()));
             table.addCell(description);
 
-            final var amount = tableCell()
+            final var amount = PdfUtil.tableCell()
                     .setTextRenderingMode(PdfCanvasConstants.TextRenderingMode.FILL)
                     .setTextAlignment(TextAlignment.RIGHT);
             amount.add(new Paragraph(ConvertUtil.format(expense.amount(), expense.currency())));
@@ -260,26 +231,18 @@ public class CreatePdfAptReceipt {
 
         final var format = ConvertUtil.format(total, building().mainCurrency());
 
-        final var description = tableCell();
+        final var description = PdfUtil.tableCell();
         description.setTextAlignment(TextAlignment.LEFT);
         description.add(new Paragraph(totalTitle));
         table.addCell(description);
 
-        final var amount = tableCell();
+        final var amount = PdfUtil.tableCell();
         amount.setTextAlignment(TextAlignment.RIGHT);
         amount.add(new Paragraph(format));
         table.addCell(amount);
 
         return table;
 
-    }
-
-    private Table getTable(int numColumns) {
-        return new Table(numColumns, false)
-                .setAutoLayout()
-                .useAllAvailableWidth()
-                //.setKeepTogether(true)
-                ;
     }
 
 
