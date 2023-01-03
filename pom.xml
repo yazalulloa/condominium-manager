@@ -13,8 +13,8 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <!--<vaadin.version>24.0.0.alpha6</vaadin.version>-->
-        <vaadin.version>23.3.1</vaadin.version>
+<!--        <vaadin.version>24.0.0.alpha7</vaadin.version>-->
+        <vaadin.version>23.3.2</vaadin.version>
         <vertx.version>4.3.6</vertx.version>
         <mapstruct.version>1.5.3.Final</mapstruct.version>
         <poi.version>5.2.2</poi.version>
@@ -205,9 +205,10 @@
         </dependency>
 
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>6.0.16.Final</version>
+            <version>8.0.0.Final</version>
+            <!--<version>6.0.16.Final</version>-->
         </dependency>
 
         <dependency>
@@ -235,22 +236,36 @@
         </dependency>
 
         <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>javax.mail-api</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.sun.mail</groupId>
-            <artifactId>jakarta.mail</artifactId>
-            <version>2.0.1</version>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
         </dependency>
 
-        <dependency>
-            <groupId>jakarta.mail</groupId>
-            <artifactId>jakarta.mail-api</artifactId>
-            <version>2.1.0</version>
-        </dependency>
 
-        <dependency>
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-            <version>2.1.0</version>
-        </dependency>
+
+        <!--  <dependency>
+              <groupId>com.sun.mail</groupId>
+              <artifactId>jakarta.mail</artifactId>
+              <version>2.0.1</version>
+          </dependency>
+
+          <dependency>
+              <groupId>jakarta.mail</groupId>
+              <artifactId>jakarta.mail-api</artifactId>
+              <version>2.1.0</version>
+          </dependency>
+
+          <dependency>
+              <groupId>jakarta.activation</groupId>
+              <artifactId>jakarta.activation-api</artifactId>
+              <version>2.1.0</version>
+          </dependency>-->
 
 
         <dependency>

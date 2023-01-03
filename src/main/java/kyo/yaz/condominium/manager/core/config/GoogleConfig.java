@@ -61,7 +61,6 @@ public class GoogleConfig {
                        GmailConfig gmailConfig) {
         try {
 
-
             List<String> SCOPES = List.of(GmailScopes.GMAIL_LABELS, GmailScopes.GMAIL_SEND);
             final var inputStream = new FileInputStream(gmailConfig.getCredentialsPath());
             final var googleClientSecrets = GoogleClientSecrets.load(jsonFactory, new InputStreamReader(inputStream));

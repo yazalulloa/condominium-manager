@@ -1,10 +1,8 @@
 package kyo.yaz.condominium.manager.core.config.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import lombok.Data;
 
 @Data
 public class GmailConfig {

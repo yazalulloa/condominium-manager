@@ -159,8 +159,10 @@ public class ReceiptView extends BaseVerticalLayout {
                                     ButtonVariant.LUMO_SUCCESS,
                                     ButtonVariant.LUMO_TERTIARY_INLINE);
                             button.addClickListener(e -> {
+                                button.setEnabled(false);
                                sendEmailReceipts.send(item)
                                        .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                                       .doAfterTerminate(() -> button.setEnabled(true))
                                        .subscribe(completableObserver(() -> {}, this::showError));
 
                             });

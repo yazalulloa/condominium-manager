@@ -19,6 +19,7 @@ import com.vaadin.flow.router.Route;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.service.SaveNewBcvRate;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
+import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
@@ -109,7 +110,7 @@ public class RateView extends BaseVerticalLayout {
         grid.addColumn(Rate::dateOfRate).setHeader(Labels.Rate.DATE_OF_RATE_LABEL).setSortable(true).setKey(Labels.Rate.DATE_OF_RATE_LABEL);
         grid.addColumn(Rate::source).setHeader(Labels.Rate.SOURCE_LABEL).setSortable(true).setKey(Labels.Rate.SOURCE_LABEL);
         grid.addColumn(rate -> String.format("%s -> %s", rate.fromCurrency().name(), rate.toCurrency().name())).setHeader(Labels.Rate.CURRENCIES_LABEL);
-        grid.addColumn(Rate::createdAt).setHeader(Labels.Rate.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Rate.CREATED_AT_LABEL);
+        grid.addColumn(rate -> DateUtil.formatVe(rate.createdAt())).setHeader(Labels.Rate.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Rate.CREATED_AT_LABEL);
 
         grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {

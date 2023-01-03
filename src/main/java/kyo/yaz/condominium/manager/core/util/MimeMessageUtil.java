@@ -1,11 +1,11 @@
 package kyo.yaz.condominium.manager.core.util;
 
-import jakarta.activation.DataHandler;
-import jakarta.activation.FileDataSource;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.internet.*;
+import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.*;
 import kyo.yaz.condominium.manager.core.domain.EmailRequest;
 
 import java.io.File;
@@ -31,7 +31,6 @@ public class MimeMessageUtil {
         final var mimeMessage = new MimeMessage(session);
 
         mimeMessage.setFrom(new InternetAddress(emailRequest.from()));
-
 
         mimeMessage.addRecipients(Message.RecipientType.TO, internetAddresses(emailRequest.to()));
         mimeMessage.addRecipients(Message.RecipientType.CC, internetAddresses(emailRequest.cc()));
