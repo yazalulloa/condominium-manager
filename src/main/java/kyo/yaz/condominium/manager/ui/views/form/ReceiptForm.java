@@ -11,6 +11,8 @@ import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.shared.Registration;
+import kyo.yaz.condominium.manager.persistence.domain.Sorting;
+import kyo.yaz.condominium.manager.persistence.domain.request.RateQueryRequest;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.persistence.repository.RateBlockingRepository;
 import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
@@ -19,8 +21,10 @@ import kyo.yaz.condominium.manager.ui.views.domain.ReceiptFormItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.time.Month;
+import java.util.LinkedHashSet;
 
 
 public class ReceiptForm extends BaseForm {
@@ -55,8 +59,17 @@ public class ReceiptForm extends BaseForm {
             // The number of items to load
             int limit = query.getLimit();
 
-            return rateRepository.findAll(PageRequest.of(offset, limit))
-                    .stream();
+            final var sortings = new LinkedHashSet<Sorting<RateQueryRequest.SortField>>();
+            sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.ID, Sort.Direction.DESC));
+            sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.DATE_OF_RATE, Sort.Direction.DESC));
+            sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.CREATED_AT, Sort.Direction.DESC));
+
+            final var request = RateQueryRequest.builder()
+                    .page(PageRequest.of(offset, limit))
+                    .sortings(sortings)
+                    .build();
+
+            return rateRepository.stream(request);
 
         }, query -> (int) rateRepository.count());
 

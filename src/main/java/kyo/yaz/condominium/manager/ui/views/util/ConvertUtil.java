@@ -62,13 +62,14 @@ public class ConvertUtil {
         return new BuildingViewItem(
                 building.id(), building.name(), building.rif(), building.reserveFund(), building.reserveFundCurrency(), building.mainCurrency(), building.debtCurrency(),
                 building.currenciesToShowAmountToPay(), ConvertUtil.toList(building.extraCharges(), ConvertUtil::viewItem), ObjectUtil.aBoolean(building.fixedPay()),
-                building.fixedPayAmount());
+                building.fixedPayAmount(), building.receiptEmailFrom());
     }
 
     public static Building building(BuildingViewItem item) {
 
         return new Building(item.getId().toUpperCase(), item.getName(), item.getRif(), item.getReserveFund(), item.getReserveFundCurrency(), item.getMainCurrency(), item.getDebtCurrency(),
-                item.getCurrenciesToShowAmountToPay(), ConvertUtil.toList(item.getExtraCharges(), ConvertUtil::extraCharge), item.isFixedPay(), item.getFixedPayAmount());
+                item.getCurrenciesToShowAmountToPay(), ConvertUtil.toList(item.getExtraCharges(), ConvertUtil::extraCharge), item.isFixedPay(), item.getFixedPayAmount(),
+                item.getReceiptEmailFrom());
     }
 
    /* public static ReceiptViewItem receipt(Receipt receipt) {

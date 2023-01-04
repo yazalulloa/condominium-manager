@@ -3,9 +3,11 @@ package kyo.yaz.condominium.manager.core.service.entity;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
+import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
+import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.persistence.entity.Sequence;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
@@ -15,6 +17,7 @@ import reactor.adapter.rxjava.RxJava3Adapter;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -46,9 +49,23 @@ public class SaveReceipt {
         final var buildingSingle = buildingService.get(receipt.buildingId());
 
         return Single.zip(nextSequence, apartmentsByBuilding, buildingSingle, (id, apartments, building) -> {
-                    final var totalCommonExpensePair = ConvertUtil.pair(receipt.expenses(), r -> r.type() == Expense.Type.COMMON, receipt.rate().rate());
-                    final var totalUnCommonExpensePair = ConvertUtil.pair(receipt.expenses(), r -> r.type() == Expense.Type.UNCOMMON, receipt.rate().rate());
 
+                    final var expenses = receipt.expenses().stream()
+                            .filter(expense -> !expense.description().equals("DIFERENCIA DE ALIQUOTA"))
+                            .collect(Collectors.toCollection(LinkedList::new));
+
+                    final var totalCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == Expense.Type.COMMON, receipt.rate().rate());
+
+                    final var aliquotDifference = aliquotDifference(apartments, totalCommonExpensePair.getFirst());
+
+                    expenses.add(Expense.builder()
+                            .description("DIFERENCIA DE ALIQUOTA")
+                            .amount(aliquotDifference)
+                            .currency(totalCommonExpensePair.getSecond())
+                            .type(Expense.Type.UNCOMMON)
+                            .build());
+
+                    final var totalUnCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == Expense.Type.UNCOMMON, receipt.rate().rate());
 
                     final var debtReceiptsAmount = receipt.debts().stream().map(Debt::receipts)
                             .reduce(Integer::sum)
@@ -58,7 +75,7 @@ public class SaveReceipt {
                             .reduce(BigDecimal::add)
                             .orElse(BigDecimal.ZERO);
 
-                    final var unCommonPay = receipt.totalUnCommonExpenses().divide(BigDecimal.valueOf(apartments.size()), MathContext.DECIMAL128);
+                    final var unCommonPay = DecimalUtil.greaterThanZero(totalUnCommonExpensePair.getFirst()) ? totalUnCommonExpensePair.getFirst().divide(BigDecimal.valueOf(apartments.size()), MathContext.DECIMAL128) : BigDecimal.ZERO;
 
                     final var aptTotals = apartments.stream()
                             .map(apartment -> {
@@ -80,6 +97,7 @@ public class SaveReceipt {
 
                     return receipt.toBuilder()
                             .id(id)
+                            .expenses(expenses)
                             .totalCommonExpenses(totalCommonExpensePair.getFirst())
                             .totalCommonExpensesCurrency(totalCommonExpensePair.getSecond())
                             .totalUnCommonExpenses(totalUnCommonExpensePair.getFirst())
@@ -93,5 +111,26 @@ public class SaveReceipt {
                 })
                 .map(receiptService::save)
                 .flatMap(RxJava3Adapter::monoToSingle);
+    }
+
+    private BigDecimal aliquotDifference(Collection<Apartment> list, BigDecimal totalCommonExpenses) {
+
+        if (DecimalUtil.equalsToZero(totalCommonExpenses)) {
+            return BigDecimal.ZERO;
+        }
+
+        final var totalAliquot = list.stream()
+                .map(Apartment::amountToPay)
+                .map(aliquot -> DecimalUtil.percentageOf(aliquot, totalCommonExpenses))
+                .reduce(BigDecimal::add)
+                .orElseThrow(() -> new RuntimeException("NO_ALIQUOT_FOUND"));
+
+        final var aliquoutDifference = totalAliquot.subtract(totalCommonExpenses);
+
+        if (DecimalUtil.greaterThanZero(aliquoutDifference)) {
+            return aliquoutDifference;
+        }
+
+        return BigDecimal.ZERO;
     }
 }

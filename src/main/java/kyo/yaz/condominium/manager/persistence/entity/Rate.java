@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -24,36 +25,37 @@ import java.time.ZonedDateTime;
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@AllArgsConstructor
 @Document("rates")
 public class Rate {
 
     @Id
     @JsonProperty
-    private Long id;
+    private final Long id;
 
     @JsonProperty
-    private Currency fromCurrency;
+    private final Currency fromCurrency;
 
     @JsonProperty
-    private Currency toCurrency;
+    private final Currency toCurrency;
 
     @JsonProperty
-    private BigDecimal rate;
+    private final BigDecimal rate;
 
     /*@JsonProperty
-    private BigDecimal roundedRate;*/
+    private final  BigDecimal roundedRate;*/
 
     @JsonProperty
-    private LocalDate dateOfRate;
+    private final LocalDate dateOfRate;
 
     @JsonProperty
-    private Source source;
+    private final Source source;
 
     @JsonProperty
-    private ZonedDateTime createdAt;
+    private final ZonedDateTime createdAt;
 
     @JsonProperty
-    private String description;
+    private final String description;
 
 
     public enum Source {

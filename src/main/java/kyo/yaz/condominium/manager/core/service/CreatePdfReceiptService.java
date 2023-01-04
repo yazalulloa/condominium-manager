@@ -47,7 +47,7 @@ public class CreatePdfReceiptService {
     public Single<List<CreatePdfReceipt>> createFiles(Receipt receipt) {
         return Single.defer(() -> {
             final var tempPath = "tmp/" + UUID.randomUUID() + "/";
-            final var path = Paths.get("tmp/" + UUID.randomUUID() + "/" + receipt.buildingId() + "/");
+            final var path = Paths.get(tempPath + receipt.buildingId() + "/");
             Files.createDirectories(path);
 
             final var buildingSingle = buildingService.get(receipt.buildingId());
@@ -97,7 +97,9 @@ public class CreatePdfReceiptService {
         return createFiles(receipt)
                 .map(list -> {
 
-                    final var path = "tmp/" + receipt.buildingId() + "/" + fileName(receipt);
+                    final var dirPath = "tmp/" + receipt.buildingId() + "/";
+                    final var path = dirPath + fileName(receipt);
+                    Files.createDirectories(Paths.get(dirPath));
                     final var files = list.stream().map(CreatePdfReceipt::path)
                             .map(Path::toFile)
                             .toList();

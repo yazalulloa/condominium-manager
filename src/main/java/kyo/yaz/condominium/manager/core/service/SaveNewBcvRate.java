@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 @Service
 public class SaveNewBcvRate {
 
@@ -40,7 +42,8 @@ public class SaveNewBcvRate {
                             .map(o -> true);
 
                     return rateService.last(rate.fromCurrency(), rate.toCurrency())
-                            .filter(r -> DecimalUtil.equalsTo(r.rate(), rate.rate()))
+                            .filter(r -> DecimalUtil.equalsTo(r.rate(), rate.rate())
+                                    && Objects.equals(r.dateOfRate(), rate.dateOfRate()))
                             .map(r -> false)
                             .switchIfEmpty(saveRate);
 

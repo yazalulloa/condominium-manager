@@ -119,8 +119,18 @@ public class ViewUtil {
     }
 
     public static ComboBox<Currency> currencyComboBox(String label, Currency defaultValue) {
-        final var comboBox = new ComboBox<>(label, Currency.values);
-        comboBox.setValue(defaultValue);
+        return enumComboBox(label, Currency.values, defaultValue);
+    }
+
+    public static <T> ComboBox<T> enumComboBox(String label, T[] values) {
+        return enumComboBox(label, values, null);
+    }
+
+    public static <T> ComboBox<T> enumComboBox(String label, T[] values, T defaultValue) {
+        final var comboBox = new ComboBox<>(label, values);
+        if (defaultValue != null) {
+            comboBox.setValue(defaultValue);
+        }
         comboBox.setAllowCustomValue(false);
         comboBox.setAutoOpen(true);
         return comboBox;

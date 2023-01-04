@@ -23,9 +23,8 @@ public class RateRepositoryImpl implements RateCustomRepository {
     @Autowired
     ReactiveMongoTemplate template;
 
-    public Query query(RateQueryRequest request) {
+    public static Query query(RateQueryRequest request) {
         final var query = new Query();
-
 
         QueryUtil.addSortings(query, request.sortings());
 

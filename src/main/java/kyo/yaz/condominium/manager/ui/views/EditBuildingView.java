@@ -186,6 +186,7 @@ public class EditBuildingView extends BaseVerticalLayout implements BeforeEnterO
                         extraChargeForm.setApartments(list);
 
                         extraChargesVisible = !list.isEmpty();
+
                         init();
                     };
                 })
@@ -237,6 +238,7 @@ public class EditBuildingView extends BaseVerticalLayout implements BeforeEnterO
 
         createBuildingForm.binder.addStatusChangeListener(e -> saveBtn.setEnabled(createBuildingForm.binder.isValid()));
 
+        saveBtn.setEnabled(createBuildingForm.binder.isValid());
         saveBtn.addClickListener(event -> createBuildingForm.validateAndSave());
 
         cancelBtn.addClickListener(event -> navigateBack());

@@ -70,6 +70,11 @@ public class PoiUtil {
     }
 
     public static String toAmount(String str) {
+        if (str.isEmpty()) {
+            return "0";
+        }
+
+
         final var point = str.lastIndexOf('.');
         final var comma = str.lastIndexOf(',');
 

@@ -176,6 +176,16 @@
 
         <dependency>
             <groupId>io.vertx</groupId>
+            <artifactId>vertx-config</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-config-yaml</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
             <artifactId>vertx-rx-java3</artifactId>
         </dependency>
 
@@ -207,8 +217,8 @@
         <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>8.0.0.Final</version>
-            <!--<version>6.0.16.Final</version>-->
+            <!--<version>8.0.0.Final</version>-->
+            <version>6.2.5.Final</version>
         </dependency>
 
         <dependency>

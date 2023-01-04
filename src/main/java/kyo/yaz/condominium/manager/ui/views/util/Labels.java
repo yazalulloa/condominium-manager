@@ -53,6 +53,7 @@ public class Labels {
         public static final String FIXED_PAY_LABEL = "Monto fijo";
         public static final String FIXED_PAY_AMOUNT_LABEL = "Monto fijo monto";
         public static final String FIXED_PAY_CURRENCY_LABEL = "Monto fijo moneda";
+        public static final String RECEIPT_EMAIL_FROM_LABEL = "Email recibo";
     }
 
 

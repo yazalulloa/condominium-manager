@@ -176,17 +176,10 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
 
         expenseForm.setWidth(25, Unit.PERCENTAGE);
         final var expensesLayout = new HorizontalLayout(new VerticalLayout(new H3(Labels.EXPENSES), expenseGrid), expenseForm);
-        //expensesLayout.setFlexGrow(2, expenseGrid);
-        //expensesLayout.setFlexGrow(1, expenseForm);
         final var debtsLayout = new HorizontalLayout(new VerticalLayout(new H3(Labels.DEBTS), debtGrid), debtForm);
         debtForm.setWidth(25, Unit.PERCENTAGE);
-        //debtsLayout.setFlexGrow(2, debtGrid);
-        //debtsLayout.setFlexGrow(1, debtForm);
         final var extraChargesLayout = new HorizontalLayout(new VerticalLayout(new H3(Labels.EXTRA_CHARGE_TITLE), extraChargeGrid), extraChargeForm);
         extraChargeForm.setWidth(25, Unit.PERCENTAGE);
-        //extraChargesLayout.setFlexGrow(2, extraChargeGrid);
-        //extraChargesLayout.setFlexGrow(1, extraChargeForm);
-
 
         add(receiptForm, createButtonsLayout(), expensesLayout, debtsLayout, extraChargesLayout);
 
@@ -388,6 +381,7 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
     }
 
     private void setExpensesInGrid() {
+
         uiAsyncAction(() -> {
             saveBtn.setEnabled(receiptForm.binder().isValid() && !expenses.isEmpty());
             expenseGrid.setItems(expenses);

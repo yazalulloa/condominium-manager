@@ -13,6 +13,7 @@ import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.domain.ReceiptEmailFrom;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.BuildingViewItem;
@@ -49,11 +50,14 @@ public class CreateBuildingForm extends BaseForm {
 
     @PropertyId("fixedPayAmount")
     private final BigDecimalField fixedPayAmountField = new BigDecimalField(Labels.Building.FIXED_PAY_AMOUNT_LABEL);
+    @PropertyId("receiptEmailFrom")
+    private final ComboBox<ReceiptEmailFrom> receiptEmailFromComboBox = ViewUtil.enumComboBox(Labels.Building.RECEIPT_EMAIL_FROM_LABEL, ReceiptEmailFrom.values);
     BuildingViewItem building = BuildingViewItem.builder().build();
 
     public CreateBuildingForm() {
         addClassName("building-form");
 
+        receiptEmailFromComboBox.setItemLabelGenerator(ReceiptEmailFrom::email);
 
         add(
                 idTextField,
@@ -64,6 +68,7 @@ public class CreateBuildingForm extends BaseForm {
                 mainCurrencyComboBox,
                 debtCurrencyComboBox,
                 currenciesToShowAmountToPayComboBox,
+                receiptEmailFromComboBox,
                 fixedPayField,
                 fixedPayAmountField);
 

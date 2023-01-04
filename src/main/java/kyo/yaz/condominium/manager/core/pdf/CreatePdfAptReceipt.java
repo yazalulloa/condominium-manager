@@ -50,8 +50,8 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
         final var usdExchangeRateTitle = "TASA DE CAMBIO AL DÍA %s: %s";
         document.add(new Paragraph(new Text(title()).setBold()).setTextAlignment(TextAlignment.CENTER));
         document.add(new Paragraph(building().name()));
-        document.add(new Paragraph(building().rif()));
-        document.add(new Paragraph("MES A PAGAR: " + receipt().month().name()));
+        document.add(new Paragraph("RIF: " + building().rif()));
+        document.add(new Paragraph("MES A PAGAR: " + receipt().month() + " " + receipt().year()));
         document.add(new Paragraph(receipt().date().toString()));
         document.add(new Paragraph("PROPIETARIO: " + apartment().name()));
         document.add(new Paragraph("APT: " + apartment().apartmentId().number()));

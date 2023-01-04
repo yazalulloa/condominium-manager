@@ -1,7 +1,6 @@
 package kyo.yaz.condominium.manager.ui.views;
 
 import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -32,7 +31,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
-import java.util.Optional;
 
 @PageTitle(BuildingView.PAGE_TITLE)
 @Route(value = "buildings", layout = MainLayout.class)
@@ -67,11 +65,18 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
         addClassName("list-view");
         setSizeFull();
         configureGrid();
-        add(getToolbar(), getContent());
+        add(getToolbar(), grid);
     }
 
-    private Component getContent() {
-        return grid;
+    private HorizontalLayout getToolbar() {
+
+        addBuildingButton.setDisableOnClick(true);
+        addBuildingButton.addClickListener(click -> editEntity());
+
+        final var toolbar = new HorizontalLayout(addBuildingButton, countOfBuildingText);
+        toolbar.addClassName("toolbar");
+        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        return toolbar;
     }
 
     private void configureGrid() {
@@ -82,18 +87,19 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
         grid.addColumn(Building::rif).setHeader(Labels.Building.RIF_LABEL);
         grid.addColumn(building -> ConvertUtil.format(building.reserveFund(), building.reserveFundCurrency())).setHeader(Labels.Building.RESERVE_FUND_LABEL);
         grid.addColumn(Building::mainCurrency).setHeader(Labels.Building.MAIN_CURRENCY_LABEL);
+        grid.addColumn(Building::debtCurrency).setHeader(Labels.Building.DEBT_CURRENCY_LABEL);
         grid.addColumn(Building::currenciesToShowAmountToPay).setHeader(Labels.Building.SHOW_PAYMENT_IN_CURRENCIES);
         grid.addColumn(building -> {
 
-            final var fixedPay = ObjectUtil.aBoolean(building.fixedPay());
-
-            if (fixedPay) {
+            if (ObjectUtil.aBoolean(building.fixedPay())) {
 
                 return ConvertUtil.format(building.fixedPayAmount(), building.mainCurrency());
             } else {
                 return Labels.DEACTIVATED;
             }
         }).setHeader(Labels.Building.FIXED_PAY_LABEL);
+
+        grid.addColumn(building -> building.receiptEmailFrom().email()).setHeader(Labels.Building.RECEIPT_EMAIL_FROM_LABEL);
 
         grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
@@ -122,8 +128,6 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
                     .ifPresent(building -> editEntity(building.id()));
         });
 
-
-        add(grid);
     }
 
     @Override
@@ -164,16 +168,6 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
                 .and(Mono.empty());
     }
 
-    private HorizontalLayout getToolbar() {
-
-        addBuildingButton.setDisableOnClick(true);
-        addBuildingButton.addClickListener(click -> editEntity());
-
-        HorizontalLayout toolbar = new HorizontalLayout(addBuildingButton, countOfBuildingText);
-        toolbar.addClassName("toolbar");
-        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        return toolbar;
-    }
 
     private void editEntity() {
         editEntity("new");

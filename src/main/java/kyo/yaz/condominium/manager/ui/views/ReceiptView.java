@@ -9,13 +9,10 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
@@ -27,6 +24,8 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
 import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
@@ -37,6 +36,7 @@ import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
+import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -47,8 +47,11 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.FileInputStream;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 
 @PageTitle(ReceiptView.PAGE_TITLE)
@@ -72,7 +75,7 @@ public class ReceiptView extends BaseVerticalLayout {
 
     private final LoadCsvReceipt loadCsvReceipt;
 
-    private final VerticalLayout progressLayout = new VerticalLayout();
+    private final ProgressLayout progressLayout = new ProgressLayout();
 
     private final CreatePdfReceiptService createPdfReceiptService;
     private final SendEmailReceipts sendEmailReceipts;
@@ -100,12 +103,6 @@ public class ReceiptView extends BaseVerticalLayout {
         configureGrid();
         VaadinSession.getCurrent().setAttribute("receipt", null);
 
-        final var progressBar = new ProgressBar();
-        progressBar.setIndeterminate(true);
-
-        final var progressBarLabel = new Div();
-        progressBarLabel.setText("Procesando archivo...");
-        progressLayout.add(progressBarLabel, progressBar);
         progressLayout.setVisible(false);
 
         add(getToolbar(), progressLayout, grid, gridPaginator);
@@ -160,10 +157,45 @@ public class ReceiptView extends BaseVerticalLayout {
                                     ButtonVariant.LUMO_TERTIARY_INLINE);
                             button.addClickListener(e -> {
                                 button.setEnabled(false);
-                               sendEmailReceipts.send(item)
-                                       .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
-                                       .doAfterTerminate(() -> button.setEnabled(true))
-                                       .subscribe(completableObserver(() -> {}, this::showError));
+                                progressLayout.setProgressText("Creando archivos");
+                                progressLayout.progressBar().setIndeterminate(false);
+                                progressLayout.setVisible(true);
+
+                                createPdfReceiptService.createFiles(item)
+                                        .observeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                                        .flatMap(list -> sendEmailReceipts.send(item, list))
+                                        .toFlowable()
+                                        .flatMap(list -> {
+
+                                            uiAsyncAction(() -> {
+                                                progressLayout.progressBar().setMin(0);
+                                                progressLayout.progressBar().setMax(list.size());
+                                                progressLayout.progressBar().setValue(0);
+                                                progressLayout.setProgressText("Enviando emails %s/%s".formatted(0, list.size()));
+                                            });
+
+                                            final AtomicInteger i = new AtomicInteger(1);
+                                            final var singles = list.stream()
+                                                    .map(c -> c.toSingleDefault(i.getAndIncrement()))
+                                                    .collect(Collectors.toCollection(LinkedList::new));
+
+                                            return Single.concat(singles)
+                                                    .doOnNext(integer -> {
+                                                        uiAsyncAction(() -> {
+                                                            progressLayout.progressBar().setValue(integer);
+                                                            progressLayout.setProgressText("Enviando emails %s/%s".formatted(integer, list.size()));
+                                                        });
+                                                    });
+                                        })
+                                        .doAfterTerminate(() -> {
+                                            uiAsyncAction(() -> {
+                                                button.setEnabled(true);
+                                                progressLayout.setVisible(false);
+                                            });
+                                        })
+                                        .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                                        .subscribe(integer -> {
+                                        }, this::showError);
 
                             });
                             button.setIcon(new Icon(VaadinIcon.ENVELOPE));
@@ -301,6 +333,8 @@ public class ReceiptView extends BaseVerticalLayout {
 
                 processBtn.setEnabled(false);
                 final var buildingId = comboBox.getValue();
+
+                progressLayout.progressBar().setIndeterminate(true);
                 progressLayout.setVisible(true);
 
                 loadCsvReceipt.load(buildingId, inputStream)

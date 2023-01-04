@@ -22,7 +22,7 @@ public class BcvRateJob {
     }
 
     @Async
-    @Scheduled(initialDelay = 5, fixedRate = 86400, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(initialDelay = 60, fixedRate = 86400, timeUnit = TimeUnit.SECONDS)
     public void runAsStart() {
         saveNewBcvRate();
     }
