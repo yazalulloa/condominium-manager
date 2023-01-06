@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import kyo.yaz.condominium.manager.core.domain.PaymentType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,8 +29,6 @@ import java.util.Set;
 @AllArgsConstructor
 @Document("apartments")
 public class Apartment {
-
-
     @Id
     @JsonProperty
     private final Apartment.ApartmentId apartmentId;
@@ -49,12 +48,6 @@ public class Apartment {
 
     @JsonProperty
     private final BigDecimal amountToPay;
-
-    public enum PaymentType {
-        ALIQUOT, FIXED_PAY;
-
-        public static final PaymentType[] values = values();
-    }
 
     @Jacksonized
     @Builder(toBuilder = true)

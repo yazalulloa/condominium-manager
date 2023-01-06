@@ -26,9 +26,9 @@ public class Labels {
 
     public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";
-        public static final String NUMBER_LABEL = "Nro de apartamento";
+        public static final String NUMBER_LABEL = "Nro de apt";
         public static final String NAME_LABEL = "Propietario";
-        public static final String ID_DOC_LABEL = "Documento de identidad";
+        public static final String ID_DOC_LABEL = "CI";
         public static final String EMAILS_LABEL = "Emails";
         public static final String PAYMENT_TYPE_LABEL = "Tipo de pago";
         public static final String AMOUNT_LABEL = "Monto";

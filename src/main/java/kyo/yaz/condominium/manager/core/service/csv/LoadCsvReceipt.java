@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class LoadCsvReceipt {
@@ -54,6 +55,11 @@ public class LoadCsvReceipt {
 
                 return Single.zip(buildingMono, rateMono, (building, rate) -> {
 
+                    final var debtList = debts.stream()
+                            .map(debt -> debt.toBuilder()
+                                    .previousPaymentAmountCurrency(debt.previousPaymentAmount() != null ? building.mainCurrency() : null)
+                                    .build())
+                            .collect(Collectors.toList());
 
                     return Receipt.builder()
                             .buildingId(buildingId)
@@ -61,7 +67,7 @@ public class LoadCsvReceipt {
                             .month(LocalDate.now().getMonth())
                             .date(LocalDate.now())
                             .expenses(expenses)
-                            .debts(debts)
+                            .debts(debtList)
                             .extraCharges(extraCharges)
                             .rate(rate)
                             .build();

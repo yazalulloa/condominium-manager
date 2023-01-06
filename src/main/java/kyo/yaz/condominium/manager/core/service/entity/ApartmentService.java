@@ -37,7 +37,11 @@ public class ApartmentService {
     public Mono<Paging<Apartment>> paging(Set<String> buildings, String filter, int page, int pageSize) {
 
         final var sortings = new LinkedHashSet<Sorting<ApartmentQueryRequest.SortField>>();
-        sortings.add(ApartmentQueryRequest.sorting(ApartmentQueryRequest.SortField.BUILDING_ID, Sort.Direction.ASC));
+
+        if (buildings == null || buildings.isEmpty()) {
+            sortings.add(ApartmentQueryRequest.sorting(ApartmentQueryRequest.SortField.BUILDING_ID, Sort.Direction.ASC));
+        }
+
         sortings.add(ApartmentQueryRequest.sorting(ApartmentQueryRequest.SortField.NUMBER, Sort.Direction.ASC));
 
         final var request = ApartmentQueryRequest.builder()

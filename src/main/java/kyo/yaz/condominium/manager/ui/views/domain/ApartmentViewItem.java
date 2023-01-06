@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import kyo.yaz.condominium.manager.persistence.entity.Apartment;
+import kyo.yaz.condominium.manager.core.domain.PaymentType;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
@@ -37,7 +37,7 @@ public class ApartmentViewItem {
     private Set<String> emails;
 
     @JsonProperty
-    private Apartment.PaymentType paymentType;
+    private PaymentType paymentType;
 
     @JsonProperty
     private BigDecimal amountToPay;

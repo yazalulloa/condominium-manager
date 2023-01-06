@@ -1,8 +1,8 @@
 package kyo.yaz.condominium.manager.persistence.domain.request;
 
+import kyo.yaz.condominium.manager.core.domain.PaymentType;
 import kyo.yaz.condominium.manager.persistence.domain.MongoSortField;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
-import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,7 +34,7 @@ public class ApartmentQueryRequest {
 
     private final String apartment;
 
-    private final Apartment.PaymentType paymentType;
+    private final PaymentType paymentType;
 
     private final Pageable page;
 

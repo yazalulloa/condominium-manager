@@ -24,8 +24,8 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
-import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.Vertx;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
 import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
@@ -50,6 +50,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -67,6 +68,8 @@ public class ReceiptView extends BaseVerticalLayout {
 
     private final Text countText = new Text(null);
     private final Button addEntityButton = new Button(Labels.Receipt.ADD_BUTTON_LABEL);
+
+    private final Vertx vertx;
     private final BuildingService buildingService;
     private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
 
@@ -81,8 +84,9 @@ public class ReceiptView extends BaseVerticalLayout {
     private final SendEmailReceipts sendEmailReceipts;
 
     @Autowired
-    public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts) {
+    public ReceiptView(Vertx vertx, BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts) {
         super();
+        this.vertx = vertx;
         this.buildingService = buildingService;
         this.receiptService = receiptService;
         this.loadCsvReceipt = loadCsvReceipt;
@@ -127,12 +131,34 @@ public class ReceiptView extends BaseVerticalLayout {
         grid.addColumn(
                         new ComponentRenderer<>(Anchor::new, (anchor, item) -> {
 
-                            anchor.setHref(new StreamResource(createPdfReceiptService.fileName(item), () -> {
+                            final var downloadButton = new Button(new Icon(VaadinIcon.DOWNLOAD_ALT));
+                            downloadButton.setDisableOnClick(true);
 
+                            downloadButton.addClickListener(v -> {
+
+                                progressLayout.setProgressText("Creando archivos");
+                                progressLayout.progressBar().setIndeterminate(true);
+                                progressLayout.setVisible(true);
+                            });
+
+                            anchor.setHref(new StreamResource(createPdfReceiptService.fileName(item), () -> {
+                                anchor.setEnabled(false);
                                 try {
+
+
                                     final var path = createPdfReceiptService.zip(item)
                                             .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
                                             .blockingGet();
+
+                                    uiAsyncAction(() -> progressLayout.setProgressText("Descargando"));
+
+                                    vertx.setTimer(TimeUnit.SECONDS.toMillis(2), l -> {
+                                        uiAsyncAction(() -> {
+                                            progressLayout.setVisible(false);
+                                            anchor.setEnabled(true);
+                                            downloadButton.setEnabled(true);
+                                        });
+                                    });
 
                                     return new FileInputStream(path);
                                 } catch (Exception e) {
@@ -142,7 +168,6 @@ public class ReceiptView extends BaseVerticalLayout {
 
 
                             anchor.getElement().setAttribute("download", true);
-                            final var downloadButton = new Button(new Icon(VaadinIcon.DOWNLOAD_ALT));
                             anchor.add(downloadButton);
                         }))
                 .setHeader(Labels.DOWNLOAD)
@@ -152,11 +177,12 @@ public class ReceiptView extends BaseVerticalLayout {
 
         grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
+                            button.setDisableOnClick(true);
                             button.addThemeVariants(ButtonVariant.LUMO_ICON,
                                     ButtonVariant.LUMO_SUCCESS,
                                     ButtonVariant.LUMO_TERTIARY_INLINE);
                             button.addClickListener(e -> {
-                                button.setEnabled(false);
+
                                 progressLayout.setProgressText("Creando archivos");
                                 progressLayout.progressBar().setIndeterminate(false);
                                 progressLayout.setVisible(true);

@@ -81,6 +81,10 @@ public class ParseCsv {
                 final var status = list.size() > 4 ? list.get(4) : "";
                 final var abono = list.size() > 5 ? list.get(5) : null;
 
+                final var previousPaymentAmount = Optional.ofNullable(abono)
+                        .map(PoiUtil::decimal)
+                        .orElse(null);
+
 
                 final var debt = Debt.builder()
                         .aptNumber(apt)
@@ -88,6 +92,7 @@ public class ParseCsv {
                         .receipts(PoiUtil.decimal(receipts).intValue())
                         .amount(PoiUtil.decimal(amount))
                         .months(months(status))
+                        .previousPaymentAmount(previousPaymentAmount)
                         .build();
 
                 debts.add(debt);

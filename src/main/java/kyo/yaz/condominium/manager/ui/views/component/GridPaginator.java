@@ -7,8 +7,6 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -16,8 +14,6 @@ import java.util.Optional;
 import java.util.TreeSet;
 
 public class GridPaginator extends HorizontalLayout {
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ComboBox<Integer> itemsPerPageComBox = ViewUtil.itemPerPageComboBox();
     private final ComboBox<Integer> pageComboBox = new ComboBox<>();
     private final Runnable runnable;
@@ -58,6 +54,8 @@ public class GridPaginator extends HorizontalLayout {
         if (oldNumberOfPages != numberOfPages) {
             setPages();
         }
+
+        setVisible(!(numberOfPages == 1));
     }
 
     public long totalCount() {
