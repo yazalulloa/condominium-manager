@@ -55,8 +55,9 @@ public class SaveReceipt {
                             .collect(Collectors.toCollection(LinkedList::new));
 
                     final var totalCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == Expense.Type.COMMON, receipt.rate().rate());
+                    final var totalCommonExpenses = totalCommonExpensePair.getFirst();
 
-                    final var aliquotDifference = aliquotDifference(apartments, totalCommonExpensePair.getFirst());
+                    final var aliquotDifference = aliquotDifference(apartments, totalCommonExpenses);
 
                     expenses.add(Expense.builder()
                             .description("DIFERENCIA DE ALIQUOTA")
@@ -82,7 +83,7 @@ public class SaveReceipt {
 
                                 final var extraCharges = ObjectUtil.extraCharges(apartment.apartmentId().number(), building.extraCharges(), receipt.extraCharges());
 
-                                final var pay = ObjectUtil.totalAptPay(unCommonPay, ObjectUtil.aBoolean(building.fixedPay()), building.fixedPayAmount(), building.mainCurrency(), receipt.rate().rate(), receipt.totalCommonExpenses(),
+                                final var pay = ObjectUtil.totalAptPay(unCommonPay, ObjectUtil.aBoolean(building.fixedPay()), building.fixedPayAmount(), building.mainCurrency(), receipt.rate().rate(), totalCommonExpenses,
                                         apartment.amountToPay(), extraCharges);
 
                                 return Receipt.AptTotal.builder()
@@ -98,7 +99,7 @@ public class SaveReceipt {
                     return receipt.toBuilder()
                             .id(id)
                             .expenses(expenses)
-                            .totalCommonExpenses(totalCommonExpensePair.getFirst())
+                            .totalCommonExpenses(totalCommonExpenses)
                             .totalCommonExpensesCurrency(totalCommonExpensePair.getSecond())
                             .totalUnCommonExpenses(totalUnCommonExpensePair.getFirst())
                             .totalUnCommonExpensesCurrency(totalUnCommonExpensePair.getSecond())
