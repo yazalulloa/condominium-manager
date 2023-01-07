@@ -30,11 +30,12 @@ public class BcvRateJob {
     @Async
     @Scheduled(cron = "${app.bcv_job_cron_expression}")
     public void scheduleFixedRateTaskAsync() {
+        log.info("CRON_BCV_JOB");
         saveNewBcvRate();
     }
 
     private void saveNewBcvRate() {
-        log.info("RUN JOB");
+        log.info("RUN_JOB");
 
         saveNewBcvRate.saveNewRate()
                 .subscribeOn(Schedulers.parallel())

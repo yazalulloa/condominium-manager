@@ -92,7 +92,7 @@ public class ReceiptView extends BaseVerticalLayout {
         this.loadCsvReceipt = loadCsvReceipt;
         this.createPdfReceiptService = createPdfReceiptService;
         this.sendEmailReceipts = sendEmailReceipts;
-        init();
+
     }
 
     @Override
@@ -112,64 +112,72 @@ public class ReceiptView extends BaseVerticalLayout {
         add(getToolbar(), progressLayout, grid, gridPaginator);
     }
 
+    private ComponentRenderer<Anchor, Receipt> downloadAnchor() {
+
+        return new ComponentRenderer<>(Anchor::new, (anchor, item) -> {
+
+            final var downloadButton = new Button(new Icon(VaadinIcon.DOWNLOAD_ALT));
+            downloadButton.setDisableOnClick(true);
+
+            downloadButton.addClickListener(v -> {
+
+                progressLayout.setProgressText("Creando archivos");
+                progressLayout.progressBar().setIndeterminate(true);
+                progressLayout.setVisible(true);
+            });
+
+            downloadButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
+
+            anchor.setHref(new StreamResource(createPdfReceiptService.fileName(item), () -> {
+                anchor.setEnabled(false);
+                try {
+
+
+                    final var path = createPdfReceiptService.zip(item)
+                            .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                            .blockingGet();
+
+                    uiAsyncAction(() -> progressLayout.setProgressText("Descargando"));
+
+                    vertx.setTimer(TimeUnit.SECONDS.toMillis(2), l -> {
+                        uiAsyncAction(() -> {
+                            progressLayout.setVisible(false);
+                            anchor.setEnabled(true);
+                            downloadButton.setEnabled(true);
+                        });
+                    });
+
+                    return new FileInputStream(path);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+
+            anchor.getElement().setAttribute("download", true);
+            anchor.add(downloadButton);
+        });
+    }
+
     private void configureGrid() {
         grid.addClassNames("apartments-grid");
         grid.setColumnReorderingAllowed(true);
 
-
         grid.addColumn(Receipt::id).setHeader(Labels.Receipt.ID_LABEL).setSortable(true).setKey(Labels.Receipt.ID_LABEL);
         grid.addColumn(Receipt::buildingId).setHeader(Labels.Receipt.BUILDING_LABEL).setSortable(true).setKey(Labels.Receipt.BUILDING_LABEL);
+        grid.addColumn(Receipt::year).setHeader(Labels.Receipt.YEAR_LABEL).setSortable(true).setKey(Labels.Receipt.YEAR_LABEL);
+        grid.addColumn(Receipt::month).setHeader(Labels.Receipt.MONTH_LABEL).setSortable(true).setKey(Labels.Receipt.MONTH_LABEL);
         grid.addColumn(Receipt::date).setHeader(Labels.Receipt.DATE_LABEL).setSortable(true).setKey(Labels.Receipt.DATE_LABEL);
         grid.addColumn(receipt -> ConvertUtil.format(receipt.totalCommonExpenses(), receipt.totalCommonExpensesCurrency())).setHeader(Labels.Receipt.EXPENSE_COMMON_LABEL);
         grid.addColumn(receipt -> ConvertUtil.format(receipt.totalUnCommonExpenses(), receipt.totalUnCommonExpensesCurrency())).setHeader(Labels.Receipt.EXPENSE_UNCOMMON_LABEL);
         grid.addColumn(Receipt::debtReceiptsAmount).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL);
         grid.addColumn(Receipt::totalDebt).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL);
-        grid.addColumn(receipt -> receipt.rate().rate()).setHeader(Labels.Receipt.RATE_LABEL).setSortable(true).setKey(Labels.Receipt.RATE_LABEL);
+        grid.addColumn(receipt -> ConvertUtil.format(receipt.rate().rate(), receipt.rate().toCurrency())).setHeader(Labels.Receipt.RATE_LABEL).setSortable(true).setKey(Labels.Receipt.RATE_LABEL);
         grid.addColumn(receipt -> DateUtil.formatVe(receipt.createdAt())).setHeader(Labels.Receipt.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Receipt.CREATED_AT_LABEL);
 
-
-        grid.addColumn(
-                        new ComponentRenderer<>(Anchor::new, (anchor, item) -> {
-
-                            final var downloadButton = new Button(new Icon(VaadinIcon.DOWNLOAD_ALT));
-                            downloadButton.setDisableOnClick(true);
-
-                            downloadButton.addClickListener(v -> {
-
-                                progressLayout.setProgressText("Creando archivos");
-                                progressLayout.progressBar().setIndeterminate(true);
-                                progressLayout.setVisible(true);
-                            });
-
-                            anchor.setHref(new StreamResource(createPdfReceiptService.fileName(item), () -> {
-                                anchor.setEnabled(false);
-                                try {
+        //final var menuBar = new MenuBar();
 
 
-                                    final var path = createPdfReceiptService.zip(item)
-                                            .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
-                                            .blockingGet();
-
-                                    uiAsyncAction(() -> progressLayout.setProgressText("Descargando"));
-
-                                    vertx.setTimer(TimeUnit.SECONDS.toMillis(2), l -> {
-                                        uiAsyncAction(() -> {
-                                            progressLayout.setVisible(false);
-                                            anchor.setEnabled(true);
-                                            downloadButton.setEnabled(true);
-                                        });
-                                    });
-
-                                    return new FileInputStream(path);
-                                } catch (Exception e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }));
-
-
-                            anchor.getElement().setAttribute("download", true);
-                            anchor.add(downloadButton);
-                        }))
+        grid.addColumn(downloadAnchor())
                 .setHeader(Labels.DOWNLOAD)
                 .setTextAlign(ColumnTextAlign.END)
                 .setFrozenToEnd(true)
@@ -220,8 +228,8 @@ public class ReceiptView extends BaseVerticalLayout {
                                             });
                                         })
                                         .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
-                                        .subscribe(integer -> {
-                                        }, this::showError);
+                                        .ignoreElements()
+                                        .subscribe(completableObserver());
 
                             });
                             button.setIcon(new Icon(VaadinIcon.ENVELOPE));
@@ -304,7 +312,7 @@ public class ReceiptView extends BaseVerticalLayout {
                     buildingComboBox.setItems(buildingIds);
                 });
 
-        final var list = List.of(countMono, setBuildingsIds);
+        final var list = List.of(Mono.fromCallable(() -> (Runnable) this::init), countMono, setBuildingsIds);
 
         Flux.fromIterable(list)
                 .flatMap(m -> m)

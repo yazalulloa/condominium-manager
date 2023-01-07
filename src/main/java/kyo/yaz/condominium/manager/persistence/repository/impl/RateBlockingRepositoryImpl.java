@@ -6,6 +6,7 @@ import kyo.yaz.condominium.manager.persistence.repository.base.RateBlockingCusto
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.util.StreamUtils;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -27,8 +28,6 @@ public class RateBlockingRepositoryImpl implements RateBlockingCustomRepository 
 
         log.info("QUERY: " + query);
 
-        try (final var iterator = template.stream(query, Rate.class)) {
-            return iterator.stream();
-        }
+        return StreamUtils.createStreamFromIterator(template.stream(query, Rate.class));
     }
 }

@@ -49,14 +49,16 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
     public BuildingView(BuildingService service) {
         super();
         this.service = service;
-        init();
     }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
-        refreshData()
+        refreshListData()
+                .doOnSuccess(r -> uiAsyncAction(this::init, r))
+                .ignoreElement()
+                .and(Mono.empty())
                 .subscribeOn(Schedulers.parallel())
                 .subscribe(this.refreshGridSubscriber());
     }
@@ -150,17 +152,20 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
         return service.list(null);
     }
 
-    private Mono<Void> refreshData() {
-
-        final var ratesRunnable = listOfBuildings()
-                .map(list -> (Runnable) () -> {
+    private Mono<Runnable> refreshListData() {
+        return listOfBuildings()
+                .map(list -> () -> {
                     countOfBuildingText.setText(String.format("Edificios: %d", list.size()));
                     grid.setItems(list);
                     grid.getDataProvider().refreshAll();
-                })
+                });
+    }
+
+    private Mono<Void> refreshData() {
+
+        final var ratesRunnable = refreshListData()
                 .doOnError(throwable -> logger().error("ERROR", throwable))
                 .onErrorResume(throwable -> Mono.just(() -> asyncNotification("Error al cargar edificios " + throwable.getMessage())));
-
 
         return ratesRunnable
                 .doOnSuccess(this::uiAsyncAction)

@@ -53,10 +53,8 @@ public class RateView extends BaseVerticalLayout {
     @Autowired
     public RateView(RateService rateService, SaveNewBcvRate saveNewBcvRate) {
         super();
-
         this.rateService = rateService;
         this.saveNewBcvRate = saveNewBcvRate;
-        init();
     }
 
     @Override
@@ -75,7 +73,10 @@ public class RateView extends BaseVerticalLayout {
 
     private void initData() {
         rateService.countAll()
-                .map(count -> (Runnable) () -> setCountText(count, count))
+                .map(count -> (Runnable) () -> {
+                    init();
+                    setCountText(count, count);
+                })
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
                 .and(Mono.empty())

@@ -39,6 +39,10 @@ public abstract class BaseVerticalLayout extends VerticalLayout {
         compositeDisposable.dispose();
     }
 
+    protected CompletableObserver completableObserver() {
+        return RxUtil.completableObserver(compositeDisposable::add, () -> {}, this::showError);
+    }
+
     protected CompletableObserver completableObserver(@NonNull Action onComplete, @NonNull Consumer<? super Throwable> onError) {
         return RxUtil.completableObserver(compositeDisposable::add, onComplete, onError);
     }

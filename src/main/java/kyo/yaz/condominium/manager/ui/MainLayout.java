@@ -3,6 +3,8 @@ package kyo.yaz.condominium.manager.ui;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
@@ -50,10 +52,10 @@ public class MainLayout extends AppLayout {
     private AppNav createNavigation() {
 
         return new AppNav()
-                .addItem(new AppNavItem(BuildingView.PAGE_TITLE, BuildingView.class, "la la-globe"))
-                .addItem(new AppNavItem(RateView.PAGE_TITLE, RateView.class, "la la-globe"))
-                .addItem(new AppNavItem(ApartmentView.PAGE_TITLE, ApartmentView.class, "la la-globe"))
-                .addItem(new AppNavItem(ReceiptView.PAGE_TITLE, ReceiptView.class, "la la-globe"));
+                .addItem(new AppNavItem(BuildingView.PAGE_TITLE, BuildingView.class, new Icon(VaadinIcon.BUILDING)))
+                .addItem(new AppNavItem(RateView.PAGE_TITLE, RateView.class, new Icon(VaadinIcon.COIN_PILES)))
+                .addItem(new AppNavItem(ApartmentView.PAGE_TITLE, ApartmentView.class, new Icon(VaadinIcon.USER)))
+                .addItem(new AppNavItem(ReceiptView.PAGE_TITLE, ReceiptView.class, new Icon(VaadinIcon.FILE_TEXT)));
 
     }
 

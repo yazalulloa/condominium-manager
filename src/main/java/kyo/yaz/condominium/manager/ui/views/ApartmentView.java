@@ -27,11 +27,8 @@ import kyo.yaz.condominium.manager.ui.views.form.CreateApartmentForm;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
-import java.util.List;
 
 
 @PageTitle(ApartmentView.PAGE_TITLE)
@@ -59,7 +56,6 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         super();
         this.service = service;
         this.buildingService = buildingService;
-        init();
     }
 
     @Override
@@ -147,20 +143,15 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     }
 
     private void initData() {
-        final var countMono = service.countAll()
-                .map(count -> (Runnable) () -> setCountText(count, count));
 
-        final var setBuildingsIds = buildingService.buildingIds()
-                .map(buildingIds -> (Runnable) () -> {
-                    createApartmentForm.setBuildingIds(buildingIds);
-                    buildingComboBox.setItems(buildingIds);
-                });
+        Mono.zip(service.countAll(), buildingService.buildingIds(), (count, buildingIds) ->
+                        (Runnable) () -> {
 
-        final var list = List.of(countMono, setBuildingsIds);
-
-        Flux.fromIterable(list)
-                .flatMap(m -> m)
-                .collectList()
+                            init();
+                            createApartmentForm.setBuildingIds(buildingIds);
+                            buildingComboBox.setItems(buildingIds);
+                            setCountText(count, count);
+                        })
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
                 .and(Mono.empty())

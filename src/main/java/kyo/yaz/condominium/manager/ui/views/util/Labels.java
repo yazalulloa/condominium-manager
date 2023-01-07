@@ -22,7 +22,7 @@ public class Labels {
     public static final String REQUIRED = "Requerido";
     public static final String DEACTIVATED = "Desactivado";
     public static final String DOWNLOAD = "Descargar";
-    public static final String SEND_EMAIL = "Enviar email";
+    public static final String SEND_EMAIL = "Enviar";
 
     public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";
@@ -66,12 +66,14 @@ public class Labels {
         public static final String DATE_LABEL = "Fecha";
         public static final String EXPENSE_COMMON_LABEL = "Gastos comunes";
         public static final String EXPENSE_UNCOMMON_LABEL = "Gastos no comunes";
-        public static final String DEBT_RECEIPT_TOTAL_NUMBER_LABEL = "Recibos de deuda";
+        public static final String DEBT_RECEIPT_TOTAL_NUMBER_LABEL = "Recibos";
         public static final String DEBT_RECEIPT_TOTAL_AMOUNT_LABEL = "Total de deuda";
         public static final String CREATED_AT_LABEL = "Fecha de creacion";
         public static final String RECEIPT_DATE_LABEL = "Fecha de recibo";
-        public static final String RATE_LABEL = "Tasa de cambio";
+        public static final String RATE_LABEL = "Tasa";
         public static final String ASK_CONFIRMATION_DELETE = "Esta seguro de borrar el recibo\n %s %s %s?";
+        public static final String YEAR_LABEL = "Año";
+        public static final String MONTH_LABEL = "Mes";
     }
 
     public static class Expense {

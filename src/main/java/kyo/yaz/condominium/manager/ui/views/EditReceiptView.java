@@ -85,7 +85,6 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
         this.buildingService = buildingService;
         this.rateRepository = rateRepository;
         this.saveReceipt = saveReceipt;
-        init();
     }
 
     private void init() {
@@ -499,7 +498,7 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
                 .defaultIfEmpty(AppUtil.emptyRunnable());
 
         Mono.zip(setBuildingId, receiptMono)
-                .doOnSuccess(t -> uiAsyncAction(t.getT1(), t.getT2()))
+                .doOnSuccess(t -> uiAsyncAction(this::init, t.getT1(), t.getT2()))
                 .ignoreElement()
                 .and(Mono.empty())
                 .subscribeOn(Schedulers.parallel())
