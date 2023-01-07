@@ -1,16 +1,20 @@
 package kyo.yaz.condominium.manager.ui.views;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -46,10 +50,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.FileInputStream;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -179,11 +180,54 @@ public class ReceiptView extends BaseVerticalLayout {
 
         grid.addColumn(downloadAnchor())
                 .setHeader(Labels.DOWNLOAD)
-                .setTextAlign(ColumnTextAlign.END)
-                .setFrozenToEnd(true)
+                .setTextAlign(ColumnTextAlign.CENTER)
+                // .setFrozenToEnd(true)
                 .setFlexGrow(0);
 
-        grid.addColumn(
+        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+
+        grid.addComponentColumn(receipt -> {
+            final var menuBar = new MenuBar();
+            menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
+            final var menuItem = menuBar.addItem("•••");
+            menuItem.getElement().setAttribute("aria-label", "Mas opciones");
+
+
+            SubMenu subMenu = menuItem.getSubMenu();
+
+
+            final var sendEmailMenu = subMenu.addItem(Labels.SEND_EMAIL, e -> sendEmails(receipt));
+            sendEmailMenu.addComponentAsFirst(createIcon(VaadinIcon.ENVELOPE));
+
+            final var copyMenu = subMenu.addItem(Labels.COPY, e -> copyReceipt(receipt));
+            copyMenu.addComponentAsFirst(createIcon(VaadinIcon.COPY));
+
+
+            final var deleteMenu = subMenu.addItem(Labels.DELETE, e -> deleteReceipt(receipt));
+            deleteMenu.addComponentAsFirst(createIcon(VaadinIcon.TRASH));
+
+            return menuBar;
+        }).setWidth("70px").setFlexGrow(0);
+
+        final var contextMenu = grid.addContextMenu();
+
+        contextMenu.setDynamicContentHandler(Objects::nonNull);
+
+        final var sendEmailMenu = contextMenu.addItem(Labels.SEND_EMAIL);
+        sendEmailMenu.addComponentAsFirst(createIcon(VaadinIcon.ENVELOPE));
+        sendEmailMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::sendEmails));
+
+        final var copyMenu = contextMenu.addItem(Labels.COPY);
+        copyMenu.addComponentAsFirst(createIcon(VaadinIcon.COPY));
+        copyMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::copyReceipt));
+
+        final var deleteMenu = contextMenu.addItem(Labels.DELETE);
+        deleteMenu.addComponentAsFirst(createIcon(VaadinIcon.TRASH));
+        deleteMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::deleteReceipt));
+
+
+
+       /* grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
                             button.setDisableOnClick(true);
                             button.addThemeVariants(ButtonVariant.LUMO_ICON,
@@ -237,9 +281,9 @@ public class ReceiptView extends BaseVerticalLayout {
                 .setHeader(Labels.SEND_EMAIL)
                 .setTextAlign(ColumnTextAlign.END)
                 .setFrozenToEnd(true)
-                .setFlexGrow(0);
+                .setFlexGrow(0);*/
 
-        grid.addColumn(
+        /*grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
                             button.addThemeVariants(ButtonVariant.LUMO_ICON,
                                     ButtonVariant.LUMO_SUCCESS,
@@ -260,9 +304,9 @@ public class ReceiptView extends BaseVerticalLayout {
                 .setHeader(Labels.COPY)
                 .setTextAlign(ColumnTextAlign.END)
                 .setFrozenToEnd(true)
-                .setFlexGrow(0);
+                .setFlexGrow(0);*/
 
-        grid.addColumn(
+        /*grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, item) -> {
                             button.addThemeVariants(ButtonVariant.LUMO_ICON,
                                     ButtonVariant.LUMO_ERROR,
@@ -279,9 +323,9 @@ public class ReceiptView extends BaseVerticalLayout {
                 .setHeader(Labels.DELETE)
                 .setTextAlign(ColumnTextAlign.END)
                 .setFrozenToEnd(true)
-                .setFlexGrow(0);
+                .setFlexGrow(0);*/
 
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
 
@@ -290,6 +334,68 @@ public class ReceiptView extends BaseVerticalLayout {
             selection.getFirstSelectedItem()
                     .ifPresent(building -> addEntity(building.id()));
         });
+    }
+
+    private Component createIcon(VaadinIcon vaadinIcon) {
+        Icon icon = vaadinIcon.create();
+        icon.getStyle().set("color", "var(--lumo-secondary-text-color)")
+                .set("margin-inline-end", "var(--lumo-space-s")
+                .set("padding", "var(--lumo-space-xs");
+        return icon;
+    }
+
+    private void deleteReceipt(Receipt receipt) {
+        deleteDialog.setText(Labels.Receipt.ASK_CONFIRMATION_DELETE.formatted(receipt.id(), receipt.buildingId(), receipt.date()));
+        deleteDialog.setDeleteAction(() -> delete(receipt));
+        deleteDialog.open();
+    }
+
+    private void copyReceipt(Receipt receipt) {
+        final var newItem = receipt.toBuilder()
+                .id(null)
+                .createdAt(null)
+                .updatedAt(null)
+                .build();
+
+        saveReceiptInSession(newItem);
+        addEntity("copy");
+    }
+
+    private void sendEmails(Receipt receipt) {
+        progressLayout.setProgressText("Creando archivos");
+        progressLayout.progressBar().setIndeterminate(false);
+        progressLayout.setVisible(true);
+
+        createPdfReceiptService.createFiles(receipt)
+                .observeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                .flatMap(list -> sendEmailReceipts.send(receipt, list))
+                .toFlowable()
+                .flatMap(list -> {
+
+                    uiAsyncAction(() -> {
+                        progressLayout.progressBar().setMin(0);
+                        progressLayout.progressBar().setMax(list.size());
+                        progressLayout.progressBar().setValue(0);
+                        progressLayout.setProgressText("Enviando emails %s/%s".formatted(0, list.size()));
+                    });
+
+                    final AtomicInteger i = new AtomicInteger(1);
+                    final var singles = list.stream()
+                            .map(c -> c.toSingleDefault(i.getAndIncrement()))
+                            .collect(Collectors.toCollection(LinkedList::new));
+
+                    return Single.concat(singles)
+                            .doOnNext(integer -> {
+                                uiAsyncAction(() -> {
+                                    progressLayout.progressBar().setValue(integer);
+                                    progressLayout.setProgressText("Enviando emails %s/%s".formatted(integer, list.size()));
+                                });
+                            });
+                })
+                .doAfterTerminate(() -> uiAsyncAction(() -> progressLayout.setVisible(false)))
+                .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                .ignoreElements()
+                .subscribe(completableObserver());
     }
 
     private void delete(Receipt receipt) {

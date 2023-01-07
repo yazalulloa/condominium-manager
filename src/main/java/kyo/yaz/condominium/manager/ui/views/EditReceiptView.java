@@ -395,19 +395,6 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
         });
     }
 
-    private VerticalLayout forms() {
-        expenseForm = new ExpenseForm();
-        debtForm = new DebtForm(aptNumber -> {
-            final var buildingId = receiptForm.buildingComboBox().getValue();
-            return apartmentService.read(buildingId, aptNumber).map(Apartment::name);
-        });
-        debtForm.setVisible(false);
-        extraChargeForm.setVisible(false);
-
-        return new VerticalLayout(new H3(Labels.NEW_EXPENSE), expenseForm, new H3(Labels.NEW_DEBT), debtForm, new H3(Labels.EXTRA_CHARGE_TITLE), extraChargeForm);
-    }
-
-
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         receiptId = event.getRouteParameters().get("receipt_id")

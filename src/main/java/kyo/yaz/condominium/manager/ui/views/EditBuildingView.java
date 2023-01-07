@@ -1,7 +1,6 @@
 package kyo.yaz.condominium.manager.ui.views;
 
 import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -11,7 +10,6 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -20,7 +18,7 @@ import com.vaadin.flow.router.Route;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.ui.MainLayout;
-import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
+import kyo.yaz.condominium.manager.ui.views.base.ScrollPanel;
 import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
 import kyo.yaz.condominium.manager.ui.views.form.CreateBuildingForm;
 import kyo.yaz.condominium.manager.ui.views.form.ExtraChargeForm;
@@ -37,7 +35,7 @@ import java.util.Set;
 
 @PageTitle(BuildingView.PAGE_TITLE)
 @Route(value = "buildings/:building_id", layout = MainLayout.class)
-public class EditBuildingView extends BaseVerticalLayout implements BeforeEnterObserver {
+public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver {
 
     private final CreateBuildingForm createBuildingForm = new CreateBuildingForm();
     private final Grid<ExtraChargeViewItem> extraChargeGrid = new Grid<>(ExtraChargeViewItem.class, false);
@@ -70,39 +68,30 @@ public class EditBuildingView extends BaseVerticalLayout implements BeforeEnterO
 
     private void init() {
         addClassName("edit-building-view");
-        setSizeFull();
+        //setSizeFull();
         configureGrid();
         configureListeners();
-
-        add(getContent());
-        if (extraChargesVisible) {
-            add(extraChargeGrid);
-        }
-        add(createButtonsLayout());
+        addContent();
 
     }
 
-    private Component getContent() {
+    private void addContent() {
 
-
-        final var content = new HorizontalLayout(createBuildingForm);
-        content.add(createBuildingForm);
+        add(createBuildingForm);
+        add(createButtonsLayout());
 
         if (extraChargesVisible) {
-            final var verticalLayout = new VerticalLayout(extraChargeTitle, extraChargeForm);
-            content.add(verticalLayout);
-            content.setFlexGrow(2, createBuildingForm);
-            content.setFlexGrow(1, verticalLayout);
-        }
 
-        content.addClassNames("content");
-        content.setWidthFull();
-        return content;
+            add(extraChargeTitle);
+            add(extraChargeForm);
+            add(extraChargeGrid);
+        }
     }
 
     private void configureGrid() {
         extraChargeGrid.addClassNames("extra_charge-grid");
         extraChargeGrid.setColumnReorderingAllowed(true);
+        extraChargeGrid.setAllRowsVisible(true);
         extraChargeGrid.addColumn(ExtraChargeViewItem::getAptNumber).setHeader(Labels.ExtraCharge.APT_LABEL).setSortable(true).setKey(Labels.ExtraCharge.APT_LABEL);
         extraChargeGrid.addColumn(ExtraChargeViewItem::getDescription).setHeader(Labels.ExtraCharge.DESCRIPTION_LABEL);
         extraChargeGrid.addColumn(ExtraChargeViewItem::getAmount).setHeader(Labels.ExtraCharge.AMOUNT_LABEL).setSortable(true).setKey(Labels.ExtraCharge.AMOUNT_LABEL);

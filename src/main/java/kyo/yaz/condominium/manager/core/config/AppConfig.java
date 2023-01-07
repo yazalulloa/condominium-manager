@@ -10,8 +10,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import java.util.concurrent.Executor;
 
 @Configuration
-@EnableAsync
-@EnableScheduling
 public class AppConfig implements AsyncConfigurer {
     @Override
     public Executor getAsyncExecutor() {
