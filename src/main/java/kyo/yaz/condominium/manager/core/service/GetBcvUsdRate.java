@@ -1,5 +1,6 @@
 package kyo.yaz.condominium.manager.core.service;
 
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
@@ -15,7 +16,6 @@ import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
@@ -32,7 +32,7 @@ public class GetBcvUsdRate {
         this.bcvUsdRateParser = bcvUsdRateParser;
     }
 
-    private Mono<Document> docuument() {
+    private Single<Document> docuument() {
         final HttpClientRequest httpClientRequest = HttpClientRequest.get(url)
                 .toBuilder()
                 .trustAll(true)
@@ -41,7 +41,7 @@ public class GetBcvUsdRate {
                         .build())
                 .build();
 
-        return Mono.create(emitter -> {
+        return Single.create(emitter -> {
 
             eventBus.<HttpClientResponse>request(HttpClientVerticle.SEND, httpClientRequest)
                     .map(Message::body)
@@ -51,9 +51,9 @@ public class GetBcvUsdRate {
                     .onComplete(ar -> {
 
                         if (ar.failed()) {
-                            emitter.error(ar.cause());
+                            emitter.onError(ar.cause());
                         } else {
-                            emitter.success(ar.result());
+                            emitter.onSuccess(ar.result());
                         }
 
                     });
@@ -61,7 +61,7 @@ public class GetBcvUsdRate {
 
     }
 
-    public Mono<Rate> newRate() {
+    public Single<Rate> newRate() {
         return docuument().flatMap(bcvUsdRateParser::parse);
     }
 }

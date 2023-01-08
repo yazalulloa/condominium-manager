@@ -38,6 +38,16 @@ public abstract class BaseHorizontalLayout extends HorizontalLayout {
         compositeDisposable.dispose();
     }
 
+    protected CompletableObserver completableObserver() {
+        return completableObserver(() -> {
+        });
+    }
+
+    protected CompletableObserver completableObserver(@NonNull Action onComplete) {
+        return completableObserver(onComplete, this::showError);
+
+    }
+
     protected CompletableObserver completableObserver(@NonNull Action onComplete, @NonNull Consumer<? super Throwable> onError) {
         return RxUtil.completableObserver(compositeDisposable::add, onComplete, onError);
     }

@@ -9,6 +9,7 @@ import kyo.yaz.condominium.manager.core.domain.ReceiptEmailFrom;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -65,8 +66,15 @@ public class BuildingViewItem {
     private boolean fixedPay;
     @JsonProperty
     private BigDecimal fixedPayAmount;
-
     @NotNull
     @JsonProperty
     private ReceiptEmailFrom receiptEmailFrom;
+
+    @NotNull
+    @JsonProperty
+    private Boolean roundUpPayments;
+    @NotNull
+    @Min(0)
+    @JsonProperty
+    private BigDecimal reserveFundPercentage;
 }

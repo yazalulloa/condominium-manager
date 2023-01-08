@@ -3,15 +3,15 @@ package kyo.yaz.condominium.manager.ui.views.base;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
-public class ScrollPanel extends BaseVerticalLayout{
+public class ScrollPanel extends BaseVerticalLayout {
     private VerticalLayout content;
 
-    public ScrollPanel(){
+    public ScrollPanel() {
         super();
         preparePanel();
     }
 
-    public ScrollPanel(Component... children){
+    public ScrollPanel(Component... children) {
         this();
         this.add(children);
     }
@@ -25,22 +25,22 @@ public class ScrollPanel extends BaseVerticalLayout{
         setHeight("100%");
     }
 
-    public VerticalLayout getContent(){
+    public VerticalLayout getContent() {
         return content;
     }
 
     @Override
-    public void add(Component... components){
+    public void add(Component... components) {
         content.add(components);
     }
 
     @Override
-    public void remove(Component... components){
+    public void remove(Component... components) {
         content.remove(components);
     }
 
     @Override
-    public void removeAll(){
+    public void removeAll() {
         content.removeAll();
     }
 

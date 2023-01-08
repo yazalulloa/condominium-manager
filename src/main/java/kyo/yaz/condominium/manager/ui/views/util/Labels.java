@@ -54,6 +54,8 @@ public class Labels {
         public static final String FIXED_PAY_AMOUNT_LABEL = "Monto fijo monto";
         public static final String FIXED_PAY_CURRENCY_LABEL = "Monto fijo moneda";
         public static final String RECEIPT_EMAIL_FROM_LABEL = "Email recibo";
+        public static final String ROUND_UP_PAYMENTS_LABEL = "Redondear hacia arriba los montos a pagar";
+        public static final String RESERVE_FUND_PERCENTAGE_LABEL = "Porcentage para el Fondo de reserva";
     }
 
 

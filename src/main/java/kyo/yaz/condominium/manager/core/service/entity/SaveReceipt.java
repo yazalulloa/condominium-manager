@@ -13,7 +13,6 @@ import kyo.yaz.condominium.manager.persistence.entity.Sequence;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.adapter.rxjava.RxJava3Adapter;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -110,8 +109,7 @@ public class SaveReceipt {
                             .aptTotals(aptTotals)
                             .build();
                 })
-                .map(receiptService::save)
-                .flatMap(RxJava3Adapter::monoToSingle);
+                .flatMap(receiptService::save);
     }
 
     private BigDecimal aliquotDifference(Collection<Apartment> list, BigDecimal totalCommonExpenses) {

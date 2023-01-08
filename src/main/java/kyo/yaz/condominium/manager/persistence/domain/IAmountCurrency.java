@@ -7,5 +7,6 @@ import java.math.BigDecimal;
 public interface IAmountCurrency {
 
     BigDecimal amount();
+
     Currency currency();
 }

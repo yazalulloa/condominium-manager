@@ -22,9 +22,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SendEmailVerticle extends AbstractVerticle {
 
-    private static final Map<ReceiptEmailFrom, Gmail> map = new HashMap<>();
     public static final String SEND = "send-email";
-
+    private static final Map<ReceiptEmailFrom, Gmail> map = new HashMap<>();
     private final HttpTransport transport;
     private final JsonFactory jsonFactory;
 

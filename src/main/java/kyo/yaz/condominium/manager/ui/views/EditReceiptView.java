@@ -18,6 +18,12 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import kyo.yaz.condominium.manager.core.mapper.DebtMapper;
+import kyo.yaz.condominium.manager.core.mapper.ExpenseMapper;
+import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
@@ -38,13 +44,8 @@ import kyo.yaz.condominium.manager.ui.views.util.AppUtil;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @PageTitle(ReceiptView.PAGE_TITLE)
@@ -63,19 +64,16 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
     private final Set<DebtViewItem> debts = new LinkedHashSet<>();
     private final ExtraChargeForm extraChargeForm = new ExtraChargeForm();
     private final Set<ExtraChargeViewItem> extraCharges = new LinkedHashSet<>();
-    private ExpenseForm expenseForm;
-    private DebtForm debtForm;
-    private Long receiptId;
-    private ReceiptForm receiptForm;
-
-    private Receipt receipt;
-
     private final ApartmentService apartmentService;
     private final ReceiptService receiptService;
     private final BuildingService buildingService;
     private final RateBlockingRepository rateRepository;
-
     private final SaveReceipt saveReceipt;
+    private ExpenseForm expenseForm;
+    private DebtForm debtForm;
+    private Long receiptId;
+    private ReceiptForm receiptForm;
+    private Receipt receipt;
 
     @Autowired
     public EditReceiptView(ApartmentService apartmentService, ReceiptService receiptService, BuildingService buildingService, RateBlockingRepository rateRepository, SaveReceipt saveReceipt) {
@@ -120,9 +118,9 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
                     .year(formItem.getYear())
                     .month(formItem.getMonth())
                     .date(formItem.getDate())
-                    .expenses(ConvertUtil.toList(expenses, ConvertUtil::expense))
-                    .debts(ConvertUtil.toList(debts, ConvertUtil::debt))
-                    .extraCharges(ConvertUtil.toList(extraCharges, ConvertUtil::extraCharge))
+                    .expenses(ConvertUtil.toList(expenses, ExpenseMapper::to))
+                    .debts(ConvertUtil.toList(debts, DebtMapper::to))
+                    .extraCharges(ConvertUtil.toList(extraCharges, ExtraChargeMapper::to))
                     .rate(formItem.getRate())
                     .build();
 
@@ -158,9 +156,8 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
                     setAptNumbers(value)
                             .doOnSuccess(this::uiAsyncAction)
                             .ignoreElement()
-                            .and(Mono.empty())
-                            .subscribeOn(Schedulers.parallel())
-                            .subscribe(this.emptySubscriber());
+                            .subscribeOn(Schedulers.io())
+                            .subscribe(completableObserver());
                 }
             }
         });
@@ -189,7 +186,7 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
         ui(ui -> ui.navigate(ReceiptView.class));
     }
 
-    private Mono<Runnable> setAptNumbers(String buildingId) {
+    private Single<Runnable> setAptNumbers(String buildingId) {
         return apartmentService.aptNumbers(buildingId)
                 .map(list -> () -> {
                     debtForm.setAptNumbers(list);
@@ -441,16 +438,15 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
         });
     }
 
-    private Mono<Runnable> initReceipt() {
+    private Maybe<Runnable> initReceipt() {
 
-        return Mono.justOrEmpty(receipt)
-                .map(Receipt::buildingId)
-                .flatMap(this::setAptNumbers)
+        return Maybe.fromOptional(Optional.ofNullable(receipt).map(Receipt::buildingId))
+                .flatMapSingle(this::setAptNumbers)
                 .map(runnable -> {
                     return (Runnable) () -> {
-                        debts.addAll(ConvertUtil.toList(receipt.debts(), ConvertUtil::viewItem));
-                        expenses.addAll(ConvertUtil.toList(receipt.expenses(), ConvertUtil::viewItem));
-                        extraCharges.addAll(ConvertUtil.toList(receipt.extraCharges(), ConvertUtil::viewItem));
+                        debts.addAll(ConvertUtil.toList(receipt.debts(), DebtMapper::to));
+                        expenses.addAll(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
+                        extraCharges.addAll(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
 
                         setExpensesInGrid();
                         setExtraChargesInGrid();
@@ -471,10 +467,10 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
     private void initData() {
 
 
-        final var setBuildingId = buildingService.buildingIds()
+        final var setBuildingIdSingle = buildingService.buildingIds()
                 .map(buildingIds -> (Runnable) () -> receiptForm.buildingComboBox().setItems(buildingIds));
 
-        final var receiptMono = Mono.justOrEmpty(receiptId)
+        final var receiptSingle = Maybe.fromOptional(Optional.ofNullable(receiptId))
                 .flatMap(receiptService::find)
                 .flatMap(receipt -> {
 
@@ -482,14 +478,13 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
                     return initReceipt();
                 })
                 .switchIfEmpty(initReceipt())
-                .defaultIfEmpty(AppUtil.emptyRunnable());
+                .switchIfEmpty(Single.fromCallable(AppUtil::emptyRunnable));
 
-        Mono.zip(setBuildingId, receiptMono)
-                .doOnSuccess(t -> uiAsyncAction(this::init, t.getT1(), t.getT2()))
+        Single.zip(setBuildingIdSingle, receiptSingle, (setBuildingId, setReceipt) -> List.of(this::init, setBuildingId, setReceipt))
+                .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
-                .and(Mono.empty())
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(emptySubscriber());
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
 }
 

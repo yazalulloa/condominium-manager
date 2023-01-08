@@ -15,6 +15,10 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import kyo.yaz.condominium.manager.core.mapper.BuildingMapper;
+import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.ui.MainLayout;
@@ -25,11 +29,10 @@ import kyo.yaz.condominium.manager.ui.views.form.ExtraChargeForm;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -45,12 +48,9 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
     private final ExtraChargeForm extraChargeForm = new ExtraChargeForm();
     private final Button saveBtn = new Button(Labels.SAVE);
     private final Button cancelBtn = new Button(Labels.CANCEL);
-    private String buildingIdParam;
-
     private final BuildingService buildingService;
-
     private final ApartmentService apartmentService;
-
+    private String buildingIdParam;
     private boolean extraChargesVisible;
 
     @Autowired
@@ -159,16 +159,16 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
 
     private void initData() {
 
-        final var aptNumbersMono = Mono.justOrEmpty(buildingIdParam)
-                .flatMap(apartmentService::aptNumbers)
-                .defaultIfEmpty(Collections.emptyList())
-                .subscribeOn(Schedulers.parallel());
 
-        final var buildingViewItemMono = Mono.justOrEmpty(buildingIdParam)
+        final var aptNumbersMono = Maybe.fromOptional(Optional.of(buildingIdParam))
+                .flatMapSingle(apartmentService::aptNumbers)
+                .switchIfEmpty(Maybe.fromCallable(Collections::emptyList));
+
+        final var buildingViewItemMono = Maybe.fromOptional(Optional.of(buildingIdParam))
                 .flatMap(buildingService::find)
-                .map(ConvertUtil::viewItem);
+                .map(BuildingMapper::to);
 
-        Mono.zip(buildingViewItemMono, aptNumbersMono, (viewItem, list) -> {
+        Maybe.zip(buildingViewItemMono, aptNumbersMono, (viewItem, list) -> {
                     return (Runnable) () -> {
                         extraCharges.addAll(viewItem.getExtraCharges());
                         createBuildingForm.setBuilding(viewItem);
@@ -185,9 +185,9 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
                     init();
                 })
                 .doOnSuccess(this::uiAsyncAction)
-                .subscribeOn(Schedulers.parallel())
-                .and(Mono.empty())
-                .subscribe(emptySubscriber());
+                .subscribeOn(Schedulers.io())
+                .ignoreElement()
+                .subscribe(completableObserver());
     }
 
     private void configureListeners() {
@@ -199,16 +199,16 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
 
         createBuildingForm.addListener(CreateBuildingForm.SaveEvent.class, event -> {
             saveBtn.setEnabled(false);
-            final var building = ConvertUtil.building(event.getBuilding());
 
-            final var list = ConvertUtil.toList(extraCharges, ConvertUtil::extraCharge);
-            final var build = building.toBuilder()
+            final var list = ConvertUtil.toList(extraCharges, ExtraChargeMapper::to);
+            final var build = BuildingMapper.to(event.getBuilding()).toBuilder()
                     .extraCharges(list)
                     .build();
 
             buildingService.save(build)
-                    .subscribeOn(Schedulers.parallel())
-                    .subscribe(b -> uiAsyncAction(this::navigateBack), this::showError);
+                    .subscribeOn(Schedulers.io())
+                    .ignoreElement()
+                    .subscribe(completableObserver(this::navigateBack));
         });
     }
 

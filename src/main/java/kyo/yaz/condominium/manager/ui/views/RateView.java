@@ -16,6 +16,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.service.SaveNewBcvRate;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
@@ -26,11 +29,7 @@ import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
-import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
-import org.reactivestreams.Subscriber;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -44,12 +43,10 @@ public class RateView extends BaseVerticalLayout {
     private final Grid<Rate> grid = new Grid<>();
     private final AtomicBoolean addingRate = new AtomicBoolean(false);
     private final Text queryCountText = new Text(null);
-    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
-    private final Text totalCountText = new Text(null);
+    private final Text totalCountText = new Text(null);    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final DeleteDialog deleteDialog = new DeleteDialog();
     private final RateService rateService;
     private final SaveNewBcvRate saveNewBcvRate;
-
     @Autowired
     public RateView(RateService rateService, SaveNewBcvRate saveNewBcvRate) {
         super();
@@ -79,9 +76,8 @@ public class RateView extends BaseVerticalLayout {
                 })
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
-                .and(Mono.empty())
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(emptySubscriber("initData"));
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
 
     private Component footer() {
@@ -143,19 +139,11 @@ public class RateView extends BaseVerticalLayout {
         });*/
     }
 
-    private Subscriber<Void> refreshGridSubscriber(String tag) {
-
-        return ViewUtil.emptySubscriber(throwable -> {
-            asyncNotification("Error Refreshing Grid " + tag + " " + throwable.getMessage());
-            logger().error("ERROR " + tag, throwable);
-        });
-    }
-
     public void delete(Rate rate) {
         rateService.delete(rate)
-                .then(refreshData())
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(refreshGridSubscriber("delete"));
+                .andThen(refreshData())
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
 
     private HorizontalLayout getToolbar() {
@@ -172,7 +160,7 @@ public class RateView extends BaseVerticalLayout {
                             addingRate.set(false);
                             addButton.setEnabled(true);
                         }))
-                        .subscribe(this.refreshGridSubscriber("adding rate"));
+                        .subscribe(completableObserver());
             }
 
         });
@@ -183,7 +171,7 @@ public class RateView extends BaseVerticalLayout {
         return toolbar;
     }
 
-    private Mono<Paging<Rate>> pagingMono() {
+    private Single<Paging<Rate>> pagingMono() {
         return rateService.paging(gridPaginator.currentPage(), gridPaginator.itemsPerPage());
     }
 
@@ -193,7 +181,7 @@ public class RateView extends BaseVerticalLayout {
         totalCountText.setText(String.format("Total de Tasas de cambio: %d", totalCount));
     }
 
-    private Mono<Void> refreshData() {
+    private Completable refreshData() {
 
         return pagingMono()
                 .map(paging -> (Runnable) () -> {
@@ -208,24 +196,26 @@ public class RateView extends BaseVerticalLayout {
                     grid.getDataProvider().refreshAll();
                 })
                 .doOnSuccess(this::uiAsyncAction)
-                .ignoreElement()
-                .and(Mono.empty());
+                .ignoreElement();
     }
 
-    private Mono<Void> newRate() {
+    private Completable newRate() {
 
         return saveNewBcvRate.saveNewRate()
                 .doOnSuccess(bool -> logger().info("NEW_RATE_SAVED {}", bool))
                 .doOnSuccess(bool -> asyncNotification(bool ? "Nueva tasa de cambio encontrada" : "Tasa ya guardada"))
-                .then(refreshData())
-                .subscribeOn(Schedulers.parallel());
+                .ignoreElement()
+                .andThen(refreshData())
+                .subscribeOn(Schedulers.io());
 
     }
 
     private void updateGrid() {
         refreshData()
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(emptySubscriber("updateGrid"));
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
+
+
 
 }

@@ -18,16 +18,19 @@ public class SequenceService {
     }
 
     public Single<Long> rxNextSequence(Sequence.Type type) {
-        return RxJava3Adapter.monoToSingle(nextSequence(type));
+        return nextSequence(type);
     }
 
-    public Mono<Long> nextSequence(Sequence.Type type) {
-        return repository.findById(type)
+    public Single<Long> nextSequence(Sequence.Type type) {
+
+        final var mono = repository.findById(type)
                 .map(sequence -> sequence.toBuilder()
                         .count(sequence.count() + 1)
                         .build())
                 .flatMap(repository::save)
                 .switchIfEmpty(Mono.defer(() -> repository.save(new Sequence(type, 1L))))
                 .map(Sequence::count);
+
+        return RxJava3Adapter.monoToSingle(mono);
     }
 }

@@ -57,4 +57,8 @@ public class Building {
     private final BigDecimal fixedPayAmount;
     @JsonProperty
     private final ReceiptEmailFrom receiptEmailFrom;
+    @JsonProperty
+    private final Boolean roundUpPayments;
+    @JsonProperty
+    private final BigDecimal reserveFundPercentage;
 }

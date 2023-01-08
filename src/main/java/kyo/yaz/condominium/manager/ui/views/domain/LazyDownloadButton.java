@@ -3,6 +3,7 @@ package kyo.yaz.condominium.manager.ui.views.domain;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.dom.DomEvent;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.server.InputStreamFactory;
 import com.vaadin.flow.server.StreamResource;
@@ -13,7 +14,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
-import com.vaadin.flow.dom.DomEvent;
 
 public class LazyDownloadButton extends Button {
 

@@ -38,12 +38,17 @@ public class CreateBuildingForm extends BaseForm {
     private final BigDecimalField reserveFundField = new BigDecimalField(Labels.Building.RESERVE_FUND_LABEL);
     @PropertyId("reserveFundCurrency")
     private final ComboBox<Currency> reserveFundCurrencyComboBox = ViewUtil.currencyComboBox(Labels.Building.RESERVE_FUND_CURRENCY_LABEL);
+    @PropertyId("reserveFundPercentage")
+    private final BigDecimalField reserveFundPercentageField = new BigDecimalField(Labels.Building.RESERVE_FUND_PERCENTAGE_LABEL);
     @PropertyId("mainCurrency")
     private final ComboBox<Currency> mainCurrencyComboBox = ViewUtil.currencyComboBox(Labels.Building.MAIN_CURRENCY_LABEL);
     @PropertyId("debtCurrency")
     private final ComboBox<Currency> debtCurrencyComboBox = ViewUtil.currencyComboBox(Labels.Building.DEBT_CURRENCY_LABEL);
     @PropertyId("currenciesToShowAmountToPay")
     private final MultiSelectComboBox<Currency> currenciesToShowAmountToPayComboBox = new MultiSelectComboBox<>(Labels.Building.SHOW_PAYMENT_IN_CURRENCIES, Currency.values);
+
+    @PropertyId("roundUpPayments")
+    private final Checkbox roundUpPaymentsField = new Checkbox(Labels.Building.ROUND_UP_PAYMENTS_LABEL);
 
     @PropertyId("fixedPay")
     private final Checkbox fixedPayField = new Checkbox(Labels.Building.FIXED_PAY_LABEL);
@@ -65,10 +70,12 @@ public class CreateBuildingForm extends BaseForm {
                 rifTextField,
                 reserveFundField,
                 reserveFundCurrencyComboBox,
+                reserveFundPercentageField,
                 mainCurrencyComboBox,
                 debtCurrencyComboBox,
                 currenciesToShowAmountToPayComboBox,
                 receiptEmailFromComboBox,
+                roundUpPaymentsField,
                 fixedPayField,
                 fixedPayAmountField);
 

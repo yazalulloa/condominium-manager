@@ -1,5 +1,7 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.ReceiptQueryRequest;
@@ -10,7 +12,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import reactor.adapter.rxjava.RxJava3Adapter;
-import reactor.core.publisher.Mono;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -25,7 +26,7 @@ public class ReceiptService {
         this.repository = repository;
     }
 
-    public Mono<List<Receipt>> list(String buildingId, String filter, int page, int pageSize) {
+    public Single<List<Receipt>> list(String buildingId, String filter, int page, int pageSize) {
 
         final var sortings = new LinkedHashSet<Sorting<ReceiptQueryRequest.SortField>>();
         sortings.add(ReceiptQueryRequest.sorting(ReceiptQueryRequest.SortField.ID, Sort.Direction.DESC));
@@ -37,33 +38,33 @@ public class ReceiptService {
                 .sortings(sortings)
                 .build();
 
-        return repository.list(request);
+        return RxJava3Adapter.monoToSingle(repository.list(request));
     }
 
-    public Mono<Void> delete(Long id) {
-        return repository.deleteById(id);
+    public Completable delete(Long id) {
+        return RxJava3Adapter.monoToCompletable(repository.deleteById(id));
     }
 
-    public Mono<Void> delete(Receipt entity) {
+    public Completable delete(Receipt entity) {
 
-        return repository.delete(entity);
+        return RxJava3Adapter.monoToCompletable(repository.delete(entity));
     }
 
-    public Mono<Receipt> find(Long id) {
-        return repository.findById(id);
+    public Maybe<Receipt> find(Long id) {
+        return RxJava3Adapter.monoToMaybe(repository.findById(id));
     }
 
     public Single<Receipt> get(Long id) {
-        return RxJava3Adapter.monoToMaybe(find(id))
+        return find(id)
                 .switchIfEmpty(Single.error(new RuntimeException("Receipt not found")));
     }
 
-    public Mono<Receipt> save(Receipt receipt) {
-        return repository.save(receipt);
+    public Single<Receipt> save(Receipt receipt) {
+        return RxJava3Adapter.monoToSingle(repository.save(receipt));
     }
 
-    public Mono<Long> countAll() {
-        return repository.count();
+    public Single<Long> countAll() {
+        return RxJava3Adapter.monoToSingle(repository.count());
     }
 
 

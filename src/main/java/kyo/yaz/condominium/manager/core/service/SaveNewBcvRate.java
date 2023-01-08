@@ -1,5 +1,6 @@
 package kyo.yaz.condominium.manager.core.service;
 
+import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.core.service.entity.SequenceService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
@@ -8,7 +9,6 @@ import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.persistence.entity.Sequence;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
@@ -28,7 +28,7 @@ public class SaveNewBcvRate {
     }
 
 
-    public Mono<Boolean> saveNewRate() {
+    public Single<Boolean> saveNewRate() {
 
         return getBcvUsdRate.newRate()
                 .flatMap(rate -> {

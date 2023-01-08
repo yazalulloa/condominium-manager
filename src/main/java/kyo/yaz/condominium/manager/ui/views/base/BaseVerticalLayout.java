@@ -18,10 +18,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class BaseVerticalLayout extends VerticalLayout {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     protected final CompositeDisposable compositeDisposable = new CompositeDisposable();
-
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     protected final ViewHelper viewHelper = new ViewHelper(this, logger);
 
     protected final Component component() {
@@ -40,7 +38,13 @@ public abstract class BaseVerticalLayout extends VerticalLayout {
     }
 
     protected CompletableObserver completableObserver() {
-        return RxUtil.completableObserver(compositeDisposable::add, () -> {}, this::showError);
+        return completableObserver(() -> {
+        });
+    }
+
+    protected CompletableObserver completableObserver(@NonNull Action onComplete) {
+        return completableObserver(onComplete, this::showError);
+
     }
 
     protected CompletableObserver completableObserver(@NonNull Action onComplete, @NonNull Consumer<? super Throwable> onError) {

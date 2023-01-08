@@ -2,8 +2,6 @@ package kyo.yaz.condominium.manager.core.util;
 
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
-import kyo.yaz.condominium.manager.persistence.entity.Building;
-import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 
 import java.math.BigDecimal;
 import java.math.MathContext;

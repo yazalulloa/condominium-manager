@@ -1,12 +1,12 @@
 package kyo.yaz.condominium.manager.core.job;
 
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import kyo.yaz.condominium.manager.core.service.SaveNewBcvRate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.concurrent.TimeUnit;
 
@@ -38,7 +38,7 @@ public class BcvRateJob {
         log.info("RUN_JOB");
 
         saveNewBcvRate.saveNewRate()
-                .subscribeOn(Schedulers.parallel())
+                .subscribeOn(Schedulers.io())
                 .doOnError(throwable -> log.error("ERROR", throwable))
                 .retry()
                 .subscribe(bool -> log.info("NEW_RATE_SAVED {}", bool),

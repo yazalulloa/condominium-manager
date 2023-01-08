@@ -20,14 +20,14 @@ import java.util.zip.ZipOutputStream;
  */
 public class ZipUtility {
 
-    private ZipUtility() {
-        super();
-    }
-
     /**
      * A constants for buffer size used to read/write data
      */
     private static final int BUFFER_SIZE = 4096;
+
+    private ZipUtility() {
+        super();
+    }
 
     /**
      * Compresses a list of files to a destination zip file

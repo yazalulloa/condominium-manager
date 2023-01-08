@@ -8,7 +8,7 @@ import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.VerticalAlignment;
 
 public class PdfUtil {
-    public static  Cell tableCell() {
+    public static Cell tableCell() {
         final var cell = new Cell();
         cell.setHorizontalAlignment(HorizontalAlignment.CENTER);
         cell.setVerticalAlignment(VerticalAlignment.MIDDLE);
@@ -18,6 +18,7 @@ public class PdfUtil {
         cell.setPadding(1);
         return cell;
     }
+
     public static Table table(int numColumns) {
 
         return new Table(numColumns, false)

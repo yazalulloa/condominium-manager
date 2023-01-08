@@ -28,7 +28,9 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Vertx;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
@@ -45,9 +47,6 @@ import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.io.FileInputStream;
 import java.util.*;
@@ -72,18 +71,12 @@ public class ReceiptView extends BaseVerticalLayout {
 
     private final Vertx vertx;
     private final BuildingService buildingService;
-    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
-
-    private final DeleteDialog deleteDialog = new DeleteDialog();
+    private final DeleteDialog deleteDialog = new DeleteDialog();    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final ReceiptService receiptService;
-
     private final LoadCsvReceipt loadCsvReceipt;
-
     private final ProgressLayout progressLayout = new ProgressLayout();
-
     private final CreatePdfReceiptService createPdfReceiptService;
     private final SendEmailReceipts sendEmailReceipts;
-
     @Autowired
     public ReceiptView(Vertx vertx, BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts) {
         super();
@@ -401,10 +394,10 @@ public class ReceiptView extends BaseVerticalLayout {
     private void delete(Receipt receipt) {
         receiptService.delete(receipt.id())
                 .doAfterTerminate(this::updateGrid)
-                .subscribe(emptySubscriber());
+                .subscribe(completableObserver());
     }
 
-    private Mono<Runnable> setCount() {
+    private Single<Runnable> setCount() {
         return receiptService.countAll()
                 .map(count -> () -> setCountText(count));
     }
@@ -418,16 +411,11 @@ public class ReceiptView extends BaseVerticalLayout {
                     buildingComboBox.setItems(buildingIds);
                 });
 
-        final var list = List.of(Mono.fromCallable(() -> (Runnable) this::init), countMono, setBuildingsIds);
-
-        Flux.fromIterable(list)
-                .flatMap(m -> m)
-                .collectList()
+        Single.zip(countMono, setBuildingsIds, (count, setBuildings) -> List.of(this::init, count, setBuildings))
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
-                .and(Mono.empty())
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(emptySubscriber());
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
 
     private Upload upload() {
@@ -549,11 +537,11 @@ public class ReceiptView extends BaseVerticalLayout {
 
     private void updateGrid() {
         refreshData()
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(this.emptySubscriber());
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
 
-    private Mono<Void> refreshData() {
+    private Completable refreshData() {
 
         final var countMono = setCount();
 
@@ -566,18 +554,12 @@ public class ReceiptView extends BaseVerticalLayout {
                     grid.getDataProvider().refreshAll();
                 });
 
-        return Mono.zip(countMono, updateGrid, (count, update) -> {
-                    return (Runnable) () -> {
-                        count.run();
-                        update.run();
-                    };
-                })
+        return Single.zip(countMono, updateGrid, List::of)
                 .doOnSuccess(this::uiAsyncAction)
-                .ignoreElement()
-                .and(Mono.empty());
+                .ignoreElement();
     }
 
-    private Mono<List<Receipt>> entityList() {
+    private Single<List<Receipt>> entityList() {
         return receiptService.list(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
     }
 
@@ -593,6 +575,8 @@ public class ReceiptView extends BaseVerticalLayout {
         grid.asSingleSelect().clear();
         ui(ui -> ui.navigate(EditReceiptView.class, new RouteParameters("receipt_id", id)));
     }
+
+
 
 
 }

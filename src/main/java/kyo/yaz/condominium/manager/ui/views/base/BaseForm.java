@@ -18,10 +18,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class BaseForm extends FormLayout {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     protected final CompositeDisposable compositeDisposable = new CompositeDisposable();
-
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     protected final ViewHelper viewHelper = new ViewHelper(this, logger);
 
     protected final Component component() {
@@ -37,6 +35,16 @@ public abstract class BaseForm extends FormLayout {
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
         compositeDisposable.dispose();
+    }
+
+    protected CompletableObserver completableObserver() {
+        return completableObserver(() -> {
+        });
+    }
+
+    protected CompletableObserver completableObserver(@NonNull Action onComplete) {
+        return completableObserver(onComplete, this::showError);
+
     }
 
     protected CompletableObserver completableObserver(@NonNull Action onComplete, @NonNull Consumer<? super Throwable> onError) {

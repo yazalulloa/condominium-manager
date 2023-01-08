@@ -1,6 +1,5 @@
 package kyo.yaz.condominium.manager.ui.views.form;
 
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
@@ -8,7 +7,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
-import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -18,24 +16,21 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import kyo.yaz.condominium.manager.core.domain.Currency;
-import kyo.yaz.condominium.manager.ui.views.base.AbstractView;
+import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.time.Month;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Function;
 
-@Slf4j
-public class DebtForm extends FormLayout implements AbstractView {
 
+public class DebtForm extends BaseForm {
 
     @PropertyId("aptNumber")
     private final ComboBox<String> aptNumberComboBox = new ComboBox<>(Labels.Debt.APT_NUMBER_LABEL);
@@ -60,7 +55,7 @@ public class DebtForm extends FormLayout implements AbstractView {
 
     DebtViewItem debt;
 
-    public DebtForm(Function<String, Mono<String>> nameFunction) {
+    public DebtForm(Function<String, Single<String>> nameFunction) {
         addClassName("debt-form");
 
 
@@ -91,9 +86,8 @@ public class DebtForm extends FormLayout implements AbstractView {
                     .map(name -> (Runnable) () -> nameField.setValue(name))
                     .doOnSuccess(this::uiAsyncAction)
                     .ignoreElement()
-                    .and(Mono.empty())
-                    .subscribeOn(Schedulers.parallel())
-                    .subscribe(this.emptySubscriber());
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(completableObserver());
 
         });
     }
@@ -133,20 +127,10 @@ public class DebtForm extends FormLayout implements AbstractView {
             fireEvent(new DebtForm.SaveEvent(this, debt));
             setDebt(DebtViewItem.builder().build());
         } catch (ValidationException e) {
-            log.error("ERROR_VALIDATING", e);
+            logger().error("ERROR_VALIDATING", e);
             asyncNotification(e.getMessage());
 
         }
-    }
-
-    @Override
-    public Component component() {
-        return this;
-    }
-
-    @Override
-    public Logger logger() {
-        return log;
     }
 
     public void setDebt(DebtViewItem debt) {

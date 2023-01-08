@@ -15,6 +15,9 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouteParameters;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
@@ -27,8 +30,6 @@ import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.reactivestreams.Subscriber;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 
@@ -58,9 +59,8 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
         refreshListData()
                 .doOnSuccess(r -> uiAsyncAction(this::init, r))
                 .ignoreElement()
-                .and(Mono.empty())
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(this.refreshGridSubscriber());
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
 
     private void init() {
@@ -136,9 +136,9 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
     public void delete(Building building) {
 
         service.delete(building)
-                .then(refreshData())
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(this.refreshGridSubscriber());
+                .andThen(refreshData())
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
 
     private Subscriber<Void> refreshGridSubscriber() {
@@ -148,11 +148,11 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
         });
     }
 
-    private Mono<List<Building>> listOfBuildings() {
+    private Single<List<Building>> listOfBuildings() {
         return service.list(null);
     }
 
-    private Mono<Runnable> refreshListData() {
+    private Single<Runnable> refreshListData() {
         return listOfBuildings()
                 .map(list -> () -> {
                     countOfBuildingText.setText(String.format("Edificios: %d", list.size()));
@@ -161,16 +161,11 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
                 });
     }
 
-    private Mono<Void> refreshData() {
+    private Completable refreshData() {
 
-        final var ratesRunnable = refreshListData()
-                .doOnError(throwable -> logger().error("ERROR", throwable))
-                .onErrorResume(throwable -> Mono.just(() -> asyncNotification("Error al cargar edificios " + throwable.getMessage())));
-
-        return ratesRunnable
+        return refreshListData()
                 .doOnSuccess(this::uiAsyncAction)
-                .ignoreElement()
-                .and(Mono.empty());
+                .ignoreElement();
     }
 
 

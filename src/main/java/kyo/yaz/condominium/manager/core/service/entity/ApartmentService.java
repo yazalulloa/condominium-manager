@@ -1,5 +1,7 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
@@ -30,11 +32,11 @@ public class ApartmentService {
         this.repository = repository;
     }
 
-    public Mono<Apartment> read(String buildingId, String aptNumber) {
-        return repository.findById(Apartment.ApartmentId.of(buildingId, aptNumber));
+    public Single<Apartment> read(String buildingId, String aptNumber) {
+        return RxJava3Adapter.monoToSingle(repository.findById(Apartment.ApartmentId.of(buildingId, aptNumber)));
     }
 
-    public Mono<Paging<Apartment>> paging(Set<String> buildings, String filter, int page, int pageSize) {
+    public Single<Paging<Apartment>> paging(Set<String> buildings, String filter, int page, int pageSize) {
 
         final var sortings = new LinkedHashSet<Sorting<ApartmentQueryRequest.SortField>>();
 
@@ -51,12 +53,12 @@ public class ApartmentService {
                 .sortings(sortings)
                 .build();
 
-        return paging(request);
+        return RxJava3Adapter.monoToSingle(paging(request));
     }
 
-    public Mono<Paging<Apartment>> paging(ApartmentQueryRequest request) {
+    private Mono<Paging<Apartment>> paging(ApartmentQueryRequest request) {
         final var listMono = repository.list(request);
-        final var totalCountMono = countAll();
+        final var totalCountMono = repository.count();
         final var queryCountMono = repository.count(request);
 
         return Mono.zip(totalCountMono, queryCountMono, listMono)
@@ -64,10 +66,10 @@ public class ApartmentService {
     }
 
     public Single<List<Apartment>> rxApartmentsByBuilding(String buildingId) {
-        return RxJava3Adapter.monoToSingle(apartmentsByBuilding(buildingId));
+        return apartmentsByBuilding(buildingId);
     }
 
-    public Mono<List<Apartment>> apartmentsByBuilding(String buildingId) {
+    public Single<List<Apartment>> apartmentsByBuilding(String buildingId) {
         final var sortings = new LinkedHashSet<Sorting<ApartmentQueryRequest.SortField>>();
         sortings.add(ApartmentQueryRequest.sorting(ApartmentQueryRequest.SortField.NUMBER, Sort.Direction.ASC));
         final var request = ApartmentQueryRequest.builder()
@@ -75,27 +77,27 @@ public class ApartmentService {
                 .sortings(sortings)
                 .build();
 
-        return repository.list(request);
+        return RxJava3Adapter.monoToSingle(repository.list(request));
     }
 
-    public Mono<List<String>> aptNumbers(String buildingId) {
+    public Single<List<String>> aptNumbers(String buildingId) {
         return apartmentsByBuilding(buildingId)
-                .flatMapIterable(s -> s)
+                .flatMapObservable(Observable::fromIterable)
                 .map(Apartment::apartmentId)
                 .map(Apartment.ApartmentId::number)
-                .collectList();
+                .toList();
     }
 
-    public Mono<Void> delete(Apartment entity) {
-        return repository.delete(entity);
+    public Completable delete(Apartment entity) {
+        return RxJava3Adapter.monoToCompletable(repository.delete(entity));
     }
 
-    public Mono<Apartment> save(Apartment entity) {
-        return repository.save(entity);
+    public Single<Apartment> save(Apartment entity) {
+        return RxJava3Adapter.monoToSingle(repository.save(entity));
     }
 
-    public Mono<Long> countAll() {
-        return repository.count();
+    public Single<Long> countAll() {
+        return RxJava3Adapter.monoToSingle(repository.count());
     }
 
 }

@@ -15,7 +15,11 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import kyo.yaz.condominium.manager.core.domain.Paging;
+import kyo.yaz.condominium.manager.core.mapper.ApartmentMapper;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
@@ -24,11 +28,8 @@ import kyo.yaz.condominium.manager.ui.views.actions.DeleteEntity;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.form.CreateApartmentForm;
-import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 
 @PageTitle(ApartmentView.PAGE_TITLE)
@@ -45,12 +46,9 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     private final Text queryCountText = new Text(null);
     private final Text totalCountText = new Text(null);
     private final Button addApartmentButton = new Button("Añadir apartamento");
-    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
-    private CreateApartmentForm createApartmentForm;
-
-    private final ApartmentService service;
+    private final ApartmentService service;    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final BuildingService buildingService;
-
+    private CreateApartmentForm createApartmentForm;
     @Autowired
     public ApartmentView(ApartmentService service, BuildingService buildingService) {
         super();
@@ -131,20 +129,20 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     public void delete(Apartment obj) {
 
         service.delete(obj)
-                .then(refreshData())
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(this.emptySubscriber());
+                .andThen(refreshData())
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
 
     private void updateGrid() {
         refreshData()
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(emptySubscriber());
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
 
     private void initData() {
 
-        Mono.zip(service.countAll(), buildingService.buildingIds(), (count, buildingIds) ->
+        Single.zip(service.countAll(), buildingService.buildingIds(), (count, buildingIds) ->
                         (Runnable) () -> {
 
                             init();
@@ -154,9 +152,8 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
                         })
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
-                .and(Mono.empty())
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(emptySubscriber());
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
     }
 
     private void setCountText(long queryCount, long totalCount) {
@@ -165,11 +162,11 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         totalCountText.setText(String.format("Total de Apartamentos: %d", totalCount));
     }
 
-    private Mono<Paging<Apartment>> pagingMono() {
+    private Single<Paging<Apartment>> pagingMono() {
         return service.paging(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
     }
 
-    private Mono<Void> refreshData() {
+    private Completable refreshData() {
 
         return pagingMono()
                 .map(paging -> (Runnable) () -> {
@@ -182,8 +179,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
                     grid.getDataProvider().refreshAll();
                 })
                 .doOnSuccess(this::uiAsyncAction)
-                .ignoreElement()
-                .and(Mono.empty());
+                .ignoreElement();
     }
 
     private HorizontalLayout getToolbar() {
@@ -219,7 +215,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         if (apartment == null) {
             closeEditor();
         } else {
-            createApartmentForm.setApartment(ConvertUtil.viewItem(apartment));
+            createApartmentForm.setApartment(ApartmentMapper.to(apartment));
             createApartmentForm.setVisible(true);
             addClassName("editing");
         }
@@ -238,16 +234,17 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     }
 
     private void saveEntity(CreateApartmentForm.SaveEvent event) {
-        service.save(ConvertUtil.apartment(event.getApartment()))
-                .then(refreshData())
-                .subscribeOn(Schedulers.parallel())
-                .subscribe(this.emptySubscriber());
+        service.save(ApartmentMapper.to(event.getApartment()))
+                .ignoreElement()
+                .andThen(refreshData())
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
 
         closeEditor();
     }
 
     private void deleteEntity(CreateApartmentForm.DeleteEvent event) {
-        delete(ConvertUtil.apartment(event.getApartment()));
+        delete(ApartmentMapper.to(event.getApartment()));
         closeEditor();
     }
 
@@ -261,6 +258,8 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
             add(new Hr());
         }
     }
+
+
 
 
 }
