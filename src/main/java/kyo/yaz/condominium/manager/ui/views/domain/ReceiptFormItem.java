@@ -8,8 +8,8 @@ import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.Month;
 

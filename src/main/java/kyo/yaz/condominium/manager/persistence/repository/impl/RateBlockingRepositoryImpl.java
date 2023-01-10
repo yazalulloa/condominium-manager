@@ -28,6 +28,7 @@ public class RateBlockingRepositoryImpl implements RateBlockingCustomRepository 
 
         log.info("QUERY: " + query);
 
-        return StreamUtils.createStreamFromIterator(template.stream(query, Rate.class));
+        return template.stream(query, Rate.class);
+        //return StreamUtils.createStreamFromIterator(template.stream(query, Rate.class));
     }
 }

@@ -29,7 +29,7 @@ public class SendEmailReceipts {
     }
 
     public Single<List<Completable>> send(Receipt receipt, List<CreatePdfReceipt> list) {
-        final var from = "kyotaidoshin@gmail.com";
+
         final var to = "yzlup2@gmail.com";
 
         final var subject = "AVISO DE COBRO %s 2022 Adm. %s APT: %s";

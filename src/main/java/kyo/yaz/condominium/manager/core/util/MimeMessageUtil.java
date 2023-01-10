@@ -2,12 +2,12 @@ package kyo.yaz.condominium.manager.core.util;
 
 import kyo.yaz.condominium.manager.core.domain.EmailRequest;
 
-import javax.activation.DataHandler;
-import javax.activation.FileDataSource;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.*;
+import jakarta.activation.DataHandler;
+import jakarta.activation.FileDataSource;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.*;
 import java.io.File;
 import java.util.Properties;
 import java.util.Set;

@@ -31,7 +31,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ComponentScan
 
 @Theme(value = "condominium_manager")
-@Push(PushMode.MANUAL)
+@Push(PushMode.AUTOMATIC)
 @PWA(name = "Condominium Manager", shortName = "Condominium Manager", offlineResources = {})
 @NpmPackage(value = "lumo-css-framework", version = "4.0.10")
 @NpmPackage(value = "line-awesome", version = "1.3.0")
