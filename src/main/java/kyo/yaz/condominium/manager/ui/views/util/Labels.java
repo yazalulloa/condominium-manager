@@ -56,6 +56,7 @@ public class Labels {
         public static final String RECEIPT_EMAIL_FROM_LABEL = "Email recibo";
         public static final String ROUND_UP_PAYMENTS_LABEL = "Redondear hacia arriba los montos a pagar";
         public static final String RESERVE_FUND_PERCENTAGE_LABEL = "Porcentage para el Fondo de reserva";
+        public static final String AMOUNT_OF_APTS = "Cantidad de apartamentos";
     }
 
 

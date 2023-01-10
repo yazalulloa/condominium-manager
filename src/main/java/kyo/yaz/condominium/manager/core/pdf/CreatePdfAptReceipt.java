@@ -64,6 +64,37 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
 
         if (ObjectUtil.aBoolean(building().fixedPay())) {
 
+            if (building().currenciesToShowAmountToPay().isEmpty()) {
+                final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setBold().setUnderline());
+                document.add(paragraph);
+            } else {
+
+                for (final Currency type : building().currenciesToShowAmountToPay()) {
+
+                    if (type == building().mainCurrency()) {
+                        final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setUnderline());
+                        document.add(paragraph);
+                    } else {
+                        switch (type) {
+
+                            case VED -> {
+                                final var decimal = payment.multiply(receipt().rate().rate()).setScale(2, RoundingMode.HALF_UP);
+
+                                final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
+                                document.add(paragraph);
+                            }
+                            case USD -> {
+
+                                final var decimal = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
+
+                                final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
+                                document.add(paragraph);
+                            }
+                        }
+                    }
+                }
+            }
+
             final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setBold().setUnderline());
             document.add(paragraph);
         } else {

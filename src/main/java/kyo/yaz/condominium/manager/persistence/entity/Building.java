@@ -61,4 +61,6 @@ public class Building {
     private final Boolean roundUpPayments;
     @JsonProperty
     private final BigDecimal reserveFundPercentage;
+    @JsonProperty
+    private final Integer amountOfApts;
 }

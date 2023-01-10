@@ -1,16 +1,17 @@
 package kyo.yaz.condominium.manager.ui.views;
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
@@ -27,11 +28,10 @@ import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
-import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
-import org.reactivestreams.Subscriber;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 @PageTitle(BuildingView.PAGE_TITLE)
 @Route(value = "buildings", layout = MainLayout.class)
@@ -64,7 +64,7 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
     }
 
     private void init() {
-        addClassName("list-view");
+        addClassName("building-view");
         setSizeFull();
         configureGrid();
         add(getToolbar(), grid);
@@ -84,7 +84,13 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
     private void configureGrid() {
         grid.addClassNames("buildings-grid");
 
-        grid.addColumn(Building::id).setHeader(Labels.Building.ID_LABEL);
+        grid.setHeightFull();
+        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
+        grid.addComponentColumn(this::createCard);
+
+        //grid.getDataCommunicator().enablePushUpdates(Executors.newCachedThreadPool());
+
+       /* grid.addColumn(Building::id).setHeader(Labels.Building.ID_LABEL);
         grid.addColumn(Building::name).setHeader(Labels.Building.NAME_LABEL);
         grid.addColumn(Building::rif).setHeader(Labels.Building.RIF_LABEL);
         grid.addColumn(building -> ConvertUtil.format(building.reserveFund(), building.reserveFundCurrency())).setHeader(Labels.Building.RESERVE_FUND_LABEL);
@@ -108,12 +114,7 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
                             button.addThemeVariants(ButtonVariant.LUMO_ICON,
                                     ButtonVariant.LUMO_ERROR,
                                     ButtonVariant.LUMO_TERTIARY);
-                            button.addClickListener(e -> {
-
-                                deleteDialog.setText(Labels.ASK_CONFIRMATION_DELETE_BUILDING.formatted(item.id()));
-                                deleteDialog.setDeleteAction(() -> delete(item));
-                                deleteDialog.open();
-                            });
+                            button.addClickListener(e -> deleteDialog(item));
                             button.setIcon(new Icon(VaadinIcon.TRASH));
                         }))
                 .setHeader(Labels.DELETE)
@@ -122,7 +123,7 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
                 .setFlexGrow(0);
 
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
-        grid.setWidthFull();
+        grid.setWidthFull();*/
 
         grid.addSelectionListener(selection -> {
 
@@ -130,6 +131,81 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
                     .ifPresent(building -> editEntity(building.id()));
         });
 
+    }
+
+    private HorizontalLayout createCard(Building building) {
+
+        final var card = new HorizontalLayout();
+        card.addClassName("card");
+        card.setSpacing(false);
+        card.getThemeList().add("spacing-s");
+
+        final var name = new Span(building.name());
+        name.addClassName("name");
+
+        final var id = new Span(building.id());
+        id.addClassName("id");
+
+        final var rif = new Span(building.rif());
+        rif.addClassName("rif");
+
+        final var reserveFund = new Span(Labels.Building.RESERVE_FUND_LABEL + ": " + ConvertUtil.format(building.reserveFund(), building.reserveFundCurrency()));
+        reserveFund.addClassName("reserve-fund");
+
+        final var mainCurrency = new Span(Labels.Building.MAIN_CURRENCY_LABEL + ": " + building.mainCurrency().name());
+        mainCurrency.addClassName("main-currency");
+
+        final var debtCurrency = new Span(Labels.Building.DEBT_CURRENCY_LABEL + ": " + building.debtCurrency().name());
+        debtCurrency.addClassName("debt-currency");
+
+        final var currenciesToShowAmountToPay = new Span(building.currenciesToShowAmountToPay().toString());
+        currenciesToShowAmountToPay.addClassName("currencies-to-show-amount-to-pay");
+
+        final var extraCharges = new Span("Cargos extra: " + building.extraCharges().size());
+        extraCharges.addClassName("extra-charges");
+
+        final var fixedPayText = new Span(Labels.Building.FIXED_PAY_LABEL + ": ");
+        final Component component = building.fixedPay() ? new Span(ConvertUtil.format(building.fixedPayAmount(), building.mainCurrency())) : VaadinIcon.CLOSE_SMALL.create();
+
+        final var fixedPay = new Span(fixedPayText, component);
+        fixedPay.addClassName("fixed-pay");
+
+        final var receiptEmailFrom = new Span(Labels.Building.RECEIPT_EMAIL_FROM_LABEL + ": " + building.receiptEmailFrom().email());
+        receiptEmailFrom.addClassName("receipt-email-from");
+
+        final var roundUpPaymentIcon = ObjectUtil.aBoolean(building.roundUpPayments()) ? VaadinIcon.CHECK : VaadinIcon.CLOSE_SMALL;
+
+        final var roundUpPayments = new Span(new Span(Labels.Building.ROUND_UP_PAYMENTS_LABEL + ": "), roundUpPaymentIcon.create());
+        roundUpPayments.addClassName("round-up-payments");
+
+        final var reserveFundPercentage = new Span(Labels.Building.RESERVE_FUND_PERCENTAGE_LABEL + ": " + building.reserveFundPercentage() + "%");
+        reserveFundPercentage.addClassName("reserve-fund-percentage");
+
+        final var amountOfApts = new Span(Labels.Building.AMOUNT_OF_APTS + ": " + building.amountOfApts());
+        amountOfApts.addClassName("amount-of-apts");
+
+
+        final var description = new FlexLayout(reserveFund, mainCurrency, debtCurrency, currenciesToShowAmountToPay, extraCharges, fixedPay, receiptEmailFrom, roundUpPayments, reserveFundPercentage, amountOfApts);
+        description.addClassName("description");
+        description.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+
+        final var header = new HorizontalLayout(name, id, rif);
+        header.addClassName("header");
+        header.setSpacing(false);
+        header.getThemeList().add("spacing-s");
+
+        final var deleteIcon = VaadinIcon.TRASH.create();
+        deleteIcon.addClassName("delete");
+        deleteIcon.addClickListener(v -> deleteDialog(building));
+
+        card.add(new VerticalLayout(header, description), deleteIcon);
+        return card;
+    }
+
+    private void deleteDialog(Building building) {
+        deleteDialog.setText(Labels.ASK_CONFIRMATION_DELETE_BUILDING.formatted(building.id()));
+        deleteDialog.setDeleteAction(() -> delete(building));
+        deleteDialog.open();
     }
 
     @Override
@@ -141,13 +217,6 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
                 .subscribe(completableObserver());
     }
 
-    private Subscriber<Void> refreshGridSubscriber() {
-        return ViewUtil.emptySubscriber(throwable -> {
-            asyncNotification("Error Refreshing Grid" + throwable.getMessage());
-            logger().error("ERROR", throwable);
-        });
-    }
-
     private Single<List<Building>> listOfBuildings() {
         return service.list(null);
     }
@@ -155,6 +224,7 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
     private Single<Runnable> refreshListData() {
         return listOfBuildings()
                 .map(list -> () -> {
+                    logger().info("BUILDINGS: " + list.size());
                     countOfBuildingText.setText(String.format("Edificios: %d", list.size()));
                     grid.setItems(list);
                     grid.getDataProvider().refreshAll();

@@ -213,8 +213,7 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
     }
 
     private void navigateBack() {
-
-        ui(ui -> ui.navigate(BuildingView.class));
+        navigate(BuildingView.class);
     }
 
 

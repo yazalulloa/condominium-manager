@@ -94,4 +94,8 @@ public abstract class BaseForm extends FormLayout {
     protected void uiAsyncAction(Runnable runnable) {
         viewHelper.uiAsyncAction(runnable);
     }
+
+    protected <T extends Component> void navigate(Class<T> clazz) {
+        uiAsyncAction(() -> ui(ui -> ui.navigate(clazz)));
+    }
 }

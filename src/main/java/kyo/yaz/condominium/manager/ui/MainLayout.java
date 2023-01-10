@@ -5,8 +5,6 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -24,7 +22,6 @@ public class MainLayout extends AppLayout {
 
     public MainLayout() {
         setPrimarySection(Section.DRAWER);
-
         addDrawerContent();
         addHeaderContent();
     }
@@ -78,34 +75,4 @@ public class MainLayout extends AppLayout {
         PageTitle title = getContent().getClass().getAnnotation(PageTitle.class);
         return title == null ? "" : title.value();
     }
-
-    private void createHeader() {
-        H1 logo = new H1("Vaadin CRM");
-        logo.addClassNames("text-l", "m-m");
-
-        HorizontalLayout header = new HorizontalLayout(
-                new DrawerToggle(),
-                logo
-        );
-
-        header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        header.setWidth("100%");
-        header.addClassNames("py-0", "px-m");
-
-        addToNavbar(header);
-
-    }
-
-   /* private void createDrawer() {
-        RouterLink buildings = new RouterLink(BuildingView.PAGE_TITLE, BuildingView.class);
-        buildings.setHighlightCondition(HighlightConditions.sameLocation());
-
-        addToDrawer(new VerticalLayout(
-                buildings,
-                new RouterLink(RateView.PAGE_TITLE, RateView.class),
-                new RouterLink(ApartmentView.PAGE_TITLE, ApartmentView.class),
-                new RouterLink(ReceiptView.PAGE_TITLE, ReceiptView.class)
-        ));
-    }*/
-
 }
