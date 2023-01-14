@@ -11,6 +11,4 @@ COPY --from=build /home/app/target/yaz-condominium-manager-1.0.0.jar /usr/app/ap
 COPY application.yml /usr/app/
 COPY frontend  /usr/app/
 COPY system.properties /usr/app/
-
-EXPOSE 8090
 ENTRYPOINT ["java","-jar","/usr/app/app.jar"]
