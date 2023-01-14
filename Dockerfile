@@ -10,7 +10,7 @@ RUN mvn clean package -Dmaven.test.skip
 
 FROM openjdk:17-alpine
 WORKDIR /app
-COPY --from=build /app/target/*.jar
+COPY --from=build /app/target/*.jar .
 ENTRYPOINT ["java","-jar","yaz-condominium-manager-1.0.0.jar"]
 
 # COPY src /home/app/src
