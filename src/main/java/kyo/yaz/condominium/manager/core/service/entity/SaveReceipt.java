@@ -82,7 +82,7 @@ public class SaveReceipt {
 
                                 final var extraCharges = ObjectUtil.extraCharges(apartment.apartmentId().number(), building.extraCharges(), receipt.extraCharges());
 
-                                final var pay = ObjectUtil.totalAptPay(unCommonPay, ObjectUtil.aBoolean(building.fixedPay()), building.fixedPayAmount(), building.mainCurrency(), receipt.rate().rate(), totalCommonExpenses,
+                                final var pay = ObjectUtil.totalAptPay(unCommonPay, building, receipt.rate().rate(), totalCommonExpenses,
                                         apartment.amountToPay(), extraCharges);
 
                                 return Receipt.AptTotal.builder()

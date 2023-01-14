@@ -1,5 +1,7 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -16,10 +18,8 @@ import org.springframework.stereotype.Service;
 import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class RateService {
@@ -90,5 +90,30 @@ public class RateService {
     public Single<Rate> getLast(Currency fromCurrency, Currency toCurrency) {
         return last(fromCurrency, toCurrency)
                 .switchIfEmpty(Single.error(new RuntimeException("Last rate not found")));
+    }
+
+    public Stream<Rate> stream(RateQueryRequest request) {
+        return repository.stream(request);
+    }
+
+    public long count() {
+        return Optional.ofNullable(repository.count()
+                        .block())
+                .orElse(0L);
+    }
+
+    public Stream<Rate> stream(Query<Rate, String> query) {
+
+        final var sortings = new LinkedHashSet<Sorting<RateQueryRequest.SortField>>();
+        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.ID, Sort.Direction.DESC));
+        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.DATE_OF_RATE, Sort.Direction.DESC));
+        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.CREATED_AT, Sort.Direction.DESC));
+
+        final var request = RateQueryRequest.builder()
+                .page(PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
+                .sortings(sortings)
+                .build();
+
+        return stream(request);
     }
 }

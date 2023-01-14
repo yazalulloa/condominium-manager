@@ -62,5 +62,5 @@ public class Building {
     @JsonProperty
     private final BigDecimal reserveFundPercentage;
     @JsonProperty
-    private final Integer amountOfApts;
+    private final Long amountOfApts;
 }

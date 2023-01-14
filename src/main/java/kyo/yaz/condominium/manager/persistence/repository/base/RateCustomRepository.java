@@ -6,6 +6,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface RateCustomRepository {
 
@@ -14,4 +15,6 @@ public interface RateCustomRepository {
     Flux<Rate> find(RateQueryRequest request);
 
     Mono<Long> count(RateQueryRequest request);
+
+    Stream<Rate> stream(RateQueryRequest request);
 }

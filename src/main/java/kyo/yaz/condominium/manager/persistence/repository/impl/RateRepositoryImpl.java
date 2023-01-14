@@ -6,6 +6,7 @@ import kyo.yaz.condominium.manager.persistence.repository.base.RateCustomReposit
 import kyo.yaz.condominium.manager.persistence.util.QueryUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class RateRepositoryImpl implements RateCustomRepository {
@@ -23,7 +25,10 @@ public class RateRepositoryImpl implements RateCustomRepository {
     @Autowired
     ReactiveMongoTemplate template;
 
-    public static Query query(RateQueryRequest request) {
+    @Autowired
+    MongoTemplate mongoTemplate;
+
+    public Query query(RateQueryRequest request) {
         final var query = new Query();
 
         QueryUtil.addSortings(query, request.sortings());
@@ -92,5 +97,18 @@ public class RateRepositoryImpl implements RateCustomRepository {
         final var query = query(request);
 
         return template.count(query, Rate.class);
+    }
+
+    @Override
+    public Stream<Rate> stream(RateQueryRequest request) {
+
+        final var query = query(request);
+
+        Optional.ofNullable(request.page())
+                .ifPresent(query::with);
+
+        log.info("QUERY: " + query);
+
+        return mongoTemplate.stream(query, Rate.class);
     }
 }

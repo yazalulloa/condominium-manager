@@ -12,6 +12,7 @@ import kyo.yaz.condominium.manager.core.util.NetworkUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -29,7 +30,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @EnableAsync
 @ComponentScan
-
 @Theme(value = "condominium_manager")
 @Push(PushMode.AUTOMATIC)
 @PWA(name = "Condominium Manager", shortName = "Condominium Manager", offlineResources = {})
@@ -37,7 +37,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @NpmPackage(value = "line-awesome", version = "1.3.0")
 @NpmPackage(value = "@vaadin-component-factory/vcf-nav", version = "1.0.6")
 @Slf4j
-public class Application implements AppShellConfigurator {
+public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
 
     public static void main(String[] args) {
 

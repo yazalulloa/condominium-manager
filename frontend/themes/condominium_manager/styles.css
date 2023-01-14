@@ -22,3 +22,13 @@ a[highlight] {
     display: none;
   }
 }
+
+* {
+    /*font-family: "Lucida Console", "Courier New", monospace;
+    font-size: 1rem;*/
+    spacing-xs: 4px;
+    spacing-s: 8px;
+    spacing-m: 16px;
+    spacing-l: 32px;
+    spacing-xl: 64px;
+}

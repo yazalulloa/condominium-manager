@@ -100,4 +100,16 @@ public class ApartmentService {
         return RxJava3Adapter.monoToSingle(repository.count());
     }
 
+    public Single<Long> countByBuilding(String buildingId) {
+        final var request = ApartmentQueryRequest.builder()
+                .buildings(Collections.singleton(buildingId))
+                .build();
+
+        return count(request);
+    }
+
+    public Single<Long> count(ApartmentQueryRequest request) {
+        return RxJava3Adapter.monoToSingle(repository.count(request));
+    }
+
 }

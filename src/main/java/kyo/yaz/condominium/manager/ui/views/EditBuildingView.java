@@ -200,12 +200,15 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
         createBuildingForm.addListener(CreateBuildingForm.SaveEvent.class, event -> {
             saveBtn.setEnabled(false);
 
-            final var list = ConvertUtil.toList(extraCharges, ExtraChargeMapper::to);
-            final var build = BuildingMapper.to(event.getBuilding()).toBuilder()
-                    .extraCharges(list)
-                    .build();
-
-            buildingService.save(build)
+            apartmentService.countByBuilding(event.getBuilding().getId())
+                    .map(count -> {
+                        final var list = ConvertUtil.toList(extraCharges, ExtraChargeMapper::to);
+                        return BuildingMapper.to(event.getBuilding()).toBuilder()
+                                .extraCharges(list)
+                                .amountOfApts(count)
+                                .build();
+                    })
+                    .flatMap(buildingService::save)
                     .subscribeOn(Schedulers.io())
                     .ignoreElement()
                     .subscribe(completableObserver(this::navigateBack));

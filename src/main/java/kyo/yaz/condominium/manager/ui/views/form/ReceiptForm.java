@@ -9,22 +9,16 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.shared.Registration;
-import kyo.yaz.condominium.manager.persistence.domain.Sorting;
-import kyo.yaz.condominium.manager.persistence.domain.request.RateQueryRequest;
+import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
-import kyo.yaz.condominium.manager.persistence.repository.RateBlockingRepository;
 import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ReceiptFormItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 
 import java.time.Month;
-import java.util.LinkedHashSet;
 
 
 public class ReceiptForm extends BaseForm {
@@ -41,39 +35,19 @@ public class ReceiptForm extends BaseForm {
     @PropertyId("date")
     private final DatePicker datePicker = ViewUtil.datePicker(Labels.Receipt.RECEIPT_DATE_LABEL);
     private final Binder<ReceiptFormItem> binder = new BeanValidationBinder<>(ReceiptFormItem.class);
-    private final RateBlockingRepository rateRepository;
+    private final RateService rateService;
     private ReceiptFormItem item;
 
-    public ReceiptForm(RateBlockingRepository rateRepository) {
+    public ReceiptForm(RateService rateService) {
         super();
-        this.rateRepository = rateRepository;
+        this.rateService = rateService;
         init();
     }
 
     private void init() {
         addClassName("receipt-form");
 
-        final DataProvider<Rate, String> dataProvider = DataProvider.fromFilteringCallbacks(query -> {
-            int offset = query.getOffset();
-
-            // The number of items to load
-            int limit = query.getLimit();
-
-            final var sortings = new LinkedHashSet<Sorting<RateQueryRequest.SortField>>();
-            sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.ID, Sort.Direction.DESC));
-            sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.DATE_OF_RATE, Sort.Direction.DESC));
-            sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.CREATED_AT, Sort.Direction.DESC));
-
-            final var request = RateQueryRequest.builder()
-                    .page(PageRequest.of(offset, limit))
-                    .sortings(sortings)
-                    .build();
-
-            return rateRepository.stream(request);
-
-        }, query -> (int) rateRepository.count());
-
-        rateComboBox.setItems(dataProvider);
+        rateComboBox.setItems(rateService::stream);
 
         rateComboBox.setItemLabelGenerator(rate -> rate.rate() + " " + rate.dateOfRate() + " " + rate.source() + " " + rate.fromCurrency());
 

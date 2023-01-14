@@ -24,13 +24,9 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import kyo.yaz.condominium.manager.core.mapper.DebtMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExpenseMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
-import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
-import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
-import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
-import kyo.yaz.condominium.manager.core.service.entity.SaveReceipt;
+import kyo.yaz.condominium.manager.core.service.entity.*;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
-import kyo.yaz.condominium.manager.persistence.repository.RateBlockingRepository;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
@@ -67,7 +63,7 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
     private final ApartmentService apartmentService;
     private final ReceiptService receiptService;
     private final BuildingService buildingService;
-    private final RateBlockingRepository rateRepository;
+    private final RateService rateService;
     private final SaveReceipt saveReceipt;
     private ExpenseForm expenseForm;
     private DebtForm debtForm;
@@ -76,12 +72,12 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
     private Receipt receipt;
 
     @Autowired
-    public EditReceiptView(ApartmentService apartmentService, ReceiptService receiptService, BuildingService buildingService, RateBlockingRepository rateRepository, SaveReceipt saveReceipt) {
+    public EditReceiptView(ApartmentService apartmentService, ReceiptService receiptService, BuildingService buildingService, RateService rateService, SaveReceipt saveReceipt) {
         super();
         this.apartmentService = apartmentService;
         this.receiptService = receiptService;
         this.buildingService = buildingService;
-        this.rateRepository = rateRepository;
+        this.rateService = rateService;
         this.saveReceipt = saveReceipt;
     }
 
@@ -142,7 +138,7 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
 
     private void getContent() {
 
-        receiptForm = new ReceiptForm(rateRepository);
+        receiptForm = new ReceiptForm(rateService);
 
         receiptForm.buildingComboBox().addValueChangeListener(event -> {
             if (receiptId == null) {

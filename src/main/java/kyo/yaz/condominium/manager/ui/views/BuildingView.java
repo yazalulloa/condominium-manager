@@ -16,6 +16,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouteParameters;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -23,20 +24,21 @@ import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.ui.MainLayout;
-import kyo.yaz.condominium.manager.ui.views.actions.DeleteEntity;
+import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
+import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
+import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.concurrent.Executors;
 
 @PageTitle(BuildingView.PAGE_TITLE)
 @Route(value = "buildings", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
-public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Building> {
+public class BuildingView extends BaseDiv {
     public static final String PAGE_TITLE = "Edificios";
 
     private final Grid<Building> grid = new Grid<>();
@@ -50,6 +52,9 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
     public BuildingView(BuildingService service) {
         super();
         this.service = service;
+        addClassName("building-view");
+        setSizeFull();
+        configureGrid();
     }
 
     @Override
@@ -64,10 +69,11 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
     }
 
     private void init() {
-        addClassName("building-view");
-        setSizeFull();
-        configureGrid();
-        add(getToolbar(), grid);
+        final var layout = new VerticalLayout(getToolbar(), grid);
+        layout.setSizeFull();
+        layout.setPadding(false);
+        layout.setSpacing(false);
+        add(layout);
     }
 
     private HorizontalLayout getToolbar() {
@@ -82,55 +88,11 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
     }
 
     private void configureGrid() {
-        grid.addClassNames("buildings-grid");
 
-        grid.setHeightFull();
+       // grid.setHeight("100%");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
+        grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
         grid.addComponentColumn(this::createCard);
-
-        //grid.getDataCommunicator().enablePushUpdates(Executors.newCachedThreadPool());
-
-       /* grid.addColumn(Building::id).setHeader(Labels.Building.ID_LABEL);
-        grid.addColumn(Building::name).setHeader(Labels.Building.NAME_LABEL);
-        grid.addColumn(Building::rif).setHeader(Labels.Building.RIF_LABEL);
-        grid.addColumn(building -> ConvertUtil.format(building.reserveFund(), building.reserveFundCurrency())).setHeader(Labels.Building.RESERVE_FUND_LABEL);
-        grid.addColumn(Building::mainCurrency).setHeader(Labels.Building.MAIN_CURRENCY_LABEL);
-        grid.addColumn(Building::debtCurrency).setHeader(Labels.Building.DEBT_CURRENCY_LABEL);
-        grid.addColumn(Building::currenciesToShowAmountToPay).setHeader(Labels.Building.SHOW_PAYMENT_IN_CURRENCIES);
-        grid.addColumn(building -> {
-
-            if (ObjectUtil.aBoolean(building.fixedPay())) {
-
-                return ConvertUtil.format(building.fixedPayAmount(), building.mainCurrency());
-            } else {
-                return Labels.DEACTIVATED;
-            }
-        }).setHeader(Labels.Building.FIXED_PAY_LABEL);
-
-        grid.addColumn(building -> building.receiptEmailFrom().email()).setHeader(Labels.Building.RECEIPT_EMAIL_FROM_LABEL);
-
-        grid.addColumn(
-                        new ComponentRenderer<>(Button::new, (button, item) -> {
-                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
-                                    ButtonVariant.LUMO_ERROR,
-                                    ButtonVariant.LUMO_TERTIARY);
-                            button.addClickListener(e -> deleteDialog(item));
-                            button.setIcon(new Icon(VaadinIcon.TRASH));
-                        }))
-                .setHeader(Labels.DELETE)
-                .setTextAlign(ColumnTextAlign.END)
-                .setFrozenToEnd(true)
-                .setFlexGrow(0);
-
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));
-        grid.setWidthFull();*/
-
-        grid.addSelectionListener(selection -> {
-
-            selection.getFirstSelectedItem()
-                    .ifPresent(building -> editEntity(building.id()));
-        });
-
     }
 
     private HorizontalLayout createCard(Building building) {
@@ -158,14 +120,14 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
         final var debtCurrency = new Span(Labels.Building.DEBT_CURRENCY_LABEL + ": " + building.debtCurrency().name());
         debtCurrency.addClassName("debt-currency");
 
-        final var currenciesToShowAmountToPay = new Span(building.currenciesToShowAmountToPay().toString());
+        final var currenciesToShowAmountToPay = new Span(Labels.Building.SHOW_PAYMENT_IN_CURRENCIES + ": " + building.currenciesToShowAmountToPay().toString());
         currenciesToShowAmountToPay.addClassName("currencies-to-show-amount-to-pay");
 
         final var extraCharges = new Span("Cargos extra: " + building.extraCharges().size());
         extraCharges.addClassName("extra-charges");
 
         final var fixedPayText = new Span(Labels.Building.FIXED_PAY_LABEL + ": ");
-        final Component component = building.fixedPay() ? new Span(ConvertUtil.format(building.fixedPayAmount(), building.mainCurrency())) : VaadinIcon.CLOSE_SMALL.create();
+        final Component component = building.fixedPay() ? new Span(ConvertUtil.format(building.fixedPayAmount(), building.mainCurrency())) : IconUtil.cross();
 
         final var fixedPay = new Span(fixedPayText, component);
         fixedPay.addClassName("fixed-pay");
@@ -173,9 +135,9 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
         final var receiptEmailFrom = new Span(Labels.Building.RECEIPT_EMAIL_FROM_LABEL + ": " + building.receiptEmailFrom().email());
         receiptEmailFrom.addClassName("receipt-email-from");
 
-        final var roundUpPaymentIcon = ObjectUtil.aBoolean(building.roundUpPayments()) ? VaadinIcon.CHECK : VaadinIcon.CLOSE_SMALL;
+        final var roundUpPaymentIcon = IconUtil.checkMarkOrCross(ObjectUtil.aBoolean(building.roundUpPayments()));
 
-        final var roundUpPayments = new Span(new Span(Labels.Building.ROUND_UP_PAYMENTS_LABEL + ": "), roundUpPaymentIcon.create());
+        final var roundUpPayments = new Span(new Span(Labels.Building.ROUND_UP_PAYMENTS_LABEL + ": "), roundUpPaymentIcon);
         roundUpPayments.addClassName("round-up-payments");
 
         final var reserveFundPercentage = new Span(Labels.Building.RESERVE_FUND_PERCENTAGE_LABEL + ": " + building.reserveFundPercentage() + "%");
@@ -184,21 +146,42 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
         final var amountOfApts = new Span(Labels.Building.AMOUNT_OF_APTS + ": " + building.amountOfApts());
         amountOfApts.addClassName("amount-of-apts");
 
-
         final var description = new FlexLayout(reserveFund, mainCurrency, debtCurrency, currenciesToShowAmountToPay, extraCharges, fixedPay, receiptEmailFrom, roundUpPayments, reserveFundPercentage, amountOfApts);
+
         description.addClassName("description");
         description.setFlexWrap(FlexLayout.FlexWrap.WRAP);
+        description.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        description.setAlignContent(FlexLayout.ContentAlignment.SPACE_BETWEEN);
 
         final var header = new HorizontalLayout(name, id, rif);
         header.addClassName("header");
         header.setSpacing(false);
         header.getThemeList().add("spacing-s");
 
-        final var deleteIcon = VaadinIcon.TRASH.create();
-        deleteIcon.addClassName("delete");
-        deleteIcon.addClickListener(v -> deleteDialog(building));
+        final var deleteIcon = IconUtil.trash();
+        deleteIcon.addClassName("icon");
+        final var deleteBtn = new Button(deleteIcon);
+        deleteBtn.addClickListener(v -> deleteDialog(building));
 
-        card.add(new VerticalLayout(header, description), deleteIcon);
+        final var editBuildingIcon = VaadinIcon.EDIT.create();
+        editBuildingIcon.addClassName("icon");
+        editBuildingIcon.setColor("#13b931");
+        final var editBtn = new Button(editBuildingIcon);
+        editBtn.addClickListener(v -> editEntity(building.id()));
+
+        final var buttonLayout = new FlexLayout(deleteBtn, editBtn);
+        //buttonLayout.setPadding(true);
+        buttonLayout.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
+        buttonLayout.addClassName("buttons");
+        buttonLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.EVENLY);
+        buttonLayout.setAlignSelf(FlexComponent.Alignment.END);
+
+        final var buildingInfo = new VerticalLayout(header, description);
+        card.add(buildingInfo, buttonLayout);
+        card.setFlexGrow(0, buttonLayout);
+        card.setFlexGrow(1, buildingInfo);
+
         return card;
     }
 
@@ -208,7 +191,7 @@ public class BuildingView extends BaseVerticalLayout implements DeleteEntity<Bui
         deleteDialog.open();
     }
 
-    @Override
+
     public void delete(Building building) {
 
         service.delete(building)

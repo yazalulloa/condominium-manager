@@ -2,6 +2,10 @@ package kyo.yaz.condominium.manager.ui.views.util;
 
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import jakarta.mail.search.StringTerm;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -148,4 +152,12 @@ public class ViewUtil {
 
         return datePicker;
     }
+
+    public static Span span(String title, String text) {
+        final var span = new Span();
+        span.setTitle(title);
+        span.setText(text);
+        return span;
+    }
+
 }

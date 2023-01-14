@@ -2,6 +2,7 @@ package kyo.yaz.condominium.manager.core.util;
 
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
+import kyo.yaz.condominium.manager.persistence.entity.Building;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -10,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class ObjectUtil {
@@ -18,15 +20,24 @@ public class ObjectUtil {
         return Optional.ofNullable(aBoolean).orElse(false);
     }
 
-    public static BigDecimal totalAptPay(BigDecimal unCommonPayPerApt, boolean fixedPay, BigDecimal fixedPayAmount,
-                                         Currency currency, BigDecimal rate,
+    public static BigDecimal totalAptPay(BigDecimal unCommonPayPerApt, Building building, BigDecimal rate,
                                          BigDecimal totalCommonExpenses,
                                          BigDecimal aptAliquot,
                                          Collection<ExtraCharge> extraCharges) {
-        if (fixedPay) {
 
-            return totalPayment(fixedPayAmount, currency, rate, extraCharges)
-                    .setScale(2, RoundingMode.HALF_UP);
+        Function<BigDecimal, BigDecimal> function = bigDecimal -> {
+            if (building.roundUpPayments()) {
+                return bigDecimal.setScale(0, RoundingMode.UP);
+            }
+            return bigDecimal.setScale(2, RoundingMode.HALF_UP);
+        };
+
+        final var currency = building.mainCurrency();
+        if (ObjectUtil.aBoolean(building.fixedPay())) {
+
+            final var bigDecimal = totalPayment(building.fixedPayAmount(), currency, rate, extraCharges);
+
+            return function.apply(bigDecimal);
         } else {
 
             //document.add(new Paragraph("MONTO DE GASTOS NO COMUNES POR C/U: " + currencyType.numberFormat().format(unCommonPay)));
@@ -34,7 +45,8 @@ public class ObjectUtil {
             final var aliquotAmount = DecimalUtil.percentageOf(aptAliquot, totalCommonExpenses);
             // document.add(new Paragraph("MONTO POR ALIQUOTA: " + currencyType.numberFormat().format(aliquotAmount)));
             final var beforePay = aliquotAmount.add(unCommonPayPerApt);//.setScale(2, RoundingMode.UP);
-            return totalPayment(beforePay, currency, rate, extraCharges).setScale(2, RoundingMode.HALF_UP);
+            final var bigDecimal = totalPayment(beforePay, currency, rate, extraCharges).setScale(2, RoundingMode.HALF_UP);
+            return function.apply(bigDecimal);
 
         }
     }
