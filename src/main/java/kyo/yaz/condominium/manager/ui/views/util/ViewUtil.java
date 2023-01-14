@@ -1,11 +1,9 @@
 package kyo.yaz.condominium.manager.ui.views.util;
 
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import jakarta.mail.search.StringTerm;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -84,6 +82,13 @@ public class ViewUtil {
         return yearPicker(ZoneId.systemDefault());
     }
 
+    public static MultiSelectComboBox<Month> monthMultiComboBox() {
+        return monthMultiComboBox(null);
+    }
+
+    public static MultiSelectComboBox<Month> monthMultiComboBox(String label) {
+        return new MultiSelectComboBox<>(label, Month.values());
+    }
 
     public static ComboBox<Month> monthPicker() {
         return monthPicker(ZoneId.systemDefault());
@@ -116,6 +121,10 @@ public class ViewUtil {
         comboBox.setAllowCustomValue(false);
         comboBox.setAutoOpen(true);
         return comboBox;
+    }
+
+    public static ComboBox<Currency> currencyComboBox() {
+        return currencyComboBox(null);
     }
 
     public static ComboBox<Currency> currencyComboBox(String label) {

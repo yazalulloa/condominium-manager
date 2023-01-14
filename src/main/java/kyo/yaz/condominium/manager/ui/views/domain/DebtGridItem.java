@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import kyo.yaz.condominium.manager.core.domain.Currency;
@@ -23,7 +22,7 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @AllArgsConstructor
-public class DebtViewItem {
+public class DebtGridItem {
 
     @NotBlank
     @JsonProperty
@@ -33,14 +32,12 @@ public class DebtViewItem {
     @JsonProperty
     private final String name;
 
-    @Min(0)
     @JsonProperty
     private int receipts;
 
     @NotNull
-    @Builder.Default
     @JsonProperty
-    private BigDecimal amount = BigDecimal.ZERO;
+    private BigDecimal amount;
 
     @JsonProperty
     private Set<Month> months;

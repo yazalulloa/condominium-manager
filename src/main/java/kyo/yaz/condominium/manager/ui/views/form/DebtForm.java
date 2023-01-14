@@ -41,7 +41,7 @@ public class DebtForm extends BaseForm {
     @PropertyId("amount")
     private final BigDecimalField amountField = new BigDecimalField(Labels.Debt.AMOUNT_LABEL);
     @PropertyId("months")
-    private final MultiSelectComboBox<Month> monthComboBox = new MultiSelectComboBox<>(Labels.Debt.MONTHS_LABEL, Month.values());
+    private final MultiSelectComboBox<Month> monthComboBox = ViewUtil.monthMultiComboBox(Labels.Debt.MONTHS_LABEL);
     @PropertyId("previousPaymentAmount")
     private final BigDecimalField previousPaymentAmountField = new BigDecimalField(Labels.Debt.PREVIOUS_AMOUNT_PAYED_LABEL);
     @PropertyId("previousPaymentAmountCurrency")

@@ -112,3 +112,5 @@ node_modules
 !src/main/resources
 !system.properties
 gmail
+conf
+!package-lock.json

@@ -23,6 +23,7 @@ public class Labels {
     public static final String DEACTIVATED = "Desactivado";
     public static final String DOWNLOAD = "Descargar";
     public static final String SEND_EMAIL = "Enviar recibos";
+    public static final String EDIT = "Editar";
 
     public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";
