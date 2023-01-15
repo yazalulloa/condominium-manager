@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views;
+package kyo.yaz.condominium.manager.ui.views.building;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -25,12 +25,10 @@ import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
-import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
-import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -89,10 +87,13 @@ public class BuildingView extends BaseDiv {
 
     private void configureGrid() {
 
-       // grid.setHeight("100%");
+        // grid.setHeight("100%");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
         grid.addComponentColumn(this::createCard);
+
+
+        grid.addItemDoubleClickListener(e -> editEntity(e.getItem().id()));
     }
 
     private HorizontalLayout createCard(Building building) {
@@ -111,8 +112,6 @@ public class BuildingView extends BaseDiv {
         final var rif = new Span(building.rif());
         rif.addClassName("rif");
 
-        final var reserveFund = new Span(Labels.Building.RESERVE_FUND_LABEL + ": " + ConvertUtil.format(building.reserveFund(), building.reserveFundCurrency()));
-        reserveFund.addClassName("reserve-fund");
 
         final var mainCurrency = new Span(Labels.Building.MAIN_CURRENCY_LABEL + ": " + building.mainCurrency().name());
         mainCurrency.addClassName("main-currency");
@@ -140,13 +139,11 @@ public class BuildingView extends BaseDiv {
         final var roundUpPayments = new Span(new Span(Labels.Building.ROUND_UP_PAYMENTS_LABEL + ": "), roundUpPaymentIcon);
         roundUpPayments.addClassName("round-up-payments");
 
-        final var reserveFundPercentage = new Span(Labels.Building.RESERVE_FUND_PERCENTAGE_LABEL + ": " + building.reserveFundPercentage() + "%");
-        reserveFundPercentage.addClassName("reserve-fund-percentage");
 
         final var amountOfApts = new Span(Labels.Building.AMOUNT_OF_APTS + ": " + building.amountOfApts());
         amountOfApts.addClassName("amount-of-apts");
 
-        final var description = new FlexLayout(reserveFund, mainCurrency, debtCurrency, currenciesToShowAmountToPay, extraCharges, fixedPay, receiptEmailFrom, roundUpPayments, reserveFundPercentage, amountOfApts);
+        final var description = new FlexLayout(mainCurrency, debtCurrency, currenciesToShowAmountToPay, extraCharges, fixedPay, receiptEmailFrom, roundUpPayments, amountOfApts);
 
         description.addClassName("description");
         description.setFlexWrap(FlexLayout.FlexWrap.WRAP);

@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views.form;
+package kyo.yaz.condominium.manager.ui.views.building;
 
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -21,6 +21,7 @@ import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 
 
@@ -37,11 +38,10 @@ public class ExtraChargeForm extends BaseForm {
     @PropertyId("currency")
     private final ComboBox<Currency> currencyComboBox = ViewUtil.currencyComboBox(Labels.ExtraCharge.CURRENCY_LABEL);
 
-    private final Button addBtn = new Button(Labels.ADD);
-    private final Button cancelBtn = new Button(Labels.CANCEL);
+
     private final Binder<ExtraChargeViewItem> binder = new BeanValidationBinder<>(ExtraChargeViewItem.class);
 
-    ExtraChargeViewItem extraCharge;
+    ExtraChargeViewItem item;
 
 
     public ExtraChargeForm() {
@@ -59,39 +59,50 @@ public class ExtraChargeForm extends BaseForm {
                 createButtonsLayout());
 
         binder.bindInstanceFields(this);
-        setExtraCharge(new ExtraChargeViewItem());
+        setItem(new ExtraChargeViewItem());
     }
 
     public void setApartments(Collection<String> apartments) {
-
         aptNumberComboBox.setItems(apartments);
+    }
 
+    public ExtraChargeViewItem defaultItem() {
+        return ExtraChargeViewItem.builder()
+                .amount(BigDecimal.ZERO)
+                .currency(Currency.VED)
+                .build();
     }
 
 
     private HorizontalLayout createButtonsLayout() {
+
+        final var addBtn = new Button(Labels.SAVE);
+        final var deleteBtn = new Button(Labels.DELETE);
+        final var cancelBtn = new Button(Labels.CANCEL);
+
         addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
         cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         addBtn.addClickShortcut(Key.ENTER);
         cancelBtn.addClickShortcut(Key.ESCAPE);
 
+
         addBtn.addClickListener(event -> validateAndSave());
-        cancelBtn.addClickListener(event -> {
-            binder.readBean(null);
-        });
+        deleteBtn.addClickListener(event -> fireEvent(new DeleteEvent(this, item)));
+        cancelBtn.addClickListener(event -> fireEvent(new CloseEvent(this)));
 
 
         binder.addStatusChangeListener(e -> addBtn.setEnabled(binder.isValid()));
 
-        return new HorizontalLayout(addBtn, cancelBtn);
+        return new HorizontalLayout(addBtn, deleteBtn, cancelBtn);
     }
 
     private void validateAndSave() {
         try {
-            binder.writeBean(extraCharge);
-            fireEvent(new ExtraChargeForm.SaveEvent(this, extraCharge));
-            setExtraCharge(new ExtraChargeViewItem());
+            binder.writeBean(item);
+            fireEvent(new ExtraChargeForm.SaveEvent(this, item));
+            setItem(new ExtraChargeViewItem());
         } catch (ValidationException e) {
             logger().error("ERROR_VALIDATING", e);
             asyncNotification(e.getMessage());
@@ -99,8 +110,8 @@ public class ExtraChargeForm extends BaseForm {
         }
     }
 
-    public void setExtraCharge(ExtraChargeViewItem viewItem) {
-        this.extraCharge = viewItem;
+    public void setItem(ExtraChargeViewItem viewItem) {
+        this.item = viewItem;
         binder.readBean(viewItem);
 
     }
@@ -110,10 +121,28 @@ public class ExtraChargeForm extends BaseForm {
         return getEventBus().addListener(eventType, listener);
     }
 
-    public static class SaveEvent extends FormEvent<ExtraChargeForm, ExtraChargeViewItem> {
+    private static abstract class ExtraChargeFormEvent extends FormEvent<ExtraChargeForm, ExtraChargeViewItem> {
+
+        protected ExtraChargeFormEvent(ExtraChargeForm source, ExtraChargeViewItem obj) {
+            super(source, obj);
+        }
+    }
+
+    public static class SaveEvent extends ExtraChargeFormEvent {
         SaveEvent(ExtraChargeForm source, ExtraChargeViewItem obj) {
             super(source, obj);
         }
     }
 
+    public static class DeleteEvent extends ExtraChargeFormEvent {
+        DeleteEvent(ExtraChargeForm source, ExtraChargeViewItem item) {
+            super(source, item);
+        }
+    }
+
+    public static class CloseEvent extends ExtraChargeFormEvent {
+        CloseEvent(ExtraChargeForm source) {
+            super(source, null);
+        }
+    }
 }

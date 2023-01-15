@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views.form;
+package kyo.yaz.condominium.manager.ui.views.building;
 
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -34,12 +34,6 @@ public class CreateBuildingForm extends BaseForm {
     private final TextField nameTextField = new TextField("Nombre");
     @PropertyId("rif")
     private final TextField rifTextField = new TextField("RIF");
-    @PropertyId("reserveFund")
-    private final BigDecimalField reserveFundField = new BigDecimalField(Labels.Building.RESERVE_FUND_LABEL);
-    @PropertyId("reserveFundCurrency")
-    private final ComboBox<Currency> reserveFundCurrencyComboBox = ViewUtil.currencyComboBox(Labels.Building.RESERVE_FUND_CURRENCY_LABEL);
-    @PropertyId("reserveFundPercentage")
-    private final BigDecimalField reserveFundPercentageField = new BigDecimalField(Labels.Building.RESERVE_FUND_PERCENTAGE_LABEL);
     @PropertyId("mainCurrency")
     private final ComboBox<Currency> mainCurrencyComboBox = ViewUtil.currencyComboBox(Labels.Building.MAIN_CURRENCY_LABEL);
     @PropertyId("debtCurrency")
@@ -68,9 +62,6 @@ public class CreateBuildingForm extends BaseForm {
                 idTextField,
                 nameTextField,
                 rifTextField,
-                reserveFundField,
-                reserveFundCurrencyComboBox,
-                reserveFundPercentageField,
                 mainCurrencyComboBox,
                 debtCurrencyComboBox,
                 currenciesToShowAmountToPayComboBox,

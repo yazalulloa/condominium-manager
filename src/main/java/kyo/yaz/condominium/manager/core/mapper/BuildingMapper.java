@@ -2,7 +2,6 @@ package kyo.yaz.condominium.manager.core.mapper;
 
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.ui.views.domain.BuildingViewItem;
-import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -22,10 +21,10 @@ public interface BuildingMapper {
     Building map(BuildingViewItem item);
 
     default BuildingViewItem map(Building item) {
-        return new BuildingViewItem(item.id(), item.name(), item.rif(), item.reserveFund(), item.reserveFundCurrency(),
+        return new BuildingViewItem(item.id(), item.name(), item.rif(),
                 item.mainCurrency(), item.debtCurrency(), item.currenciesToShowAmountToPay(),
-                ConvertUtil.toList(item.extraCharges(), ExtraChargeMapper::to), item.fixedPay(), item.fixedPayAmount(),
-                item.receiptEmailFrom(), item.roundUpPayments(), item.reserveFundPercentage());
+                item.fixedPay(), item.fixedPayAmount(),
+                item.receiptEmailFrom(), item.roundUpPayments());
     }
 }
 

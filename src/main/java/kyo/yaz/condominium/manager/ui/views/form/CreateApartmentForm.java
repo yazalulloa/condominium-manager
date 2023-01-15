@@ -15,6 +15,7 @@ import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.core.domain.PaymentType;
+import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ApartmentViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -45,9 +46,7 @@ public class CreateApartmentForm extends BaseForm {
 
     private final EmailsForm emailsForm = new EmailsForm();
 
-    Button save = new Button("Guardar");
-    Button delete = new Button("Borrar");
-    Button close = new Button("Cancelar");
+
 
     ApartmentViewItem apartment;
 
@@ -88,6 +87,11 @@ public class CreateApartmentForm extends BaseForm {
     }
 
     private HorizontalLayout createButtonsLayout() {
+
+        final var save = new Button(Labels.SAVE);
+        final var delete = new Button(Labels.DELETE);
+        final var close = new Button(Labels.CANCEL);
+
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
         close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -135,16 +139,10 @@ public class CreateApartmentForm extends BaseForm {
         return getEventBus().addListener(eventType, listener);
     }
 
-    public static abstract class ApartmentFormEvent extends ComponentEvent<CreateApartmentForm> {
-        private final ApartmentViewItem Apartment;
+    private static abstract class ApartmentFormEvent extends FormEvent<CreateApartmentForm, ApartmentViewItem> {
 
-        protected ApartmentFormEvent(CreateApartmentForm source, ApartmentViewItem Apartment) {
-            super(source, false);
-            this.Apartment = Apartment;
-        }
-
-        public ApartmentViewItem getApartment() {
-            return Apartment;
+        protected ApartmentFormEvent(CreateApartmentForm source, ApartmentViewItem obj) {
+            super(source, obj);
         }
     }
 

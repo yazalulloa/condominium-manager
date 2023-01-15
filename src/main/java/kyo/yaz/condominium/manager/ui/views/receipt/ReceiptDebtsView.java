@@ -1,7 +1,8 @@
-package kyo.yaz.condominium.manager.ui.views.domain;
+package kyo.yaz.condominium.manager.ui.views.receipt;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -9,6 +10,7 @@ import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.data.binder.Binder;
 import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
+import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 
@@ -50,14 +52,17 @@ public class ReceiptDebtsView extends BaseDiv {
         final var previousPaymentAmountCurrencyColumn = grid.addColumn(DebtViewItem::getPreviousPaymentAmountCurrency).setHeader(Labels.Debt.PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL).setSortable(true).setKey(Labels.Debt.PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL);
 
         final var editColumn = grid.addComponentColumn(item -> {
-            final var editButton = new Button(Labels.EDIT);
-            editButton.addClickListener(e -> {
-                if (editor.isOpen())
-                    editor.cancel();
-                grid.getEditor().editItem(item);
-            });
-            return editButton;
-        });
+                    final var editButton = new Button(Labels.EDIT);
+                    editButton.addClickListener(e -> {
+                        if (editor.isOpen())
+                            editor.cancel();
+                        grid.getEditor().editItem(item);
+                    });
+                    return editButton;
+                })
+                .setTextAlign(ColumnTextAlign.END)
+                .setFrozenToEnd(true)
+                .setFlexGrow(0);
 
 
         final var binder = new Binder<>(DebtViewItem.class);

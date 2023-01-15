@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views.form;
+package kyo.yaz.condominium.manager.ui.views.receipt;
 
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;

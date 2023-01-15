@@ -234,7 +234,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     }
 
     private void saveEntity(CreateApartmentForm.SaveEvent event) {
-        service.save(ApartmentMapper.to(event.getApartment()))
+        service.save(ApartmentMapper.to(event.getObj()))
                 .ignoreElement()
                 .andThen(refreshData())
                 .subscribeOn(Schedulers.io())
@@ -244,7 +244,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     }
 
     private void deleteEntity(CreateApartmentForm.DeleteEvent event) {
-        delete(ApartmentMapper.to(event.getApartment()));
+        delete(ApartmentMapper.to(event.getObj()));
         closeEditor();
     }
 
@@ -255,7 +255,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
 
             addItem("Borrar", e -> e.getItem().ifPresent(deleteApartment::delete));
 
-            add(new Hr());
+            //add(new Hr());
         }
     }
 

@@ -15,6 +15,7 @@ import java.text.NumberFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class ConvertUtil {
     public static final NumberFormat VE_FORMAT;
@@ -45,7 +46,7 @@ public class ConvertUtil {
             return Collections.emptyList();
         }
 
-        return collection.stream().map(function).toList();
+        return collection.stream().map(function).collect(Collectors.toCollection(LinkedList::new));
     }
 
     public static String format(BigDecimal amount, Currency currency) {

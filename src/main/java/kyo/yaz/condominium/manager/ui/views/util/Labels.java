@@ -24,6 +24,7 @@ public class Labels {
     public static final String DOWNLOAD = "Descargar";
     public static final String SEND_EMAIL = "Enviar recibos";
     public static final String EDIT = "Editar";
+    public static final String RESERVE_FUNDS_TITLE = "Fondos de reserva";
 
     public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";
@@ -123,5 +124,13 @@ public class Labels {
         public static final String AMOUNT_LABEL = "Monto";
         public static final String CURRENCY_LABEL = "Moneda";
 
+    }
+
+    public static class ReserveFund {
+        public static final String NAME_LABEL = "Nombre";
+        public static final String FUND_LABEL = "Fondo";
+        public static final String CURRENCY_LABEL = "Moneda";
+        public static final String PERCENTAGE_LABEL = "Porcentaje";
+        public static final String ACTIVE_LABEL = "Activado";
     }
 }

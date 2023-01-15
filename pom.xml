@@ -239,7 +239,6 @@
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>8.0.0.Final</version>
-            <!--<version>6.2.5.Final</version>-->
         </dependency>
 
         <dependency>
@@ -265,19 +264,6 @@
             <artifactId>google-api-services-gmail</artifactId>
             <version>v1-rev20221219-2.0.0</version>
         </dependency>
-
-        <!--  <dependency>
-              <groupId>javax.mail</groupId>
-              <artifactId>javax.mail-api</artifactId>
-              <version>1.6.2</version>
-          </dependency>
-
-          <dependency>
-              <groupId>com.sun.mail</groupId>
-              <artifactId>javax.mail</artifactId>
-              <version>1.6.2</version>
-          </dependency>-->
-
 
         <dependency>
             <groupId>com.sun.mail</groupId>
@@ -309,7 +295,6 @@
             <groupId>com.itextpdf</groupId>
             <artifactId>itext7-core</artifactId>
             <version>7.2.4</version>
-            <!--<version>7.1.18</version>-->
             <type>pom</type>
         </dependency>
 

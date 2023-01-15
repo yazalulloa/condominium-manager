@@ -4,16 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import kyo.yaz.condominium.manager.core.domain.Currency;
-import kyo.yaz.condominium.manager.core.domain.ReceiptEmailFrom;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigDecimal;
-import java.util.Set;
 
 @Jacksonized
 @Builder(toBuilder = true)
@@ -22,44 +20,25 @@ import java.util.Set;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@NoArgsConstructor
 @AllArgsConstructor
-public class BuildingViewItem {
+public class ReserveFundViewItem {
 
     @NotBlank
-    @NotNull
-    @JsonProperty
-    private String id;
-
-    @NotBlank
-    @NotNull
     @JsonProperty
     private String name;
 
-    @NotBlank
     @NotNull
+    @Digits(integer = 19, fraction = 2)
     @JsonProperty
-    private String rif;
+    private BigDecimal fund;
 
+    @Min(0)
     @NotNull
     @JsonProperty
-    private Currency mainCurrency;
+    private BigDecimal percentage;
 
-    @NotNull
+    @Builder.Default
     @JsonProperty
-    private Currency debtCurrency;
-
-    @NotEmpty
-    @JsonProperty
-    private Set<Currency> currenciesToShowAmountToPay;
-    @JsonProperty
-    private boolean fixedPay;
-    @JsonProperty
-    private BigDecimal fixedPayAmount;
-    @NotNull
-    @JsonProperty
-    private ReceiptEmailFrom receiptEmailFrom;
-
-    @NotNull
-    @JsonProperty
-    private Boolean roundUpPayments;
+    private boolean active = true;
 }

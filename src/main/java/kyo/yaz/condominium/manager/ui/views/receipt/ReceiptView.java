@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views;
+package kyo.yaz.condominium.manager.ui.views.receipt;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -67,7 +67,6 @@ public class ReceiptView extends BaseVerticalLayout {
 
     private final Text countText = new Text(null);
     private final Button addEntityButton = new Button(Labels.Receipt.ADD_BUTTON_LABEL);
-
     private final Vertx vertx;
     private final BuildingService buildingService;
     private final DeleteDialog deleteDialog = new DeleteDialog();

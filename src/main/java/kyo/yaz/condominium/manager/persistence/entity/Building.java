@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.domain.ReceiptEmailFrom;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
+import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,10 +41,6 @@ public class Building {
     @JsonProperty
     private final String rif;
     @JsonProperty
-    private final BigDecimal reserveFund;
-    @JsonProperty
-    private final Currency reserveFundCurrency;
-    @JsonProperty
     private final Currency mainCurrency;
     @JsonProperty
     private final Currency debtCurrency;
@@ -60,7 +57,7 @@ public class Building {
     @JsonProperty
     private final Boolean roundUpPayments;
     @JsonProperty
-    private final BigDecimal reserveFundPercentage;
-    @JsonProperty
     private final Long amountOfApts;
+    @JsonProperty
+    private final List<ReserveFund> reserveFunds;
 }

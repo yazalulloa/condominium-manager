@@ -11,9 +11,9 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
 import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
 import kyo.yaz.condominium.manager.ui.views.ApartmentView;
-import kyo.yaz.condominium.manager.ui.views.BuildingView;
+import kyo.yaz.condominium.manager.ui.views.building.BuildingView;
 import kyo.yaz.condominium.manager.ui.views.RateView;
-import kyo.yaz.condominium.manager.ui.views.ReceiptView;
+import kyo.yaz.condominium.manager.ui.views.receipt.ReceiptView;
 
 
 public class MainLayout extends AppLayout {
