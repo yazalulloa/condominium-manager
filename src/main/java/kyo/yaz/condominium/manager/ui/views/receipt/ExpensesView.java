@@ -190,7 +190,8 @@ public class ExpensesView extends BaseDiv {
     }
 
     public void setItems(Collection<ExpenseViewItem> collection) {
-        items.addAll(collection);
+        collection.stream().filter(i -> !i.isReserveFund())
+                .forEach(items::add);
         calculateTotal();
     }
 }
