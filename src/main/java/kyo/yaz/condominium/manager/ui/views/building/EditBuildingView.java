@@ -4,6 +4,7 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -18,6 +19,7 @@ import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.ScrollPanel;
+import kyo.yaz.condominium.manager.ui.views.extracharges.ExtraChargesView;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,7 @@ import java.util.Optional;
 @Route(value = "buildings/:building_id", layout = MainLayout.class)
 public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver {
 
-    private final CreateBuildingForm createBuildingForm = new CreateBuildingForm();
+    private final BuildingForm form = new BuildingForm();
     private final ReserveFundView reserveFundView = new ReserveFundView();
     private final ExtraChargesView extraChargesView = new ExtraChargesView();
     private final Button saveBtn = new Button(Labels.SAVE);
@@ -65,7 +67,7 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
     private void addContent() {
 
         extraChargesView.setVisible(extraChargesVisible);
-        add(createBuildingForm, createButtonsLayout(), extraChargesView, reserveFundView);
+        add(form, createButtonsLayout(), extraChargesView, reserveFundView);
     }
 
     @Override
@@ -90,7 +92,7 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
                         extraChargesView.setItems(ConvertUtil.toList(building.extraCharges(), ExtraChargeMapper::to));
                         extraChargesView.setApartments(list);
 
-                        createBuildingForm.setBuilding(BuildingMapper.to(building));
+                        form.setBuilding(BuildingMapper.to(building));
                         reserveFundView.addItems(ConvertUtil.toList(building.reserveFunds(), ReserveFundMapper::to));
                         extraChargesVisible = !list.isEmpty();
 
@@ -109,8 +111,7 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
 
     private void configureListeners() {
 
-        createBuildingForm.addListener(CreateBuildingForm.SaveEvent.class, event -> {
-            saveBtn.setEnabled(false);
+        form.addListener(BuildingForm.SaveEvent.class, event -> {
 
             apartmentService.countByBuilding(event.getBuilding().getId())
                     .map(count -> {
@@ -142,13 +143,15 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
+        saveBtn.setDisableOnClick(true);
+
         saveBtn.addClickShortcut(Key.ENTER);
         cancelBtn.addClickShortcut(Key.ESCAPE);
 
-        createBuildingForm.binder.addStatusChangeListener(e -> saveBtn.setEnabled(createBuildingForm.binder.isValid()));
+        form.binder.addStatusChangeListener(e -> saveBtn.setEnabled(form.binder.isValid()));
 
-        saveBtn.setEnabled(createBuildingForm.binder.isValid());
-        saveBtn.addClickListener(event -> createBuildingForm.validateAndSave());
+        saveBtn.setEnabled(form.binder.isValid());
+        saveBtn.addClickListener(event -> form.validateAndSave());
 
         cancelBtn.addClickListener(event -> navigateBack());
 

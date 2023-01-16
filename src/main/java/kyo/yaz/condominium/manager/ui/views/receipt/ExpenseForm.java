@@ -1,7 +1,5 @@
 package kyo.yaz.condominium.manager.ui.views.receipt;
 
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -13,9 +11,9 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
+import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ExpenseViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -36,9 +34,7 @@ public class ExpenseForm extends BaseForm {
     @PropertyId("type")
     private final ComboBox<Expense.Type> typeComboBox = new ComboBox<>(Labels.Expense.TYPE_LABEL, Expense.Type.values);
 
-    private final Button addBtn = new Button(Labels.ADD);
-    private final Button deleteBtn = new Button(Labels.DELETE);
-    private final Button cancelBtn = new Button(Labels.CANCEL);
+
     private final Binder<ExpenseViewItem> binder = new BeanValidationBinder<>(ExpenseViewItem.class);
 
     ExpenseViewItem expense;
@@ -58,10 +54,14 @@ public class ExpenseForm extends BaseForm {
                 createButtonsLayout());
 
         binder.bindInstanceFields(this);
-        setExpense(ExpenseViewItem.builder().build());
+        setItem(ExpenseViewItem.builder().build());
     }
 
     private HorizontalLayout createButtonsLayout() {
+        final var addBtn = new Button(Labels.ADD);
+        final var deleteBtn = new Button(Labels.DELETE);
+        final var cancelBtn = new Button(Labels.CANCEL);
+
         addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
         cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -85,7 +85,7 @@ public class ExpenseForm extends BaseForm {
         try {
             binder.writeBean(expense);
             fireEvent(new SaveEvent(this, expense));
-            setExpense(ExpenseViewItem.builder().build());
+            setItem(ExpenseViewItem.builder().build());
         } catch (ValidationException e) {
             logger().error("ERROR_VALIDATING", e);
             asyncNotification(e.getMessage());
@@ -93,41 +93,39 @@ public class ExpenseForm extends BaseForm {
         }
     }
 
+    public ExpenseViewItem defaultItem() {
+        return ExpenseViewItem.builder()
+                .build();
+    }
 
-    public void setExpense(ExpenseViewItem expense) {
+    public void setItem(ExpenseViewItem expense) {
         this.expense = expense;
         binder.readBean(expense);
 
     }
 
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
-    }
+    public static abstract class ExpenseFormEvent extends ViewEvent<ExpenseForm, ExpenseViewItem> {
 
-    public static abstract class FormEvent extends ComponentEvent<ExpenseForm> {
-        private final ExpenseViewItem obj;
-
-        protected FormEvent(ExpenseForm source, ExpenseViewItem obj) {
-            super(source, false);
-            this.obj = obj;
-        }
-
-        public ExpenseViewItem getObj() {
-            return obj;
+        ExpenseFormEvent(ExpenseForm source, ExpenseViewItem obj) {
+            super(source, obj);
         }
     }
 
-    public static class SaveEvent extends FormEvent {
+    public static class SaveEvent extends ExpenseFormEvent {
         SaveEvent(ExpenseForm source, ExpenseViewItem obj) {
             super(source, obj);
         }
     }
 
-    public static class DeleteEvent extends FormEvent {
+    public static class DeleteEvent extends ExpenseFormEvent {
         DeleteEvent(ExpenseForm source, ExpenseViewItem obj) {
             super(source, obj);
         }
+    }
 
+    public static class CloseEvent extends ExpenseFormEvent {
+        CloseEvent(ExpenseForm source) {
+            super(source, null);
+        }
     }
 }

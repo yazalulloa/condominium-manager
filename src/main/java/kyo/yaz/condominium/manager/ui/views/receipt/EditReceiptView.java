@@ -2,18 +2,14 @@ package kyo.yaz.condominium.manager.ui.views.receipt;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.grid.ColumnTextAlign;
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -26,43 +22,45 @@ import kyo.yaz.condominium.manager.core.mapper.DebtMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExpenseMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
 import kyo.yaz.condominium.manager.core.service.entity.*;
+import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
+import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.MainLayout;
-import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
+import kyo.yaz.condominium.manager.ui.views.base.ScrollPanel;
 import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
-import kyo.yaz.condominium.manager.ui.views.domain.ExpenseViewItem;
-import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
-import kyo.yaz.condominium.manager.ui.views.building.ExtraChargeForm;
+import kyo.yaz.condominium.manager.ui.views.extracharges.ExtraChargesView;
 import kyo.yaz.condominium.manager.ui.views.util.AppUtil;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @PageTitle(ReceiptView.PAGE_TITLE)
 @Route(value = "receipts/:receipt_id", layout = MainLayout.class)
-public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterObserver {
+public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver {
 
 
-    private final Grid<ExpenseViewItem> expenseGrid = new Grid<>();
-    private final Grid<ExtraChargeViewItem> extraChargeGrid = new Grid<>();
-    private final Button saveBtn = new Button(Labels.SAVE);
-    private final Button cancelBtn = new Button(Labels.CANCEL);
-    private final Set<ExpenseViewItem> expenses = new LinkedHashSet<>();
-    private final ExtraChargeForm extraChargeForm = new ExtraChargeForm();
-    private final Set<ExtraChargeViewItem> extraCharges = new LinkedHashSet<>();
+    private final ExpensesView expensesView = new ExpensesView();
+    private final ExtraChargesView extraChargesView = new ExtraChargesView();
+
+    private final Div reserveFundsDiv = new Div();
     private final ApartmentService apartmentService;
     private final ReceiptService receiptService;
     private final BuildingService buildingService;
     private final RateService rateService;
     private final SaveReceipt saveReceipt;
-    private ExpenseForm expenseForm;
+
     private Long receiptId;
     private ReceiptForm receiptForm;
     private Receipt receipt;
+    private Building building;
 
     private final ReceiptDebtsView receiptDebtsView = new ReceiptDebtsView();
 
@@ -79,9 +77,9 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
     private void init() {
         addClassName("edit-receipt-view");
         setSizeFull();
-        configureGrids();
-        getContent();
-        configureListeners();
+        extraChargesView.init();
+        expensesView.init();
+        addContent();
     }
 
     @Override
@@ -91,13 +89,17 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
     }
 
     private HorizontalLayout createButtonsLayout() {
+
+        final var saveBtn = new Button(Labels.SAVE);
+        final var cancelBtn = new Button(Labels.CANCEL);
+
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         saveBtn.addClickShortcut(Key.ENTER);
         cancelBtn.addClickShortcut(Key.ESCAPE);
 
-        receiptForm.binder().addStatusChangeListener(e -> saveBtn.setEnabled(receiptForm.binder().isValid() && !expenses.isEmpty()));
+        receiptForm.binder().addStatusChangeListener(e -> saveBtn.setEnabled(receiptForm.binder().isValid() && !expensesView.items().isEmpty()));
 
         receiptForm.addListener(ReceiptForm.SaveEvent.class, event -> {
             final var formItem = event.getObj();
@@ -109,10 +111,10 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
                     .year(formItem.getYear())
                     .month(formItem.getMonth())
                     .date(formItem.getDate())
-                    .expenses(ConvertUtil.toList(expenses, ExpenseMapper::to))
+                    .expenses(ConvertUtil.toList(expensesView.items(), ExpenseMapper::to))
                     //.debts(ConvertUtil.toList(debts, DebtMapper::to))
                     .debts(ConvertUtil.toList(receiptDebtsView.list(), DebtMapper::to))
-                    .extraCharges(ConvertUtil.toList(extraCharges, ExtraChargeMapper::to))
+                    .extraCharges(ConvertUtil.toList(extraChargesView.items(), ExtraChargeMapper::to))
                     .rate(formItem.getRate())
                     .build();
 
@@ -129,10 +131,16 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
 
         cancelBtn.addClickListener(event -> navigateBack());
 
+        expensesView.form().addListener(ExpenseForm.SaveEvent.class, event -> {
+            saveBtn.setEnabled(receiptForm.binder().isValid() && !expensesView.items().isEmpty());
+        });
+
+        expensesView.addListener(ExpensesView.LoadExpensesEvent.class, event -> loadReserveFunds());
+
         return new HorizontalLayout(saveBtn, cancelBtn);
     }
 
-    private void getContent() {
+    private void addContent() {
 
         receiptForm = new ReceiptForm(rateService);
 
@@ -142,7 +150,7 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
 
                 if (value == null) {
                     receiptDebtsView.setVisible(false);
-                    extraChargeForm.setVisible(false);
+                    extraChargesView.setVisible(false);
                 } else {
                     setAptNumbers(value)
                             .doOnSuccess(this::uiAsyncAction)
@@ -153,19 +161,12 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
             }
         });
 
-        expenseForm = new ExpenseForm();
-        extraChargeForm.setVisible(false);
+        extraChargesView.setVisible(false);
         receiptDebtsView.setVisible(false);
 
-        expenseForm.setWidth(25, Unit.PERCENTAGE);
-        final var expensesLayout = new HorizontalLayout(new VerticalLayout(new H3(Labels.EXPENSES), expenseGrid), expenseForm);
         final var debtsLayout = new VerticalLayout(new H3(Labels.DEBTS), receiptDebtsView);
-        final var extraChargesLayout = new HorizontalLayout(new VerticalLayout(new H3(Labels.EXTRA_CHARGE_TITLE), extraChargeGrid), extraChargeForm);
-        extraChargeForm.setWidth(25, Unit.PERCENTAGE);
 
-        add(receiptForm, createButtonsLayout(), expensesLayout, new Hr(), debtsLayout, new Hr(), extraChargesLayout, new Hr());
-
-        setSizeFull();
+        add(receiptForm, createButtonsLayout(), reserveFundsDiv, expensesView, new Hr(), debtsLayout, new Hr(), extraChargesView, new Hr());
     }
 
     private void navigateBack() {
@@ -173,166 +174,65 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
     }
 
     private Single<Runnable> setAptNumbers(String buildingId) {
-        return apartmentService.apartmentsByBuilding(buildingId)
-                .map(list -> () -> {
+        final var buildingSingle = buildingService.get(buildingId);
+        final var listSingle = apartmentService.apartmentsByBuilding(buildingId);
 
-                    final var aptNumbers = list.stream().map(Apartment::apartmentId)
-                            .map(Apartment.ApartmentId::number)
-                            .collect(Collectors.toCollection(LinkedList::new));
+        return Single.zip(buildingSingle, listSingle, (building, list) -> {
+            return () -> {
+                this.building = building;
+                final var aptNumbers = list.stream().map(Apartment::apartmentId)
+                        .map(Apartment.ApartmentId::number)
+                        .collect(Collectors.toCollection(LinkedList::new));
 
-                    final var debtList = Optional.ofNullable(receipt.debts())
-                            .orElseGet(Collections::emptyList);
+                final var debtList = Optional.ofNullable(receipt)
+                        .map(Receipt::debts)
+                        .orElseGet(Collections::emptyList);
 
-                    final var debtViewItems = list.stream()
-                            .map(apartment -> {
+                final var debtViewItems = list.stream()
+                        .map(apartment -> {
 
-                                final var debtViewItem = debtList.stream().filter(debt -> debt.aptNumber().equals(apartment.apartmentId().number()))
-                                        .findFirst()
-                                        .map(DebtMapper::to)
-                                        .orElse(DebtViewItem.builder()
-                                                .aptNumber(apartment.apartmentId().number())
-                                                .build());
+                            final var debtViewItem = debtList.stream().filter(debt -> debt.aptNumber().equals(apartment.apartmentId().number()))
+                                    .findFirst()
+                                    .map(DebtMapper::to)
+                                    .orElse(DebtViewItem.builder()
+                                            .aptNumber(apartment.apartmentId().number())
+                                            .build());
 
-                                return debtViewItem.toBuilder()
-                                        .name(apartment.name())
-                                        .build();
-                            })
-                            .collect(Collectors.toCollection(LinkedList::new));
+                            return debtViewItem.toBuilder()
+                                    .name(apartment.name())
+                                    .build();
+                        })
+                        .collect(Collectors.toCollection(LinkedList::new));
 
-                    receiptDebtsView.setItems(debtViewItems);
-                    receiptDebtsView.setVisible(true);
-                    extraChargeForm.setApartments(aptNumbers);
-                    extraChargeForm.setVisible(true);
+                receiptDebtsView.setItems(debtViewItems);
+                receiptDebtsView.setVisible(true);
+                extraChargesView.setApartments(aptNumbers);
+                extraChargesView.setVisible(true);
+                loadReserveFunds();
+            };
+        });
+    }
+
+    private void loadReserveFunds() {
+        Optional.ofNullable(building)
+                .map(Building::reserveFunds)
+                .filter(CollectionUtils::isNotEmpty)
+                .ifPresent(reserveFunds -> {
+                    reserveFundsDiv.setVisible(true);
+                    reserveFundsDiv.removeAll();
+
+                    reserveFunds.forEach(reserveFund -> {
+                        if (reserveFund.active() && DecimalUtil.greaterThanZero(reserveFund.percentage())) {
+                            final var percentageToPay = DecimalUtil.greaterThanZero(expensesView.totalCommon()) ? DecimalUtil.percentageOf(reserveFund.percentage(), expensesView.totalCommon()) : expensesView.totalCommon();
+                            reserveFundsDiv.add(new Paragraph(reserveFund.name() + ": " + reserveFund.fund() + " Porcentaje: " + reserveFund.percentage() + "% Monto a pagar: " + percentageToPay));
+                        }
+
+                    });
+
+                    new Paragraph();
+
                 });
-    }
 
-    private void configureGrids() {
-        expenseGrid.addClassNames("expenses-grid");
-        expenseGrid.setAllRowsVisible(true);
-        expenseGrid.setColumnReorderingAllowed(true);
-        expenseGrid.addColumn(ExpenseViewItem::getDescription).setHeader(Labels.Expense.DESCRIPTION_LABEL);
-        expenseGrid.addColumn(item -> ConvertUtil.format(item.getAmount(), item.getCurrency())).setHeader(Labels.Expense.AMOUNT_LABEL).setSortable(true).setKey(Labels.Expense.AMOUNT_LABEL);
-        expenseGrid.addColumn(ExpenseViewItem::getType).setHeader(Labels.Expense.TYPE_LABEL).setSortable(true).setKey(Labels.Expense.TYPE_LABEL);
-
-        expenseGrid.addColumn(
-                        new ComponentRenderer<>(Button::new, (button, expense) -> {
-                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
-                                    ButtonVariant.LUMO_ERROR,
-                                    ButtonVariant.LUMO_TERTIARY);
-                            button.addClickListener(e -> this.removeExpense(expense));
-                            button.setIcon(new Icon(VaadinIcon.TRASH));
-                        }))
-                .setHeader(Labels.DELETE)
-                .setTextAlign(ColumnTextAlign.END)
-                .setFrozenToEnd(true)
-                .setFlexGrow(0);
-
-        expenseGrid.addColumn(
-                        new ComponentRenderer<>(Button::new, (button, item) -> {
-                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
-                                    ButtonVariant.LUMO_SUCCESS,
-                                    ButtonVariant.LUMO_TERTIARY);
-                            button.addClickListener(e -> {
-                                final var newItem = item.toBuilder().build();
-                                expenseForm.setExpense(newItem);
-                            });
-                            button.setIcon(new Icon(VaadinIcon.COPY));
-                        }))
-                .setHeader(Labels.COPY)
-                .setTextAlign(ColumnTextAlign.END)
-                .setFrozenToEnd(true)
-                .setFlexGrow(0);
-
-        expenseGrid.getColumns().forEach(col -> col.setAutoWidth(true));
-        expenseGrid.setItems(expenses);
-        expenseGrid.setSizeFull();
-
-        expenseGrid.addSelectionListener(selection -> {
-
-            selection.getFirstSelectedItem()
-                    .ifPresent(expenseForm::setExpense);
-        });
-
-        configureExtraChargeGridGrid();
-    }
-
-    private void configureExtraChargeGridGrid() {
-        extraChargeGrid.addClassNames("extra-charge-grid");
-        extraChargeGrid.setAllRowsVisible(true);
-        extraChargeGrid.setColumnReorderingAllowed(true);
-        extraChargeGrid.addColumn(ExtraChargeViewItem::getAptNumber).setHeader(Labels.ExtraCharge.APT_LABEL).setSortable(true).setKey(Labels.ExtraCharge.APT_LABEL);
-        extraChargeGrid.addColumn(ExtraChargeViewItem::getDescription).setHeader(Labels.ExtraCharge.DESCRIPTION_LABEL);
-        extraChargeGrid.addColumn(ExtraChargeViewItem::getAmount).setHeader(Labels.ExtraCharge.AMOUNT_LABEL).setSortable(true).setKey(Labels.ExtraCharge.AMOUNT_LABEL);
-        extraChargeGrid.addColumn(ExtraChargeViewItem::getCurrency).setHeader(Labels.ExtraCharge.CURRENCY_LABEL).setSortable(true).setKey(Labels.ExtraCharge.CURRENCY_LABEL);
-
-        extraChargeGrid.addColumn(
-                        new ComponentRenderer<>(Button::new, (button, item) -> {
-                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
-                                    ButtonVariant.LUMO_ERROR,
-                                    ButtonVariant.LUMO_TERTIARY);
-                            button.addClickListener(e -> this.removeExtraCharge(item));
-                            button.setIcon(new Icon(VaadinIcon.TRASH));
-                        }))
-                .setHeader(Labels.DELETE)
-                .setTextAlign(ColumnTextAlign.END)
-                .setFrozenToEnd(true)
-                .setFlexGrow(0);
-
-        extraChargeGrid.addColumn(
-                        new ComponentRenderer<>(Button::new, (button, item) -> {
-                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
-                                    ButtonVariant.LUMO_SUCCESS,
-                                    ButtonVariant.LUMO_TERTIARY);
-                            button.addClickListener(e -> {
-                                final var newItem = item.toBuilder().build();
-                                extraChargeForm.setItem(newItem);
-                            });
-                            button.setIcon(new Icon(VaadinIcon.COPY));
-                        }))
-                .setHeader(Labels.COPY)
-                .setTextAlign(ColumnTextAlign.END)
-                .setFrozenToEnd(true)
-                .setFlexGrow(0);
-
-        extraChargeGrid.getColumns().forEach(col -> col.setAutoWidth(true));
-
-        extraChargeGrid.addSelectionListener(selection -> {
-
-            selection.getFirstSelectedItem()
-                    .ifPresent(extraChargeForm::setItem);
-        });
-
-        extraChargeGrid.setItems(extraCharges);
-        extraChargeGrid.setSizeFull();
-    }
-
-    private void removeExtraCharge(ExtraChargeViewItem item) {
-        extraCharges.remove(item);
-        setExtraChargesInGrid();
-    }
-
-
-    private void removeExpense(ExpenseViewItem expense) {
-        expenses.remove(expense);
-        setExpensesInGrid();
-    }
-
-
-    private void setExtraChargesInGrid() {
-
-        uiAsyncAction(() -> {
-            extraChargeGrid.setItems(extraCharges);
-            extraChargeGrid.getDataProvider().refreshAll();
-        });
-    }
-
-    private void setExpensesInGrid() {
-
-        uiAsyncAction(() -> {
-            saveBtn.setEnabled(receiptForm.binder().isValid() && !expenses.isEmpty());
-            expenseGrid.setItems(expenses);
-            expenseGrid.getDataProvider().refreshAll();
-        });
     }
 
     @Override
@@ -340,17 +240,15 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
         receiptId = event.getRouteParameters().get("receipt_id")
                 .map(s -> {
 
+                    final var obj = VaadinSession.getCurrent().getAttribute("receipt");
+                    if (obj instanceof Receipt) {
+                        receipt = (Receipt) obj;
+                    }
                     switch (s) {
-                        case "new": {
+                        case "new", "file", "copy" -> {
                             return null;
                         }
-                        case "file", "copy": {
-                            final var obj = VaadinSession.getCurrent().getAttribute("receipt");
-                            if (obj instanceof Receipt) {
-                                receipt = (Receipt) obj;
-                            }
-                        }
-                        default: {
+                        default -> {
                             try {
                                 return Long.parseLong(s);
                             } catch (Exception e) {
@@ -364,22 +262,6 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
                 .orElse(null);
     }
 
-    private void configureListeners() {
-        expenseForm.addListener(ExpenseForm.SaveEvent.class, event -> {
-            expenses.add(event.getObj());
-            setExpensesInGrid();
-        });
-
-       /* debtForm.addListener(DebtForm.SaveEvent.class, event -> {
-            debts.add(event.getObj());
-            setDebtsInGrid();
-        });*/
-
-        extraChargeForm.addListener(ExtraChargeForm.SaveEvent.class, event -> {
-            extraCharges.add(event.getObj());
-            setExtraChargesInGrid();
-        });
-    }
 
     private Maybe<Runnable> initReceipt() {
 
@@ -389,11 +271,8 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
                     return () -> {
 
                         receiptDebtsView.setItems(ConvertUtil.toList(receipt.debts(), DebtMapper::to));
-                        expenses.addAll(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
-                        extraCharges.addAll(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
-
-                        setExpensesInGrid();
-                        setExtraChargesInGrid();
+                        expensesView.setItems(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
+                        extraChargesView.setItems(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
 
                         receiptForm.setItem(ConvertUtil.formItem(receipt));
                         receiptForm.buildingComboBox().setEnabled(receipt.createdAt() == null);
@@ -410,17 +289,19 @@ public class EditReceiptView extends BaseVerticalLayout implements BeforeEnterOb
         final var setBuildingIdSingle = buildingService.buildingIds()
                 .map(buildingIds -> (Runnable) () -> receiptForm.buildingComboBox().setItems(buildingIds));
 
-        final var receiptSingle = Maybe.fromOptional(Optional.ofNullable(receiptId))
+        final var loadFromId = Maybe.fromOptional(Optional.ofNullable(receiptId))
                 .flatMap(receiptService::find)
                 .flatMap(receipt -> {
 
                     EditReceiptView.this.receipt = receipt;
                     return initReceipt();
-                })
-                .switchIfEmpty(initReceipt())
+                });
+
+        final var receiptSingle = initReceipt()
+                .switchIfEmpty(loadFromId)
                 .switchIfEmpty(Single.fromCallable(AppUtil::emptyRunnable));
 
-        Single.zip(setBuildingIdSingle, receiptSingle, (setBuildingId, setReceipt) -> List.of(this::init, setBuildingId, setReceipt))
+        Single.zip(setBuildingIdSingle, receiptSingle, (setBuildingId, setReceipt) -> List.of(this::init, setBuildingId, setReceipt, this::loadReserveFunds))
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
                 .subscribeOn(Schedulers.io())

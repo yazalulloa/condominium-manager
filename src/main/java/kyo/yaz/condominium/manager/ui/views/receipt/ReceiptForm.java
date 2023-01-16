@@ -1,7 +1,5 @@
 package kyo.yaz.condominium.manager.ui.views.receipt;
 
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -9,10 +7,9 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
-import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
+import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ReceiptFormItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -92,12 +89,7 @@ public class ReceiptForm extends BaseForm {
         }
     }
 
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
-    }
-
-    public static class SaveEvent extends FormEvent<ReceiptForm, ReceiptFormItem> {
+    public static class SaveEvent extends ViewEvent<ReceiptForm, ReceiptFormItem> {
         SaveEvent(ReceiptForm source, ReceiptFormItem obj) {
             super(source, obj);
         }

@@ -147,7 +147,7 @@ public class RateView extends BaseVerticalLayout {
     }
 
     private HorizontalLayout getToolbar() {
-        final var addButton = new Button("Add");
+        final var addButton = new Button(Labels.ADD);
         addButton.setDisableOnClick(true);
         addButton.addClickListener(e -> {
             if (addingRate.get()) {

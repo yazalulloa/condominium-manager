@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -54,16 +55,8 @@ public class SaveReceipt {
                             .collect(Collectors.toCollection(LinkedList::new));
 
                     final var totalCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == Expense.Type.COMMON, receipt.rate().rate());
-                    final var totalCommonExpenses = totalCommonExpensePair.getFirst();
+                    final var totalCommonExpensesBeforeReserveFund = totalCommonExpensePair.getFirst();
 
-                    final var aliquotDifference = aliquotDifference(apartments, totalCommonExpenses);
-
-                    expenses.add(Expense.builder()
-                            .description("DIFERENCIA DE ALIQUOTA")
-                            .amount(aliquotDifference)
-                            .currency(totalCommonExpensePair.getSecond())
-                            .type(Expense.Type.UNCOMMON)
-                            .build());
 
                     final var totalUnCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == Expense.Type.UNCOMMON, receipt.rate().rate());
 
@@ -76,6 +69,48 @@ public class SaveReceipt {
                             .orElse(BigDecimal.ZERO);
 
                     final var unCommonPay = DecimalUtil.greaterThanZero(totalUnCommonExpensePair.getFirst()) ? totalUnCommonExpensePair.getFirst().divide(BigDecimal.valueOf(apartments.size()), MathContext.DECIMAL128) : BigDecimal.ZERO;
+
+
+                    final var reserveFundTotals = Optional.ofNullable(building.reserveFunds())
+                            .orElseGet(Collections::emptyList)
+                            .stream()
+                            .filter(reserveFund -> reserveFund.active() && DecimalUtil.greaterThanZero(reserveFund.percentage()))
+                            .map(reserveFund -> {
+
+                                final var amount = DecimalUtil.percentageOf(reserveFund.percentage(), totalCommonExpensesBeforeReserveFund);
+
+                                return Receipt.ReserveFundTotal.builder()
+                                        .name(reserveFund.name())
+                                        .fund(reserveFund.fund())
+                                        .amount(amount)
+                                        .percentage(reserveFund.percentage())
+                                        .build();
+                            })
+                            .toList();
+
+                    final var totalCommonExpenses = reserveFundTotals.stream().map(Receipt.ReserveFundTotal::amount)
+                            .reduce(BigDecimal::add)
+                            .orElse(BigDecimal.ZERO)
+                            .add(totalCommonExpensesBeforeReserveFund);
+
+                    reserveFundTotals.stream().map(fund -> {
+                        return Expense.builder()
+                                .description(fund.name() + " " + fund.percentage() + "%")
+                                .amount(fund.amount())
+                                .currency(totalCommonExpensePair.getSecond())
+                                .type(Expense.Type.COMMON)
+                                .build();
+                    }).forEach(expenses::add);
+
+                    final var aliquotDifference = aliquotDifference(apartments, totalCommonExpenses);
+
+                    expenses.add(Expense.builder()
+                            .description("DIFERENCIA DE ALIQUOTA")
+                            .amount(aliquotDifference)
+                            .currency(totalCommonExpensePair.getSecond())
+                            .type(Expense.Type.UNCOMMON)
+                            .build());
+
 
                     final var aptTotals = apartments.stream()
                             .map(apartment -> {
@@ -107,6 +142,7 @@ public class SaveReceipt {
                             .createdAt(Optional.ofNullable(receipt.createdAt()).orElseGet(DateUtil::nowZonedWithUTC))
                             .updatedAt(receipt.createdAt() != null ? DateUtil.nowZonedWithUTC() : null)
                             .aptTotals(aptTotals)
+                            .reserveFundTotals(reserveFundTotals)
                             .build();
                 })
                 .flatMap(receiptService::save);

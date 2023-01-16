@@ -45,7 +45,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
 
     private final Text queryCountText = new Text(null);
     private final Text totalCountText = new Text(null);
-    private final Button addApartmentButton = new Button("Añadir apartamento");
+    private final Button addApartmentButton = new Button(Labels.ADD);
     private final ApartmentService service;    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final BuildingService buildingService;
     private CreateApartmentForm createApartmentForm;

@@ -1,7 +1,5 @@
 package kyo.yaz.condominium.manager.ui.views.form;
 
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -13,9 +11,8 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.core.domain.PaymentType;
-import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
+import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ApartmentViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -45,7 +42,6 @@ public class CreateApartmentForm extends BaseForm {
 
 
     private final EmailsForm emailsForm = new EmailsForm();
-
 
 
     ApartmentViewItem apartment;
@@ -134,12 +130,7 @@ public class CreateApartmentForm extends BaseForm {
         emailsForm.setEmails(emails);
     }
 
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
-    }
-
-    private static abstract class ApartmentFormEvent extends FormEvent<CreateApartmentForm, ApartmentViewItem> {
+    private static abstract class ApartmentFormEvent extends ViewEvent<CreateApartmentForm, ApartmentViewItem> {
 
         protected ApartmentFormEvent(CreateApartmentForm source, ApartmentViewItem obj) {
             super(source, obj);

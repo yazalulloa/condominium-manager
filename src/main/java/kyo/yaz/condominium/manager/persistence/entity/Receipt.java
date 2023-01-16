@@ -70,6 +70,8 @@ public class Receipt {
     private final ZonedDateTime updatedAt;
     @JsonProperty
     private final Rate rate;
+    @JsonProperty
+    private final List<ReserveFundTotal> reserveFundTotals;
 
     @Jacksonized
     @Builder(toBuilder = true)
@@ -87,6 +89,26 @@ public class Receipt {
         private final BigDecimal amount;
         @JsonProperty
         private final List<ExtraCharge> extraCharges;
+
+    }
+
+    @Jacksonized
+    @Builder(toBuilder = true)
+    @Accessors(fluent = true)
+    @ToString
+    @Getter
+    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ReserveFundTotal {
+
+        @JsonProperty
+        private final String name;
+        @JsonProperty
+        private final BigDecimal fund;
+        @JsonProperty
+        private final BigDecimal amount;
+        @JsonProperty
+        private final BigDecimal percentage;
 
     }
 

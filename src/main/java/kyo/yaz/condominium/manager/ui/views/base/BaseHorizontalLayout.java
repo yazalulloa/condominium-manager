@@ -1,9 +1,8 @@
 package kyo.yaz.condominium.manager.ui.views.base;
 
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.shared.Registration;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.SingleObserver;
@@ -98,5 +97,10 @@ public abstract class BaseHorizontalLayout extends HorizontalLayout {
 
     protected <T extends Component> void navigate(Class<T> clazz) {
         uiAsyncAction(() -> ui(ui -> ui.navigate(clazz)));
+    }
+
+    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
+                                                                  ComponentEventListener<T> listener) {
+        return getEventBus().addListener(eventType, listener);
     }
 }

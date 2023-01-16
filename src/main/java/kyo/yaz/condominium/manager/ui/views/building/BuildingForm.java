@@ -1,7 +1,6 @@
 package kyo.yaz.condominium.manager.ui.views.building;
 
 import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
@@ -11,7 +10,6 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.domain.ReceiptEmailFrom;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
@@ -24,7 +22,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 
-public class CreateBuildingForm extends BaseForm {
+public class BuildingForm extends BaseForm {
 
 
     public final Binder<BuildingViewItem> binder = new BeanValidationBinder<>(BuildingViewItem.class);
@@ -53,7 +51,7 @@ public class CreateBuildingForm extends BaseForm {
     private final ComboBox<ReceiptEmailFrom> receiptEmailFromComboBox = ViewUtil.enumComboBox(Labels.Building.RECEIPT_EMAIL_FROM_LABEL, ReceiptEmailFrom.values);
     BuildingViewItem building = BuildingViewItem.builder().build();
 
-    public CreateBuildingForm() {
+    public BuildingForm() {
         addClassName("building-form");
 
         receiptEmailFromComboBox.setItemLabelGenerator(ReceiptEmailFrom::email);
@@ -123,15 +121,12 @@ public class CreateBuildingForm extends BaseForm {
     }
 
 
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
-    }
 
-    public static abstract class BuildingFormEvent extends ComponentEvent<CreateBuildingForm> {
+
+    public static abstract class BuildingFormEvent extends ComponentEvent<BuildingForm> {
         private final BuildingViewItem building;
 
-        protected BuildingFormEvent(CreateBuildingForm source, BuildingViewItem building) {
+        protected BuildingFormEvent(BuildingForm source, BuildingViewItem building) {
             super(source, false);
             this.building = building;
         }
@@ -142,7 +137,7 @@ public class CreateBuildingForm extends BaseForm {
     }
 
     public static class SaveEvent extends BuildingFormEvent {
-        SaveEvent(CreateBuildingForm source, BuildingViewItem building) {
+        SaveEvent(BuildingForm source, BuildingViewItem building) {
             super(source, building);
         }
     }

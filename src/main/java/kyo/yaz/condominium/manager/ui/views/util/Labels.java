@@ -64,7 +64,7 @@ public class Labels {
 
     public static class Receipt {
         public static final String VIEW_PAGE_TITLE = "Recibos de Pago";
-        public static final String ADD_BUTTON_LABEL = "Añadir recibo";
+        public static final String ADD_BUTTON_LABEL = "Recibo nuevo";
         public static final String AMOUNT_OF_LABEL = "Recibos: %d";
         public static final String ID_LABEL = "ID";
         public static final String BUILDING_LABEL = "Edificio";

@@ -166,8 +166,17 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
         {
             final var div = new Div().setKeepTogether(true);
 
-            div.add(new Paragraph(new Text("FONDO DE RESERVA").setBold().setUnderline()));
 
+            div.add(new Paragraph(new Text("FONDO DE RESERVA").setBold().setUnderline()));
+            receipt().reserveFundTotals().forEach(fund -> {
+                final var newFund = fund.fund().add(fund.amount());
+                div.add(new Paragraph(new Text("FONDO DE RESERVA ANTERIOR: " + ConvertUtil.format(fund.fund(), building().mainCurrency()))));
+                div.add(new Paragraph(new Text("MONTO A PAGAR: " + ConvertUtil.format(fund.amount(), building().mainCurrency()) + " " + fund.percentage() + "%")));
+                div.add(new Paragraph(new Text("FONDO DE RESERVA NUEVO: " + ConvertUtil.format(newFund, building().mainCurrency()))));
+            });
+
+            div.add(new Paragraph("Recibos en deuda: " + receipt().debtReceiptsAmount()));
+            div.add(new Paragraph("Deuda: " + ConvertUtil.format(receipt().totalDebt(), building().debtCurrency())));
 
             document.add(div);
         }

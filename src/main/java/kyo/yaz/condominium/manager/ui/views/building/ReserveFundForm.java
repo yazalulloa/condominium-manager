@@ -1,7 +1,5 @@
 package kyo.yaz.condominium.manager.ui.views.building;
 
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -13,8 +11,7 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.shared.Registration;
-import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
+import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ReserveFundViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -97,10 +94,7 @@ public class ReserveFundForm extends BaseForm {
         binder.readBean(item);
     }
 
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
-    }
+
 
     public ReserveFundViewItem defaultItem() {
         return ReserveFundViewItem.builder()
@@ -110,7 +104,7 @@ public class ReserveFundForm extends BaseForm {
                 .build();
     }
 
-    private static abstract class ReserveFundFormEvent extends FormEvent<ReserveFundForm, ReserveFundViewItem> {
+    private static abstract class ReserveFundFormEvent extends ViewEvent<ReserveFundForm, ReserveFundViewItem> {
 
         protected ReserveFundFormEvent(ReserveFundForm source, ReserveFundViewItem obj) {
             super(source, obj);

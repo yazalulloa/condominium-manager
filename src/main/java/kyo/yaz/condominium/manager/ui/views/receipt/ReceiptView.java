@@ -221,7 +221,7 @@ public class ReceiptView extends BaseVerticalLayout {
         grid.addSelectionListener(selection -> {
 
             selection.getFirstSelectedItem()
-                    .ifPresent(building -> addEntity(building.id()));
+                    .ifPresent(this::editEntity);
         });
     }
 
@@ -247,7 +247,7 @@ public class ReceiptView extends BaseVerticalLayout {
                 .build();
 
         saveReceiptInSession(newItem);
-        addEntity("copy");
+        editEntity("copy");
     }
 
     private void sendEmails(Receipt receipt) {
@@ -370,7 +370,7 @@ public class ReceiptView extends BaseVerticalLayout {
 
                             uiAsyncAction(() -> {
                                 saveReceiptInSession(receipt);
-                                addEntity("file");
+                                editEntity("file");
                             });
 
                         }, t -> {
@@ -462,15 +462,16 @@ public class ReceiptView extends BaseVerticalLayout {
         return receiptService.list(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
     }
 
-    private void addEntity(Long id) {
-        addEntity(String.valueOf(id));
+    private void editEntity(Receipt receipt) {
+        saveReceiptInSession(receipt);
+        editEntity(String.valueOf(receipt.id()));
     }
 
     private void addEntity() {
-        addEntity("new");
+        editEntity("new");
     }
 
-    private void addEntity(String id) {
+    private void editEntity(String id) {
         grid.asSingleSelect().clear();
         ui(ui -> ui.navigate(EditReceiptView.class, new RouteParameters("receipt_id", id)));
     }

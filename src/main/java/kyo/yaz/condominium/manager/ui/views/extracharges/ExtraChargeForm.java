@@ -1,7 +1,5 @@
-package kyo.yaz.condominium.manager.ui.views.building;
+package kyo.yaz.condominium.manager.ui.views.extracharges;
 
-import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -13,9 +11,8 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.core.domain.Currency;
-import kyo.yaz.condominium.manager.ui.views.actions.FormEvent;
+import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -116,12 +113,9 @@ public class ExtraChargeForm extends BaseForm {
 
     }
 
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
-    }
 
-    private static abstract class ExtraChargeFormEvent extends FormEvent<ExtraChargeForm, ExtraChargeViewItem> {
+
+    private static abstract class ExtraChargeFormEvent extends ViewEvent<ExtraChargeForm, ExtraChargeViewItem> {
 
         protected ExtraChargeFormEvent(ExtraChargeForm source, ExtraChargeViewItem obj) {
             super(source, obj);
