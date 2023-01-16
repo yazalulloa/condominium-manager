@@ -171,7 +171,7 @@ public class ExpensesView extends BaseDiv {
     }
 
     private void calculateTotal() {
-        totalCommon = items.stream().filter(i -> i.getType() == Expense.Type.COMMON)
+        totalCommon = items.stream().filter(i -> i.getType() == Expense.Type.COMMON && !i.isReserveFund())
                 .map(ExpenseViewItem::getAmount)
                 .reduce(BigDecimal::add)
                 .orElse(BigDecimal.ZERO);

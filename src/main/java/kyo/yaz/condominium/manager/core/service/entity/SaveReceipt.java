@@ -54,9 +54,8 @@ public class SaveReceipt {
                             .filter(expense -> !expense.description().equals("DIFERENCIA DE ALIQUOTA"))
                             .collect(Collectors.toCollection(LinkedList::new));
 
-                    final var totalCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == Expense.Type.COMMON, receipt.rate().rate());
+                    final var totalCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == Expense.Type.COMMON && !r.reserveFund(), receipt.rate().rate());
                     final var totalCommonExpensesBeforeReserveFund = totalCommonExpensePair.getFirst();
-
 
                     final var totalUnCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == Expense.Type.UNCOMMON, receipt.rate().rate());
 
@@ -69,7 +68,6 @@ public class SaveReceipt {
                             .orElse(BigDecimal.ZERO);
 
                     final var unCommonPay = DecimalUtil.greaterThanZero(totalUnCommonExpensePair.getFirst()) ? totalUnCommonExpensePair.getFirst().divide(BigDecimal.valueOf(apartments.size()), MathContext.DECIMAL128) : BigDecimal.ZERO;
-
 
                     final var reserveFundTotals = Optional.ofNullable(building.reserveFunds())
                             .orElseGet(Collections::emptyList)
@@ -99,6 +97,7 @@ public class SaveReceipt {
                                 .amount(fund.amount())
                                 .currency(totalCommonExpensePair.getSecond())
                                 .type(Expense.Type.COMMON)
+                                .reserveFund(true)
                                 .build();
                     }).forEach(expenses::add);
 
