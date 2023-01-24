@@ -94,15 +94,14 @@ elasticsearch-log
 /*.csv
 /*.json
 /*.yaml
-/*.yml
-*.sh
+
 *.xls
 *.xlsx
 *.xlsb
 *.ts
 *.js
 *.properties
-*.yml
+
 *.html
 frontend/generated
 node_modules
@@ -111,7 +110,8 @@ node_modules
 !frontend/themes/condominium_manager
 !src/main/resources
 !system.properties
+
 gmail
-deploy
 config
 !package-lock.json
+env.conf

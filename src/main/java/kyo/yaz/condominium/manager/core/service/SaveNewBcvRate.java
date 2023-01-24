@@ -10,8 +10,6 @@ import kyo.yaz.condominium.manager.persistence.entity.Sequence;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-
 @Service
 public class SaveNewBcvRate {
 
@@ -42,8 +40,11 @@ public class SaveNewBcvRate {
                             .map(o -> true);
 
                     return rateService.last(rate.fromCurrency(), rate.toCurrency())
-                            .filter(r -> DecimalUtil.equalsTo(r.rate(), rate.rate())
-                                    && Objects.equals(r.dateOfRate(), rate.dateOfRate()))
+                            .filter(r ->
+                                    DecimalUtil.equalsTo(r.rate(), rate.rate())
+                                            && r.dateOfRate().isEqual(rate.dateOfRate())
+                                            && r.source() == rate.source()
+                            )
                             .map(r -> false)
                             .switchIfEmpty(saveRate);
 

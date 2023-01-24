@@ -1,0 +1,14 @@
+version: '3'
+services:
+  cmy:
+    container_name: cmy
+    image: cmy:latest
+    restart: always
+    command: java  -jar yaz-condominium-manager-1.0.0.jar
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./api-logs:/app/log/
+      - ./conf:/app/config/
+    environment:
+      - DOCKER_TIMEZONE=America/Caracas
