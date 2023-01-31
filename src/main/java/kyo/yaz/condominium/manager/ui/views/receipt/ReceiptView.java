@@ -31,6 +31,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Vertx;
+import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
 import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
@@ -55,6 +56,7 @@ import java.util.stream.Collectors;
 
 
 @PageTitle(ReceiptView.PAGE_TITLE)
+@PermitAll
 @Route(value = "receipts", layout = MainLayout.class)
 public class ReceiptView extends BaseVerticalLayout {
     public static final String PAGE_TITLE = Labels.Receipt.VIEW_PAGE_TITLE;

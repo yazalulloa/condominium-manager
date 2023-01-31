@@ -43,9 +43,7 @@ public class HttpClientVerticle extends AbstractVerticle {
 
         final var trustAllWebClientOptions = new WebClientOptions(config())
                 .setTrustAll(true)
-                .setVerifyHost(false)
-                //.setSslEngineOptions(new InsecureJdkSSLEngineOptions())
-                ;
+                .setVerifyHost(false);
 
         trustAll = WebClient.create(vertx, trustAllWebClientOptions);
         vertx.eventBus().<HttpClientRequest>consumer(SEND, m -> {
@@ -61,25 +59,6 @@ public class HttpClientVerticle extends AbstractVerticle {
                     });
         });
     }
-
-    /*private static class InsecureOpenSSLEngineOptions extends OpenSSLEngineOptions {
-
-        @Override
-        public SslContextFactory sslContextFactory() {
-            return new DefaultSslContextFactory(SslProvider.OPENSSL, true)
-                    .trustManagerFactory(InsecureTrustManagerFactory.INSTANCE);
-        }
-
-    }
-
-    private static class InsecureJdkSSLEngineOptions extends JdkSSLEngineOptions {
-        @Override
-        public SslContextFactory sslContextFactory() {
-            return new DefaultSslContextFactory(SslProvider.JDK, false)
-                    .trustManagerFactory(InsecureTrustManagerFactory.INSTANCE);
-        }
-
-    }*/
 
     private WebClient client(boolean trustAll) {
         return trustAll ? this.trustAll : webClient;

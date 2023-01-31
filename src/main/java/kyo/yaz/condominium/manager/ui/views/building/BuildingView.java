@@ -20,6 +20,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @PageTitle(BuildingView.PAGE_TITLE)
+@PermitAll
 @Route(value = "buildings", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
 public class BuildingView extends BaseDiv {

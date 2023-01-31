@@ -13,7 +13,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <vaadin.version>24.0.0.alpha7</vaadin.version>
+        <vaadin.version>24.0.0.alpha9</vaadin.version>
         <!--<vaadin.version>23.3.2</vaadin.version>-->
         <vertx.version>4.3.7</vertx.version>
         <mapstruct.version>1.5.3.Final</mapstruct.version>
@@ -25,7 +25,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <!--<version>2.7.7</version>-->
-        <version>3.0.1</version>
+        <version>3.0.2</version>
     </parent>
 
     <dependencyManagement>
@@ -93,10 +93,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
         </dependency>
-        <!--  <dependency>
+          <dependency>
               <groupId>org.springframework.boot</groupId>
               <artifactId>spring-boot-starter-oauth2-client</artifactId>
-          </dependency>-->
+          </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>

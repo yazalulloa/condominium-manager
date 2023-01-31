@@ -30,7 +30,6 @@ public abstract class BaseVerticalLayout extends VerticalLayout {
         return logger;
     }
 
-
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
         compositeDisposable.dispose();

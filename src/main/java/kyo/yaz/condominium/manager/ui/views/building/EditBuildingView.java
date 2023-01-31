@@ -12,6 +12,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.mapper.BuildingMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
 import kyo.yaz.condominium.manager.core.mapper.ReserveFundMapper;
@@ -29,6 +30,7 @@ import java.util.Optional;
 
 
 @PageTitle(BuildingView.PAGE_TITLE)
+@PermitAll
 @Route(value = "buildings/:building_id", layout = MainLayout.class)
 public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver {
 

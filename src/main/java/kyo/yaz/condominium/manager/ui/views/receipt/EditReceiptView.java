@@ -18,6 +18,7 @@ import com.vaadin.flow.server.VaadinSession;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.mapper.DebtMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExpenseMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
@@ -43,6 +44,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @PageTitle(ReceiptView.PAGE_TITLE)
+@PermitAll
 @Route(value = "receipts/:receipt_id", layout = MainLayout.class)
 public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver {
 

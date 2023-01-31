@@ -18,6 +18,7 @@ import com.vaadin.flow.router.Route;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.mapper.ApartmentMapper;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 
 @PageTitle(ApartmentView.PAGE_TITLE)
+@PermitAll
 @Route(value = "apartments", layout = MainLayout.class)
 public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Apartment> {
     public static final String PAGE_TITLE = "Apartamentos";

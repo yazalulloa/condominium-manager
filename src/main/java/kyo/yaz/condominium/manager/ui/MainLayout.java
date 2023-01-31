@@ -8,19 +8,29 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import kyo.yaz.condominium.manager.core.component.UserSession;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
 import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
 import kyo.yaz.condominium.manager.ui.views.ApartmentView;
-import kyo.yaz.condominium.manager.ui.views.building.BuildingView;
 import kyo.yaz.condominium.manager.ui.views.RateView;
+import kyo.yaz.condominium.manager.ui.views.building.BuildingView;
+import kyo.yaz.condominium.manager.ui.views.domain.User;
 import kyo.yaz.condominium.manager.ui.views.receipt.ReceiptView;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Optional;
 
 
 public class MainLayout extends AppLayout {
 
+
     private H2 viewTitle;
 
-    public MainLayout() {
+    private final UserSession userSession;
+
+    @Autowired
+    public MainLayout(UserSession userSession) {
+        this.userSession = userSession;
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
         addHeaderContent();
@@ -68,7 +78,12 @@ public class MainLayout extends AppLayout {
     @Override
     protected void afterNavigation() {
         super.afterNavigation();
-        viewTitle.setText(getCurrentPageTitle());
+
+        final var email = Optional.ofNullable(userSession.getUser())
+                .map(User::email)
+                .orElse("");
+
+        viewTitle.setText(getCurrentPageTitle() + " " + email);
     }
 
     private String getCurrentPageTitle() {

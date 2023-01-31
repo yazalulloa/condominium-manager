@@ -19,6 +19,7 @@ import com.vaadin.flow.router.Route;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.service.SaveNewBcvRate;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
@@ -35,6 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 @PageTitle(RateView.PAGE_TITLE)
+@PermitAll
 @Route(value = "rates", layout = MainLayout.class)
 public class RateView extends BaseVerticalLayout {
 
