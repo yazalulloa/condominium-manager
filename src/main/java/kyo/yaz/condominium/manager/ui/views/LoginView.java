@@ -34,11 +34,11 @@ public class LoginView extends BaseVerticalLayout {
         setAlignItems(FlexComponent.Alignment.CENTER);
     }
 
-    @Override
+   /* @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         if (userSession.isLoggedIn()) {
             navigate(BuildingView.class);
         }
-    }
+    }*/
 }
