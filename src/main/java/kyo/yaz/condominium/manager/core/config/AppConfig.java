@@ -1,27 +1,23 @@
 package kyo.yaz.condominium.manager.core.config;
 
-import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
+import jakarta.servlet.DispatcherType;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.AsyncConfigurer;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.core.Ordered;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 
-import java.util.concurrent.Executor;
-
+import java.util.List;
 @Configuration
-public class AppConfig implements AsyncConfigurer {
-    @Override
-    public Executor getAsyncExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(7);
-        executor.setMaxPoolSize(42);
-        executor.setQueueCapacity(11);
-        executor.setThreadNamePrefix("MyExecutor-");
-        executor.initialize();
-        return executor;
-    }
+public class AppConfig {
 
-    @Override
-    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-        return new CustomAsyncExceptionHandler();
+    @Bean
+    public FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeaderFilter() {
+        ForwardedHeaderFilter filter = new ForwardedHeaderFilter();
+        FilterRegistrationBean<ForwardedHeaderFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ASYNC, DispatcherType.ERROR);
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        registration.setUrlPatterns(List.of("/absoluteURLWithFilter"));
+        return registration;
     }
 }

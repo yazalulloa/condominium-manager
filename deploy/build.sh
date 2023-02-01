@@ -1,6 +1,7 @@
 #!/bin/bash
+
 DIR=$(dirname "$(readlink -f "$0")")
-. "$DIR"/env.config
+. "$DIR"/env.conf
 mkdir -p "$DIR"/tmp
 cd "$DIR"/tmp || exit
 curl -L "$URL" -H "Authorization: bearer $TOKEN" -o "$TAR_FILE"

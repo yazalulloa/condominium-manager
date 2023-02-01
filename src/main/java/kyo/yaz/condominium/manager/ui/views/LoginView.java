@@ -8,6 +8,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import kyo.yaz.condominium.manager.core.component.UserSession;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
+import kyo.yaz.condominium.manager.ui.views.building.BuildingView;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Route(LoginView.URL)
@@ -37,7 +38,7 @@ public class LoginView extends BaseVerticalLayout {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         if (userSession.isLoggedIn()) {
-            navigate(MainLayout.class);
+            navigate(BuildingView.class);
         }
     }
 }

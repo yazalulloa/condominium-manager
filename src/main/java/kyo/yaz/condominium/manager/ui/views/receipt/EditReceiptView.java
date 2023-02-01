@@ -172,7 +172,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
     }
 
     private void navigateBack() {
-        ui(ui -> ui.navigate(ReceiptView.class));
+        navigate(ReceiptView.class);
     }
 
     private Single<Runnable> setAptNumbers(String buildingId) {
