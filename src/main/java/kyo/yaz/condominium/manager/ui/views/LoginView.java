@@ -7,7 +7,6 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import kyo.yaz.condominium.manager.core.component.UserSession;
-import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -37,7 +36,7 @@ public class LoginView extends BaseVerticalLayout implements BeforeEnterObserver
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (hasLoggedIn()) {
-            event.forwardTo(MainLayout.class);
+            // event.forwardTo(MainLayout.class);
         }
     }
 
