@@ -8,7 +8,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import kyo.yaz.condominium.manager.core.component.UserSession;
+import kyo.yaz.condominium.manager.core.config.domain.UserSession;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
 import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
 import kyo.yaz.condominium.manager.ui.views.ApartmentView;
@@ -16,7 +16,6 @@ import kyo.yaz.condominium.manager.ui.views.RateView;
 import kyo.yaz.condominium.manager.ui.views.building.BuildingView;
 import kyo.yaz.condominium.manager.ui.views.domain.User;
 import kyo.yaz.condominium.manager.ui.views.receipt.ReceiptView;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Optional;
 
@@ -26,11 +25,9 @@ public class MainLayout extends AppLayout {
 
     private H2 viewTitle;
 
-    private final UserSession userSession;
+    private final UserSession userSession = new UserSession();
 
-    @Autowired
-    public MainLayout(UserSession userSession) {
-        this.userSession = userSession;
+    public MainLayout() {
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
         addHeaderContent();

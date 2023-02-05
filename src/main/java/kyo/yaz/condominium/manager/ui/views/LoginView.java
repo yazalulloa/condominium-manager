@@ -6,7 +6,7 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import kyo.yaz.condominium.manager.core.component.UserSession;
+import kyo.yaz.condominium.manager.core.config.domain.UserSession;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -20,11 +20,10 @@ public class LoginView extends BaseVerticalLayout implements BeforeEnterObserver
      */
     public static final String OAUTH_URL = "/oauth2/authorization/google";
 
-    private final UserSession userSession;
+    private final UserSession userSession = new UserSession();
 
     @Autowired
-    public LoginView(UserSession userSession) {
-        this.userSession = userSession;
+    public LoginView() {
         Anchor loginLink = new Anchor(OAUTH_URL, "Login");
         // Set router-ignore attribute so that Vaadin router doesn't handle the login request
         loginLink.getElement().setAttribute("router-ignore", true);

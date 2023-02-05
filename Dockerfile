@@ -7,7 +7,9 @@ RUN mvn clean package -Dmaven.main.skip -Dmaven.test.skip -Dspring-boot.repackag
 # To package the application
 COPY src ./src
 COPY frontend ./frontend
-RUN mvn clean package -Pproduction
+COPY package-lock.json .
+COPY tsconfig.json .
+RUN mvn package -Pproduction
 
 FROM openjdk:17-alpine
 WORKDIR /app
