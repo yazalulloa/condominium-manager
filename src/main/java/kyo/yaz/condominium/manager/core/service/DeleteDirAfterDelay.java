@@ -11,13 +11,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class DeleteDirAfterDelay {
-
     private final Vertx vertx;
-
-
     private final int delayTime;
-
-
     private final TimeUnit delayTimeUnit;
 
     @Autowired
