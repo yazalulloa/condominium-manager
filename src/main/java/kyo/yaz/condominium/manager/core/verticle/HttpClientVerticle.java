@@ -15,6 +15,7 @@ import kyo.yaz.condominium.manager.core.domain.HttpClientRequest;
 import kyo.yaz.condominium.manager.core.domain.HttpClientResponse;
 import kyo.yaz.condominium.manager.core.domain.HttpLogConfig;
 import kyo.yaz.condominium.manager.core.service.HttpLogging;
+import kyo.yaz.condominium.manager.core.vertx.VertxUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
@@ -51,7 +52,7 @@ public class HttpClientVerticle extends AbstractVerticle {
                     .onComplete(ar -> {
 
                         if (ar.failed()) {
-                            m.reply(ar.cause());
+                            m.reply(VertxUtil.replyException(ar.cause(), getClass().toString()));
                         } else {
                             m.reply(ar.result());
                         }

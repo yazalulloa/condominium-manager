@@ -6,6 +6,7 @@ import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.core.domain.EmailRequest;
 import kyo.yaz.condominium.manager.core.domain.SendEmailRequest;
 import kyo.yaz.condominium.manager.core.pdf.CreatePdfReceipt;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.util.GmailUtil;
 import kyo.yaz.condominium.manager.core.util.MimeMessageUtil;
 import kyo.yaz.condominium.manager.core.verticle.SendEmailVerticle;
@@ -20,11 +21,13 @@ import java.util.Set;
 @Service
 public class SendEmailReceipts {
     private final VertxHandler vertxHandler;
+    private final TranslationProvider translationProvider;
     private final CreatePdfReceiptService createPdfReceiptService;
 
     @Autowired
-    public SendEmailReceipts(VertxHandler vertxHandler, CreatePdfReceiptService createPdfReceiptService) {
+    public SendEmailReceipts(VertxHandler vertxHandler, TranslationProvider translationProvider, CreatePdfReceiptService createPdfReceiptService) {
         this.vertxHandler = vertxHandler;
+        this.translationProvider = translationProvider;
         this.createPdfReceiptService = createPdfReceiptService;
     }
 
@@ -36,14 +39,16 @@ public class SendEmailReceipts {
         final var bodyText = "AVISO DE COBRO";
 
         return Observable.fromIterable(list)
-                .filter(pdfReceipt -> pdfReceipt.apartment() != null)
+                .filter(pdfReceipt -> pdfReceipt.apartment() != null && !pdfReceipt.apartment().emails().isEmpty())
                 .map(pdfReceipt -> {
+
+                    final var month = translationProvider.getTranslation(receipt.month().name(), translationProvider.LOCALE_ES);
 
                     final var emailRequest = EmailRequest.builder()
                             .from(pdfReceipt.building().receiptEmailFrom().email())
                             .to(pdfReceipt.apartment().emails())
                             //.to(Set.of(to))
-                            .subject(subject.formatted(receipt.month(), pdfReceipt.building().name(), pdfReceipt.apartment().apartmentId().number()))
+                            .subject(subject.formatted(month, pdfReceipt.building().name(), pdfReceipt.apartment().apartmentId().number()))
                             .text(bodyText)
                             .files(Set.of(pdfReceipt.path().toString()))
                             .build();

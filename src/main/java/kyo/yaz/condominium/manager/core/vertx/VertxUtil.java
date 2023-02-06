@@ -4,11 +4,25 @@ import io.reactivex.rxjava3.core.*;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.ReplyException;
+import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.rxjava3.RxHelper;
 
 import java.util.function.Consumer;
 
 public class VertxUtil {
+
+    public static ReplyException replyException(Throwable throwable) {
+        return replyException(throwable, throwable.getMessage());
+    }
+
+    public static ReplyException replyException(Throwable throwable, String message) {
+        final var ex = new ReplyException(ReplyFailure.RECIPIENT_FAILURE, -1, message);
+        ex.initCause(throwable);
+
+        //ex.addSuppressed(throwable);
+        return ex;
+    }
     public static Scheduler scheduler(Vertx vertx) {
         return RxHelper.scheduler(vertx);
     }

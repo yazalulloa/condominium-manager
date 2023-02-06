@@ -18,7 +18,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.nio.file.Files;
+import java.util.TimeZone;
 
 /**
  * The entry point of the Spring Boot application.
@@ -42,7 +42,9 @@ import java.nio.file.Files;
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
 
     public static void main(String[] args) {
-
+        final var timeZone = TimeZone.getDefault();
+        log.info(timeZone.toString());
+        TimeZone.setDefault(timeZone);
         Single.fromCallable(NetworkUtil::getPublicIp)
                 .subscribeOn(Schedulers.io())
                 .subscribe(ip -> log.info("PUBLIC_IP {}", ip), throwable -> log.error("FAILED_TO_GET_PUBLIC_IP", throwable));
