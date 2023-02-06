@@ -75,12 +75,28 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                 document.add(paragraph);
             } else {
 
-                for (final Currency type : building().currenciesToShowAmountToPay()) {
 
-                    if (type == building().mainCurrency()) {
+                for (final Currency type : building().currenciesToShowAmountToPay()) {
+                    switch (type) {
+
+                        case VED -> {
+                            final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setUnderline());
+                            document.add(paragraph);
+                        }
+                        case USD -> {
+
+                            final var decimal = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
+
+                            final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
+                            document.add(paragraph);
+                        }
+                    }
+
+                  /*  if (type == building().mainCurrency()) {
                         final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setUnderline());
                         document.add(paragraph);
-                    } else {
+                    }
+                    else {
                         switch (type) {
 
                             case VED -> {
@@ -97,7 +113,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                                 document.add(paragraph);
                             }
                         }
-                    }
+                    }*/
                 }
             }
 
@@ -114,10 +130,26 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
             } else {
                 for (final Currency type : building().currenciesToShowAmountToPay()) {
 
-                    if (type == building().mainCurrency()) {
+                    switch (type) {
+
+                        case VED -> {
+                            final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setUnderline());
+                            document.add(paragraph);
+                        }
+                        case USD -> {
+
+                            final var decimal = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
+
+                            final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
+                            document.add(paragraph);
+                        }
+                    }
+
+                   /* if (type == building().mainCurrency()) {
                         final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setUnderline());
                         document.add(paragraph);
-                    } else {
+                    }
+                    else {
                         switch (type) {
 
                             case VED -> {
@@ -134,7 +166,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                                 document.add(paragraph);
                             }
                         }
-                    }
+                    }*/
                 }
 
                 if (building().currenciesToShowAmountToPay().contains(Currency.USD) && building().currenciesToShowAmountToPay().contains(Currency.VED)) {

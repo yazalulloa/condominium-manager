@@ -53,7 +53,6 @@ import java.io.FileInputStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 
 @PageTitle(ReceiptView.PAGE_TITLE)
@@ -284,7 +283,9 @@ public class ReceiptView extends BaseVerticalLayout {
                                 uiAsyncAction(() -> {
                                     final var integer = i.getAndIncrement();
                                     progressLayout.progressBar().setValue(integer);
-                                    progressLayout.setProgressText("Enviando email %s/%s  %s -> %s".formatted(integer, list.size(), request.from(), request.to()));
+
+                                    progressLayout.setProgressText("Enviando email %s/%s".formatted(integer, list.size()),
+                                            "%s -> %s".formatted(request.from(), request.to()));
                                 });
                             });
                 })
@@ -366,8 +367,8 @@ public class ReceiptView extends BaseVerticalLayout {
 
                 processBtn.setEnabled(false);
                 final var buildingId = comboBox.getValue();
-
-                progressLayout.setProgressText("Procesando archivo");
+                final var fileName = buffer.getFileData().getFileName();
+                progressLayout.setProgressText("Procesando " + fileName);
                 progressLayout.progressBar().setIndeterminate(true);
                 progressLayout.setVisible(true);
 
