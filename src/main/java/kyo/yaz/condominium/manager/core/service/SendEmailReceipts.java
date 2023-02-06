@@ -31,7 +31,7 @@ public class SendEmailReceipts {
         this.createPdfReceiptService = createPdfReceiptService;
     }
 
-    public Single<List<Completable>> send(Receipt receipt, List<CreatePdfReceipt> list) {
+    public Single<List<Single<EmailRequest>>> send(Receipt receipt, List<CreatePdfReceipt> list) {
 
         final var to = "yzlup2@gmail.com";
 
@@ -62,7 +62,8 @@ public class SendEmailReceipts {
                             .build();
 
                     return vertxHandler.get(SendEmailVerticle.SEND, sendEmailRequest)
-                            .ignoreElement();
+                            .ignoreElement()
+                            .toSingleDefault(emailRequest);
                 })
                 .toList();
     }
@@ -71,7 +72,9 @@ public class SendEmailReceipts {
 
         return createPdfReceiptService.createFiles(receipt)
                 .flatMap(list -> send(receipt, list))
-                .flatMapCompletable(Completable::concat);
+                .toFlowable()
+                .flatMap(Single::concat)
+                .ignoreElements();
 
     }
 

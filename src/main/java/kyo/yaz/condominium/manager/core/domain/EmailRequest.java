@@ -16,6 +16,8 @@ import java.util.Set;
 @ToString
 @Getter
 public class EmailRequest {
+
+    private final int id;
     private final String from;
     @Builder.Default
     private final Set<String> to = Collections.emptySet();

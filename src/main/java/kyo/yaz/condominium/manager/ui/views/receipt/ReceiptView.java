@@ -278,15 +278,13 @@ public class ReceiptView extends BaseVerticalLayout {
                     });
 
                     final AtomicInteger i = new AtomicInteger(1);
-                    final var singles = list.stream()
-                            .map(c -> c.toSingleDefault(i.getAndIncrement()))
-                            .collect(Collectors.toCollection(LinkedList::new));
 
-                    return Single.concat(singles)
-                            .doOnNext(integer -> {
+                    return Single.concat(list)
+                            .doOnNext(request -> {
                                 uiAsyncAction(() -> {
+                                    final var integer = i.getAndIncrement();
                                     progressLayout.progressBar().setValue(integer);
-                                    progressLayout.setProgressText("Enviando emails %s/%s".formatted(integer, list.size()));
+                                    progressLayout.setProgressText("Enviando email %s/%s  %s -> %s".formatted(integer, list.size(), request.from(), request.to()));
                                 });
                             });
                 })
