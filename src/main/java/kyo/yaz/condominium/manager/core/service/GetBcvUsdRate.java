@@ -1,9 +1,7 @@
 package kyo.yaz.condominium.manager.core.service;
 
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.eventbus.Message;
 import kyo.yaz.condominium.manager.core.domain.HttpClientRequest;
 import kyo.yaz.condominium.manager.core.domain.HttpClientResponse;
 import kyo.yaz.condominium.manager.core.domain.HttpLogConfig;
@@ -44,16 +42,13 @@ public class GetBcvUsdRate {
         return Single.create(emitter -> {
 
             eventBus.<HttpClientResponse>request(HttpClientVerticle.SEND, httpClientRequest)
-                    .map(Message::body)
-                    .map(HttpClientResponse::body)
-                    .map(Buffer::toString)
-                    .map(Jsoup::parse)
                     .onComplete(ar -> {
 
                         if (ar.failed()) {
                             emitter.onError(ar.cause());
                         } else {
-                            emitter.onSuccess(ar.result());
+                            final var document = Jsoup.parse(ar.result().body().toString());
+                            emitter.onSuccess(document);
                         }
 
                     });

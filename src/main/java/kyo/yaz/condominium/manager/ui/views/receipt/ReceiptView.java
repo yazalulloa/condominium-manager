@@ -45,6 +45,7 @@ import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
+import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -169,9 +170,12 @@ public class ReceiptView extends BaseVerticalLayout {
         grid.addColumn(Receipt::totalDebt).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL);
         grid.addColumn(receipt -> ConvertUtil.format(receipt.rate().rate(), receipt.rate().toCurrency())).setHeader(Labels.Receipt.RATE_LABEL).setSortable(true).setKey(Labels.Receipt.RATE_LABEL);
         grid.addColumn(receipt -> DateUtil.formatVe(receipt.createdAt())).setHeader(Labels.Receipt.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Receipt.CREATED_AT_LABEL);
+        grid.addComponentColumn(receipt -> IconUtil.checkMarkOrCross(Optional.ofNullable(receipt.sent()).orElse(false)))
+                .setTooltipGenerator(receipt -> Optional.ofNullable(receipt.lastSent()).map(DateUtil::formatVe).orElse(null))
+                .setTextAlign(ColumnTextAlign.CENTER)
+                .setHeader(Labels.Receipt.SENT_LABEL);
 
         //final var menuBar = new MenuBar();
-
 
         grid.addColumn(downloadAnchor())
                 .setHeader(Labels.DOWNLOAD)
@@ -287,8 +291,10 @@ public class ReceiptView extends BaseVerticalLayout {
                             });
                 })
                 .doAfterTerminate(() -> uiAsyncAction(() -> progressLayout.setVisible(false)))
-                .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
                 .ignoreElements()
+                .andThen(receiptService.updateSent(receipt))
+                .andThen(refreshData())
+                .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
                 .subscribe(completableObserver());
     }
 
@@ -363,6 +369,7 @@ public class ReceiptView extends BaseVerticalLayout {
                 processBtn.setEnabled(false);
                 final var buildingId = comboBox.getValue();
 
+                progressLayout.setProgressText("Procesando archivo");
                 progressLayout.progressBar().setIndeterminate(true);
                 progressLayout.setVisible(true);
 

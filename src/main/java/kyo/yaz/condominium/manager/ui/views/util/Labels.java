@@ -79,6 +79,7 @@ public class Labels {
         public static final String ASK_CONFIRMATION_DELETE = "Esta seguro de borrar el recibo\n %s %s %s?";
         public static final String YEAR_LABEL = "Año";
         public static final String MONTH_LABEL = "Mes";
+        public static final String SENT_LABEL = "Enviado";
     }
 
     public static class Expense {

@@ -36,7 +36,7 @@ public class LoadCsvReceipt {
 
                 final var expensesSheet = workbook.getSheetAt(0);
                 final var debtsSheet = workbook.getSheetAt(1);
-                final var reserveFundSheet = workbook.getSheetAt(3);
+                final var reserveFundSheet = numberOfSheets > 3 ? workbook.getSheetAt(3) : null;
 
                 final var extraChargesSheet = numberOfSheets > 4 ? workbook.getSheetAt(4) : null;
 

@@ -8,6 +8,7 @@ import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
@@ -37,12 +38,17 @@ import java.util.stream.Collectors;
 @Getter
 public class CreatePdfAptReceipt extends CreatePdfReceipt {
 
+    private final TranslationProvider translationProvider;
     private final String title;
 
     private final Path path;
     private final Receipt receipt;
     private final Apartment apartment;
     private final Building building;
+
+    private String translate(String str) {
+        return translationProvider.getTranslation(str, translationProvider.LOCALE_ES);
+    }
 
     protected void addContent(Document document) {
 
@@ -51,7 +57,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
         document.add(new Paragraph(new Text(title()).setBold()).setTextAlignment(TextAlignment.CENTER));
         document.add(new Paragraph(building().name()));
         document.add(new Paragraph("RIF: " + building().rif()));
-        document.add(new Paragraph("MES A PAGAR: " + receipt().month() + " " + receipt().year()));
+        document.add(new Paragraph("MES A PAGAR: " + translate(receipt().month().name()) + " " + receipt().year()));
         document.add(new Paragraph(receipt().date().toString()));
         document.add(new Paragraph("PROPIETARIO: " + apartment().name()));
         document.add(new Paragraph("APT: " + apartment().apartmentId().number()));
@@ -95,12 +101,49 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                 }
             }
 
-            final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setBold().setUnderline());
-            document.add(paragraph);
         } else {
 
+            if (building().currenciesToShowAmountToPay().isEmpty()) {
+                var value = payment;
+                if (building().mainCurrency() == Currency.USD) {
+                    value = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
+                }
 
-            final var showVes = building().currenciesToShowAmountToPay().contains(Currency.VED);
+                final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(value)));
+                document.add(paragraph);
+            } else {
+                for (final Currency type : building().currenciesToShowAmountToPay()) {
+
+                    if (type == building().mainCurrency()) {
+                        final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setUnderline());
+                        document.add(paragraph);
+                    } else {
+                        switch (type) {
+
+                            case VED -> {
+                                final var decimal = payment.multiply(receipt().rate().rate()).setScale(2, RoundingMode.HALF_UP);
+
+                                final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
+                                document.add(paragraph);
+                            }
+                            case USD -> {
+
+                                final var decimal = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
+
+                                final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
+                                document.add(paragraph);
+                            }
+                        }
+                    }
+                }
+
+                if (building().currenciesToShowAmountToPay().contains(Currency.USD) && building().currenciesToShowAmountToPay().contains(Currency.VED)) {
+                    document.add(new Paragraph(String.format(usdExchangeRateTitle, receipt().rate().dateOfRate(), ConvertUtil.format(receipt().rate().rate(), Currency.VED))));
+                }
+            }
+
+
+           /* final var showVes = building().currenciesToShowAmountToPay().contains(Currency.VED);
 
             if (showVes) {
                 final var paragraph = new Paragraph(new Text(receiptValue + Currency.VED.numberFormat().format(payment)).setUnderline());
@@ -116,7 +159,12 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                 final var usdReceiptValue = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
                 //payment.divide(BigDecimal.valueOf(usdExchangeRate), MathContext.UNLIMITED);
                 document.add(new Paragraph(new Text(receiptValue + ConvertUtil.format(usdReceiptValue, Currency.USD))).setUnderline());
-            }
+            } else {
+                final var usdReceiptValue = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
+                //payment.divide(BigDecimal.valueOf(usdExchangeRate), MathContext.UNLIMITED);
+                document.add(new Paragraph(new Text(receiptValue + ConvertUtil.format(usdReceiptValue, Currency.USD))).setUnderline());
+
+            }*/
 
             document.add(new Paragraph("ALIQUOTA: " + apartment().amountToPay()));
         }
@@ -232,6 +280,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                     .orElseGet(Collections::emptySet)
                     .stream()
                     .map(Enum::name)
+                    .map(this::translate)
                     .collect(Collectors.joining(", "));
 
             final var previousPaymentAmount = Optional.ofNullable(debt.previousPaymentAmount())

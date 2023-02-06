@@ -42,7 +42,7 @@ public class SendEmailReceipts {
                     final var emailRequest = EmailRequest.builder()
                             .from(pdfReceipt.building().receiptEmailFrom().email())
                             .to(pdfReceipt.apartment().emails())
-                            .to(Set.of(to))
+                            //.to(Set.of(to))
                             .subject(subject.formatted(receipt.month(), pdfReceipt.building().name(), pdfReceipt.apartment().apartmentId().number()))
                             .text(bodyText)
                             .files(Set.of(pdfReceipt.path().toString()))

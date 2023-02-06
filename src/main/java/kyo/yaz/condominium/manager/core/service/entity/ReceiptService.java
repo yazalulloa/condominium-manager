@@ -3,6 +3,7 @@ package kyo.yaz.condominium.manager.core.service.entity;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.ReceiptQueryRequest;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
@@ -68,4 +69,12 @@ public class ReceiptService {
     }
 
 
+    public Completable updateSent(Receipt receipt) {
+        final var build = receipt.toBuilder()
+                .sent(true)
+                .lastSent(DateUtil.nowZonedWithUTC())
+                .build();
+
+        return save(build).ignoreElement();
+    }
 }

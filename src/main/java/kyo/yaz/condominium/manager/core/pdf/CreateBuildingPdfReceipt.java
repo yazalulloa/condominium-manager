@@ -6,6 +6,7 @@ import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
@@ -15,6 +16,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Path;
 
 @Builder(toBuilder = true)
@@ -22,6 +24,8 @@ import java.nio.file.Path;
 @ToString
 @Getter
 public class CreateBuildingPdfReceipt extends CreatePdfReceipt {
+
+    private final TranslationProvider translationProvider;
     private final Path path;
     private final Receipt receipt;
     private final Building building;
@@ -31,11 +35,16 @@ public class CreateBuildingPdfReceipt extends CreatePdfReceipt {
         return null;
     }
 
+    private String translate(String str) {
+        return translationProvider.getTranslation(str, translationProvider.LOCALE_ES);
+    }
+
     protected void addContent(Document document) {
+
         document.add(new Paragraph(new Text("AVISO DE COBRO").setBold()).setTextAlignment(TextAlignment.CENTER));
         document.add(new Paragraph(building().name()));
         document.add(new Paragraph(building().rif()));
-        document.add(new Paragraph("MES A PAGAR: " + receipt().month()));
+        document.add(new Paragraph("MES A PAGAR: " + translate(receipt().month().name())));
         document.add(new Paragraph(receipt().date().toString()));
         document.add(new Paragraph("LISTADO A PAGAR"));
 
@@ -89,12 +98,22 @@ public class CreateBuildingPdfReceipt extends CreatePdfReceipt {
                     table.addCell(amountCell);
                 });
             } else {
-                final var amountCell = PdfUtil.tableCell()
-                        .setTextRenderingMode(PdfCanvasConstants.TextRenderingMode.FILL)
-                        .setTextAlignment(TextAlignment.CENTER)
-                        .add(new Paragraph(building().mainCurrency().numberFormat().format(aptTotal.amount())));
+                if (building().mainCurrency() == Currency.VED) {
+                    final var amountCell = PdfUtil.tableCell()
+                            .setTextRenderingMode(PdfCanvasConstants.TextRenderingMode.FILL)
+                            .setTextAlignment(TextAlignment.CENTER)
+                            .add(new Paragraph(building().mainCurrency().numberFormat().format(aptTotal.amount())));
 
-                table.addCell(amountCell);
+                    table.addCell(amountCell);
+                } else {
+                    final var usdReceiptValue = aptTotal.amount().divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
+                    final var amountCell = PdfUtil.tableCell()
+                            .setTextRenderingMode(PdfCanvasConstants.TextRenderingMode.FILL)
+                            .setTextAlignment(TextAlignment.CENTER)
+                            .add(new Paragraph(building().mainCurrency().numberFormat().format(usdReceiptValue)));
+
+                    table.addCell(amountCell);
+                }
             }
 
 

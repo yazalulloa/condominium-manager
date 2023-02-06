@@ -72,6 +72,10 @@ public class Receipt {
     private final Rate rate;
     @JsonProperty
     private final List<ReserveFundTotal> reserveFundTotals;
+    @JsonProperty
+    private final Boolean sent;
+    @JsonProperty
+    private final ZonedDateTime lastSent;
 
     @Jacksonized
     @Builder(toBuilder = true)
