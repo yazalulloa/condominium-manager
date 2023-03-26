@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -69,7 +70,7 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
     private void addContent() {
 
         extraChargesView.setVisible(extraChargesVisible);
-        add(form, createButtonsLayout(), extraChargesView, reserveFundView);
+        add(form, new Hr(), createButtonsLayout(), new Hr(), extraChargesView, new Hr(), reserveFundView, new Hr());
     }
 
     @Override

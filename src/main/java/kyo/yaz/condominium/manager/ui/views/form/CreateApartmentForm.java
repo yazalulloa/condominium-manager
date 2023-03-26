@@ -107,6 +107,7 @@ public class CreateApartmentForm extends BaseForm {
 
     private void validateAndSave() {
         try {
+            apartment.setEmails(emailsForm.getEmails());
             binder.writeBean(apartment);
 
             fireEvent(new SaveEvent(this, apartment));

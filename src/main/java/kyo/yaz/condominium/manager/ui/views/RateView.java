@@ -45,10 +45,12 @@ public class RateView extends BaseVerticalLayout {
     private final Grid<Rate> grid = new Grid<>();
     private final AtomicBoolean addingRate = new AtomicBoolean(false);
     private final Text queryCountText = new Text(null);
-    private final Text totalCountText = new Text(null);    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
+    private final Text totalCountText = new Text(null);
+    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final DeleteDialog deleteDialog = new DeleteDialog();
     private final RateService rateService;
     private final SaveNewBcvRate saveNewBcvRate;
+
     @Autowired
     public RateView(RateService rateService, SaveNewBcvRate saveNewBcvRate) {
         super();
@@ -83,19 +85,14 @@ public class RateView extends BaseVerticalLayout {
     }
 
     private Component footer() {
-          /*gridPaginator.setPadding(true);
-        gridPaginator.setJustifyContentMode(JustifyContentMode.END);
-        gridPaginator.setAlignItems(Alignment.END);*/
 
         final var verticalLayout = new VerticalLayout(totalCountText);
-        //verticalLayout.setAlignItems(Alignment.CENTER);
 
         final var footer = new HorizontalLayout(gridPaginator, verticalLayout);
 
         footer.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         footer.setFlexGrow(2, gridPaginator);
         footer.setFlexGrow(1, verticalLayout);
-        //footer.setPadding(true);
 
         return footer;
     }
@@ -104,7 +101,7 @@ public class RateView extends BaseVerticalLayout {
         grid.addClassNames("rates-grid");
 
         grid.setColumnReorderingAllowed(true);
-        grid.addColumn(Rate::id).setHeader(Labels.Rate.ID_LABEL).setSortable(true).setKey(Labels.Rate.ID_LABEL);
+        //grid.addColumn(Rate::id).setHeader(Labels.Rate.ID_LABEL).setSortable(true).setKey(Labels.Rate.ID_LABEL);
         grid.addColumn(Rate::rate).setHeader(Labels.Rate.RATE_LABEL).setSortable(true).setKey(Labels.Rate.RATE_LABEL);
         grid.addColumn(Rate::dateOfRate).setHeader(Labels.Rate.DATE_OF_RATE_LABEL).setSortable(true).setKey(Labels.Rate.DATE_OF_RATE_LABEL);
         grid.addColumn(Rate::source).setHeader(Labels.Rate.SOURCE_LABEL).setSortable(true).setKey(Labels.Rate.SOURCE_LABEL);
@@ -125,20 +122,14 @@ public class RateView extends BaseVerticalLayout {
                             button.setIcon(new Icon(VaadinIcon.TRASH));
                         }))
                 .setHeader(Labels.DELETE)
-                .setTextAlign(ColumnTextAlign.END)
                 .setFrozenToEnd(true)
-                .setFlexGrow(0);
+                .setFlexGrow(0)
+        ;
+
 
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
-
-        //final var contextMenu = new RateContextMenu(grid, this);
-        add(grid);
-
-        /*grid.setItems(query -> {
-           return rateRepository.findAllBy(PageRequest.of(query.getPage(), query.getPageSize()) ).collectList().block().stream();
-        });*/
     }
 
     public void delete(Rate rate) {
@@ -217,7 +208,6 @@ public class RateView extends BaseVerticalLayout {
                 .subscribeOn(Schedulers.io())
                 .subscribe(completableObserver());
     }
-
 
 
 }
