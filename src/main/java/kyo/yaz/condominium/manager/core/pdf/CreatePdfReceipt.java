@@ -8,6 +8,7 @@ import kyo.yaz.condominium.manager.persistence.entity.Building;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public abstract class CreatePdfReceipt {
 
@@ -27,6 +28,14 @@ public abstract class CreatePdfReceipt {
     }
 
     public abstract Path path();
+
+    public String id() {
+        return Optional.ofNullable(apartment())
+                .map(Apartment::apartmentId)
+                .map(Apartment.ApartmentId::number)
+                .or(() -> Optional.ofNullable(building()).map(Building::id))
+                .orElse(null);
+    }
 
     public abstract Apartment apartment();
 

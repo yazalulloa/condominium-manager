@@ -8,6 +8,7 @@ import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.ApartmentQueryRequest;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.repository.ApartmentRepository;
+import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -16,10 +17,7 @@ import org.springframework.stereotype.Service;
 import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -77,7 +75,11 @@ public class ApartmentService {
                 .sortings(sortings)
                 .build();
 
-        return RxJava3Adapter.monoToSingle(repository.list(request));
+        return RxJava3Adapter.monoToSingle(repository.list(request))
+                .flatMapObservable(Observable::fromIterable)
+                .sorted(Comparator.comparing((Apartment a) -> a.apartmentId().buildingId())
+                        .thenComparing(ConvertUtil.aptNumberComparator()))
+                .toList(LinkedList::new);
     }
 
     public Single<List<String>> aptNumbers(String buildingId) {

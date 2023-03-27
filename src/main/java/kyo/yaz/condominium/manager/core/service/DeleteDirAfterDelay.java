@@ -1,5 +1,6 @@
 package kyo.yaz.condominium.manager.core.service;
 
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,17 +31,25 @@ public class DeleteDirAfterDelay {
 
     public void deleteDir(String path, int delayTime, TimeUnit delayTimeUnit) {
 
-        vertx.setTimer(delayTimeUnit.toMillis(delayTime), l -> {
+        vertx.setTimer(delayTimeUnit.toMillis(delayTime), l -> deleteDirNow(path));
 
-            vertx.fileSystem().deleteRecursive(path, true)
-                    .onFailure(t -> {
-                        log.error("FAILED_TO_DELETE {}", path, t);
-                    })
-                    .onSuccess(v -> {
-                        log.info("PATH_DELETED: {}", path);
-                    });
+    }
 
-        });
+    public void deleteTmp() {
+        deleteDirNow("tmp");
+    }
 
+    public void deleteDirNow(String path) {
+        vertx.fileSystem().exists(path)
+                .flatMap(bool -> {
+
+                    if (bool) {
+                        return vertx.fileSystem().deleteRecursive(path, true);
+                    }
+
+                    return Future.succeededFuture();
+                })
+                .onFailure(t -> log.error("FAILED_TO_DELETE {}", path, t))
+                .onSuccess(v -> log.info("PATH_DELETED: {}", path));
     }
 }

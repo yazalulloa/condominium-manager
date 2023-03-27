@@ -114,4 +114,5 @@ node_modules
 gmail
 config
 !package-lock.json
+!src/main/dev-bundle
 env.conf

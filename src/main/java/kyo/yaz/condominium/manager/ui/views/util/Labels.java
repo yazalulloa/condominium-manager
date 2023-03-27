@@ -1,5 +1,7 @@
 package kyo.yaz.condominium.manager.ui.views.util;
 
+import com.vaadin.flow.component.Component;
+
 public class Labels {
 
     public static final String NEXT_PAGE = "Siguiente Página";
@@ -25,6 +27,7 @@ public class Labels {
     public static final String SEND_EMAIL = "Enviar recibos";
     public static final String EDIT = "Editar";
     public static final String RESERVE_FUNDS_TITLE = "Fondos de reserva";
+    public static final String VIEW_PDFS = "Ver PDFs";
 
     public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";
@@ -64,6 +67,7 @@ public class Labels {
 
     public static class Receipt {
         public static final String VIEW_PAGE_TITLE = "Recibos de Pago";
+        public static final String PDF_VIEW_PAGE_TITLE = "Recibo de Pago (PDF)";
         public static final String ADD_BUTTON_LABEL = "Recibo nuevo";
         public static final String AMOUNT_OF_LABEL = "Recibos: %d";
         public static final String ID_LABEL = "ID";

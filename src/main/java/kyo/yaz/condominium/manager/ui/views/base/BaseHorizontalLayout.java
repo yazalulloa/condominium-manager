@@ -54,6 +54,9 @@ public abstract class BaseHorizontalLayout extends HorizontalLayout {
     protected <T> SingleObserver<T> singleObserver(@NonNull Consumer<? super T> onSuccess, @NonNull Consumer<? super Throwable> onError) {
         return RxUtil.singleObserver(compositeDisposable::add, onSuccess, onError);
     }
+    protected <T> SingleObserver<T> singleObserver(@NonNull Consumer<? super T> onSuccess) {
+        return RxUtil.singleObserver(compositeDisposable::add, onSuccess, this::showError);
+    }
 
     protected void showError(Throwable throwable) {
         viewHelper.showError(throwable);

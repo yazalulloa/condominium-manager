@@ -1,8 +1,10 @@
 package kyo.yaz.condominium.manager.ui.views.util;
 
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.persistence.domain.IAmountCurrency;
+import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.domain.ReceiptFormItem;
 import org.springframework.data.util.Pair;
@@ -89,5 +91,50 @@ public class ConvertUtil {
         }
 
         return Pair.of(usdAmount, Currency.USD);
+    }
+
+    public static Integer parseInteger(String str) {
+        try {
+            return Integer.parseInt(str);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Comparator<Apartment> aptNumberComparator() {
+        return (o1, o2) -> {
+            final var lhs = o1.apartmentId().number();
+            final var rhs = o2.apartmentId().number();
+
+            return compareAptNumbers(lhs, rhs);
+        };
+    }
+
+    public static int compareAptNumbers(String lhs, String rhs) {
+        final var lhsInt = ConvertUtil.parseInteger(lhs);
+        final var rhsInt = ConvertUtil.parseInteger(rhs);
+
+        if (lhsInt != null && rhsInt != null) {
+            return lhsInt.compareTo(rhsInt);
+        }
+
+        if (lhsInt == null && rhsInt == null) {
+            return lhs.compareTo(rhs);
+        }
+
+        if (lhsInt == null) {
+            return 1;
+        }
+
+        return -1;
+    }
+
+    public static Comparator<PdfReceiptItem> pdfReceiptItemComparator() {
+        return (o1, o2) -> {
+            final var lhs = o1.id();
+            final var rhs = o2.id();
+
+            return compareAptNumbers(lhs, rhs);
+        };
     }
 }

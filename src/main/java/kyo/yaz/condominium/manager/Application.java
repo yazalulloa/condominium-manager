@@ -35,8 +35,8 @@ import java.util.TimeZone;
 @Theme(value = "condominium_manager")
 @Push(PushMode.AUTOMATIC)
 @PWA(name = "Condominium Manager", shortName = "Condominium Manager", offlineResources = {})
-@NpmPackage(value = "lumo-css-framework", version = "4.0.10")
-@NpmPackage(value = "line-awesome", version = "1.3.0")
+//@NpmPackage(value = "lumo-css-framework", version = "4.0.10")
+//@NpmPackage(value = "line-awesome", version = "1.3.0")
 @NpmPackage(value = "@vaadin-component-factory/vcf-nav", version = "1.0.6")
 @Slf4j
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {

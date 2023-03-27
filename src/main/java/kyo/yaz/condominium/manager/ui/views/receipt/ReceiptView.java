@@ -44,6 +44,7 @@ import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
+import kyo.yaz.condominium.manager.ui.views.receipt.pdf.ReceipPdfView;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -201,6 +202,9 @@ public class ReceiptView extends BaseVerticalLayout {
             final var deleteMenu = subMenu.addItem(Labels.DELETE, e -> deleteReceipt(receipt));
             deleteMenu.addComponentAsFirst(createIcon(VaadinIcon.TRASH));
 
+            final var viewPdfsMenu = subMenu.addItem(Labels.VIEW_PDFS, e -> viewPdfs(receipt));
+            viewPdfsMenu.addComponentAsFirst(createIcon(VaadinIcon.FILE));
+
             return menuBar;
         }).setWidth("70px").setFlexGrow(0);
 
@@ -220,6 +224,10 @@ public class ReceiptView extends BaseVerticalLayout {
         deleteMenu.addComponentAsFirst(createIcon(VaadinIcon.TRASH));
         deleteMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::deleteReceipt));
 
+        final var viewPdfsMenu = contextMenu.addItem(Labels.VIEW_PDFS);
+        viewPdfsMenu.addComponentAsFirst(createIcon(VaadinIcon.FILE));
+        viewPdfsMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::viewPdfs));
+
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
 
@@ -228,6 +236,11 @@ public class ReceiptView extends BaseVerticalLayout {
             selection.getFirstSelectedItem()
                     .ifPresent(this::editEntity);
         });
+    }
+
+    private void viewPdfs(Receipt receipt) {
+        saveReceiptInSession(receipt);
+        ui(ui -> ui.navigate(ReceipPdfView.class));
     }
 
     private Component createIcon(VaadinIcon vaadinIcon) {

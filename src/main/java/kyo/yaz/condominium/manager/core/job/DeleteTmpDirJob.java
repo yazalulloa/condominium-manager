@@ -1,7 +1,6 @@
 package kyo.yaz.condominium.manager.core.job;
 
-import io.vertx.core.Future;
-import io.vertx.core.Vertx;
+import kyo.yaz.condominium.manager.core.service.DeleteDirAfterDelay;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -14,29 +13,16 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class DeleteTmpDirJob {
 
-    private final Vertx vertx;
+    private final DeleteDirAfterDelay deleteDirAfterDelay;
 
     @Autowired
-    public DeleteTmpDirJob(Vertx vertx) {
-        this.vertx = vertx;
+    public DeleteTmpDirJob(DeleteDirAfterDelay deleteDirAfterDelay) {
+        this.deleteDirAfterDelay = deleteDirAfterDelay;
     }
 
     @Async
     @Scheduled(initialDelay = 5, fixedRate = 86400, timeUnit = TimeUnit.SECONDS)
     public void runAsStart() {
-
-        final var path = "tmp";
-
-        vertx.fileSystem().exists(path)
-                .flatMap(bool -> {
-
-                    if (bool) {
-                        return vertx.fileSystem().deleteRecursive(path, true);
-                    }
-
-                    return Future.succeededFuture();
-                })
-                .onFailure(t -> log.error("FAILED_TO_DELETE {}", path, t))
-                .onSuccess(v -> log.info("PATH_DELETED: {}", path));
+        deleteDirAfterDelay.deleteTmp();
     }
 }

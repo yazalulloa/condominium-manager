@@ -2,6 +2,7 @@ package kyo.yaz.condominium.manager.core.service;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
+import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
 import kyo.yaz.condominium.manager.core.pdf.CreateBuildingPdfReceipt;
 import kyo.yaz.condominium.manager.core.pdf.CreatePdfAptReceipt;
 import kyo.yaz.condominium.manager.core.pdf.CreatePdfReceipt;
@@ -46,8 +47,20 @@ public class CreatePdfReceiptService {
 
     }
 
+    public Single<List<PdfReceiptItem>> pdfItems(Receipt receipt) {
+        return createFiles(receipt, false)
+                .flatMapObservable(Observable::fromIterable)
+                .map(createPdfReceipt -> new PdfReceiptItem(createPdfReceipt.path(), createPdfReceipt.path().getFileName().toString(),
+                        createPdfReceipt.id()))
+                .toList(LinkedList::new)
+                /*.reduceWith(LinkedHashMap::new, (map, item) -> {
+                    map.put(item.id(), item);
+                    return map;
+                })*/
+                ;
+    }
 
-    public Single<List<CreatePdfReceipt>> createFiles(Receipt receipt) {
+    public Single<List<CreatePdfReceipt>> createFiles(Receipt receipt, boolean shouldDeleteAfter) {
         return Single.defer(() -> {
             final var tempPath = "tmp/" + UUID.randomUUID() + "/";
             final var path = Paths.get(tempPath + receipt.buildingId() + "/");
@@ -68,6 +81,8 @@ public class CreatePdfReceiptService {
                                 .building(building)
                                 .build();
 
+                        list.add(buildingPdfReceipt);
+
                         apartments.stream()
                                 .<CreatePdfReceipt>map(apartment -> {
                                     return CreatePdfAptReceipt.builder()
@@ -82,15 +97,21 @@ public class CreatePdfReceiptService {
                                 })
                                 .forEach(list::add);
 
-                        list.add(buildingPdfReceipt);
-
                         return list;
                     })
                     .flatMapObservable(Observable::fromIterable)
                     .doOnNext(CreatePdfReceipt::createPdf)
-                    .toList()
-                    .doAfterTerminate(() -> deleteDirAfterDelay.deleteDir(tempPath));
+                    .toList(LinkedList::new)
+                    .doAfterTerminate(() -> {
+                        if (shouldDeleteAfter) {
+                            deleteDirAfterDelay.deleteDir(tempPath);
+                        }
+                    });
         });
+    }
+
+    public Single<List<CreatePdfReceipt>> createFiles(Receipt receipt) {
+        return createFiles(receipt, true);
     }
 
     public String fileName(Receipt receipt) {

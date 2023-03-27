@@ -52,6 +52,10 @@ public abstract class BaseDiv extends Div {
         return RxUtil.singleObserver(compositeDisposable::add, onSuccess, onError);
     }
 
+    protected <T> SingleObserver<T> singleObserver(@NonNull Consumer<? super T> onSuccess) {
+        return RxUtil.singleObserver(compositeDisposable::add, onSuccess, this::showError);
+    }
+
     protected void showError(Throwable throwable) {
         viewHelper.showError(throwable);
     }
