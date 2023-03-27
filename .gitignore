@@ -115,4 +115,6 @@ gmail
 config
 !package-lock.json
 !src/main/dev-bundle/*
+!src/main/dev-bundle/webapp/*
+!src/main/dev-bundle/webapp/VAADIN/build/*
 env.conf
