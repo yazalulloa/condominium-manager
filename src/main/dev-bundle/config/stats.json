@@ -236,7 +236,7 @@
   "contextMenuTargetConnector.js": "870f67643988dd5618c247bd3c28d843f70aa026ee89f44c3c7556b5e70856af",
   "datepickerConnector.js": "84d25236e1e478c2e181a7881464ad75228a30ccd99d60f78186f0804b6a4a37",
   "dndConnector-es6.js": "d1923b7ec5655346bc130c7ce477d69eb3776417ddc942dd7f69fee1188e0ddf",
-  "flow-component-renderer.js": "69175eaf0e9c85e3e6574203778bdaeb2de62735c2b7279d1925d780797c2018",
+  "flow-component-renderer.js": "f45de3d78e4719c2eb7aa09b48ec758e1e44e171cd4ad545ac9e33c3623dcfb1",
   "gridConnector.js": "844651edd2d8980c5f9d344cc2b8fb0f0f34c0127ce6f0fe04e873930cc1d13f",
   "lit-renderer.ts": "afefa9f5fcb38260a0ff08bc044a5f591f242689ca3c7905130ad32df0476e7c",
   "lumo-includes.ts": "be2372586a5d7de41ae33e60d9b882eba8b7f751d314cfae1672c32ee8fd09ea",
@@ -254,7 +254,7 @@
   "condominium_manager": "{\n  \"lumoImports\" : [ \"typography\", \"color\", \"spacing\", \"badge\", \"utility\" ],\n  \"version\": 2\n}"
  },
  "entryScripts": [
-  "VAADIN/build/indexhtml-ad97dc97.js"
+  "VAADIN/build/indexhtml-a87ab1b7.js"
  ],
  "webComponents": [],
  "packageJsonHash": "6e28920655e9ea51ded860259865d7329023f1a864cbccd09ee958c4c3016ff1"

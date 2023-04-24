@@ -1,6 +1,5 @@
 package kyo.yaz.condominium.manager.ui.views.receipt.pdf;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.componentfactory.pdfviewer.PdfViewer;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.button.Button;
@@ -17,7 +16,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
-import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
+import kyo.yaz.condominium.manager.core.service.GetPdfItems;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
@@ -33,22 +32,14 @@ import java.io.FileNotFoundException;
 @PermitAll
 @Route("receipt_pdf")
 public class ReceipPdfView extends BaseDiv {
-
-
     public static final String PAGE_TITLE = Labels.Receipt.PDF_VIEW_PAGE_TITLE;
 
-
     private final ProgressLayout progressLayout = new ProgressLayout();
-    private final CreatePdfReceiptService createPdfReceiptService;
-    private final ObjectMapper mapper;
-
-
-    //private Receipt receipt;
+    private final GetPdfItems getPdfItems;
 
     @Autowired
-    public ReceipPdfView(CreatePdfReceiptService createPdfReceiptService, ObjectMapper mapper) {
-        this.createPdfReceiptService = createPdfReceiptService;
-        this.mapper = mapper;
+    public ReceipPdfView(GetPdfItems getPdfItems) {
+        this.getPdfItems = getPdfItems;
         addClassName("receip-pdf-view");
         setSizeFull();
     }
@@ -73,16 +64,7 @@ public class ReceipPdfView extends BaseDiv {
         progressLayout.progressBar().setIndeterminate(true);
         progressLayout.setVisible(true);
 
-        /*Single.fromCallable(() -> {
-
-                    try (final var iterator = mapper.readerFor(PdfReceiptItem.class).<PdfReceiptItem>readValues(HardCode.PDF_RECEIPT_ITEMS)) {
-                        return iterator.readAll()
-                                .stream().sorted(ConvertUtil.pdfReceiptItemComparator())
-                                .collect(Collectors.toCollection(LinkedList::new));
-                    }
-                })*/
-
-        createPdfReceiptService.pdfItems((Receipt) VaadinSession.getCurrent().getAttribute("receipt"))
+        getPdfItems.pdfItems((Receipt) VaadinSession.getCurrent().getAttribute("receipt"))
                 .observeOn(Schedulers.io())
                 .subscribe(singleObserver(list -> {
                     final var tabSheet = new TabSheet();

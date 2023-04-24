@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class ReserveFundViewItem {
 
     @NotBlank

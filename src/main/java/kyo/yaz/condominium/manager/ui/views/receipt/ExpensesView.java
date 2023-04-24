@@ -5,6 +5,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.dnd.GridDropLocation;
+import com.vaadin.flow.component.grid.dnd.GridDropMode;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -19,19 +21,21 @@ import kyo.yaz.condominium.manager.ui.views.util.Labels;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedList;
 
 public class ExpensesView extends BaseDiv {
 
-    private final Set<ExpenseViewItem> items = new LinkedHashSet<>();
-    private final Grid<ExpenseViewItem> grid = new Grid<>();
+    private final LinkedList<ExpenseViewItem> items = new LinkedList<>();
+    private final Grid<ExpenseViewItem> grid = new Grid<>(ExpenseViewItem.class, false);
     private final ExpenseForm form = new ExpenseForm();
     private final Button addBtn = new Button(Labels.ADD);
 
 
     private BigDecimal totalCommon = BigDecimal.ZERO;
     private BigDecimal totalUnCommon = BigDecimal.ZERO;
+
+
+    private ExpenseViewItem draggedItem;
 
     public void init() {
         addClassName("expenses-view");
@@ -54,7 +58,7 @@ public class ExpensesView extends BaseDiv {
         return content;
     }
 
-    public Set<ExpenseViewItem> items() {
+    public Collection<ExpenseViewItem> items() {
         return items;
     }
 
@@ -77,7 +81,14 @@ public class ExpensesView extends BaseDiv {
 
         form.addListener(ExpenseForm.SaveEvent.class, event -> {
 
-            items.add(event.getObj());
+            final var item = event.getObj();
+            final var indexOf = items.indexOf(item);
+            if (indexOf > -1) {
+                items.set(indexOf, item);
+            } else {
+                items.add(item);
+            }
+
             setItemsGrid();
         });
 
@@ -89,6 +100,35 @@ public class ExpensesView extends BaseDiv {
         grid.addClassNames("expenses-grid");
         grid.setAllRowsVisible(true);
         grid.setColumnReorderingAllowed(true);
+
+        grid.setDropMode(GridDropMode.BETWEEN);
+        grid.setRowsDraggable(true);
+
+        grid.addDragStartListener(e -> draggedItem = e.getDraggedItems().get(0));
+
+        final var dataView = grid.setItems(items);
+
+        grid.addDropListener(e -> {
+            final var target = e.getDropTargetItem().orElse(null);
+            final var dropLocation = e.getDropLocation();
+
+            boolean itemWasDroppedOntoItself = draggedItem
+                    .equals(target);
+
+            if (target == null || itemWasDroppedOntoItself)
+                return;
+
+            dataView.removeItem(draggedItem);
+
+            if (dropLocation == GridDropLocation.BELOW) {
+                dataView.addItemAfter(draggedItem, target);
+            } else {
+                dataView.addItemBefore(draggedItem, target);
+            }
+        });
+
+        grid.addDragEndListener(e -> draggedItem = null);
+
         grid.addColumn(ExpenseViewItem::getDescription).setHeader(Labels.Expense.DESCRIPTION_LABEL);
         grid.addColumn(item -> ConvertUtil.format(item.getAmount(), item.getCurrency())).setHeader(Labels.Expense.AMOUNT_LABEL).setSortable(true).setKey(Labels.Expense.AMOUNT_LABEL);
         grid.addColumn(ExpenseViewItem::getType).setHeader(Labels.Expense.TYPE_LABEL).setSortable(true).setKey(Labels.Expense.TYPE_LABEL);

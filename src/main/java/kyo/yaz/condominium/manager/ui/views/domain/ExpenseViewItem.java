@@ -20,7 +20,9 @@ import java.math.BigDecimal;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class ExpenseViewItem {
 
     @NotBlank

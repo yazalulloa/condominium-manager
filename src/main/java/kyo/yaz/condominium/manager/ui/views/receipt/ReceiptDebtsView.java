@@ -36,6 +36,14 @@ public class ReceiptDebtsView extends BaseDiv {
         grid.setColumnReorderingAllowed(true);
         final var editor = grid.getEditor();
         grid.addColumn(item -> item.getAptNumber() + " " + item.getName()).setHeader(Labels.Debt.APT_LABEL).setSortable(true).setKey(Labels.Debt.APT_LABEL);
+
+        grid.setSelectionMode(Grid.SelectionMode.SINGLE)
+                .addSelectionListener(event -> event.getFirstSelectedItem().ifPresent(item -> {
+                    if (editor.isOpen())
+                        editor.cancel();
+                    grid.getEditor().editItem(item);
+                }));
+
         final var receiptColumn = grid.addColumn(DebtViewItem::getReceipts).setHeader(Labels.Debt.RECEIPT_LABEL).setSortable(true).setKey(Labels.Debt.RECEIPT_LABEL);
         final var amountColumn = grid.addColumn(DebtViewItem::getAmount).setHeader(Labels.Debt.AMOUNT_LABEL).setSortable(true).setKey(Labels.Debt.AMOUNT_LABEL);
 
@@ -51,6 +59,17 @@ public class ReceiptDebtsView extends BaseDiv {
         final var previousPaymentAmountColumn = grid.addColumn(DebtViewItem::getPreviousPaymentAmount).setHeader(Labels.Debt.PREVIOUS_AMOUNT_PAYED_LABEL).setSortable(true).setKey(Labels.Debt.PREVIOUS_AMOUNT_PAYED_LABEL);
         final var previousPaymentAmountCurrencyColumn = grid.addColumn(DebtViewItem::getPreviousPaymentAmountCurrency).setHeader(Labels.Debt.PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL).setSortable(true).setKey(Labels.Debt.PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL);
 
+
+        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+
+
+        final var saveButton = new Button(VaadinIcon.CHECK.create(), e -> editor.save());
+
+        final var cancelButton = new Button(VaadinIcon.CLOSE.create(), e -> editor.cancel());
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR);
+
+        final var actions = new HorizontalLayout(saveButton, cancelButton);
+
         final var editColumn = grid.addComponentColumn(item -> {
                     final var editButton = new Button(Labels.EDIT);
                     editButton.addClickListener(e -> {
@@ -58,11 +77,12 @@ public class ReceiptDebtsView extends BaseDiv {
                             editor.cancel();
                         grid.getEditor().editItem(item);
                     });
-                    return editButton;
+                    return new HorizontalLayout(editButton);
                 })
                 .setTextAlign(ColumnTextAlign.END)
-                .setFrozenToEnd(true)
                 .setFlexGrow(0);
+
+        editColumn.setEditorComponent(actions);
 
 
         final var binder = new Binder<>(DebtViewItem.class);
@@ -100,15 +120,7 @@ public class ReceiptDebtsView extends BaseDiv {
                 .bind(DebtViewItem::getPreviousPaymentAmountCurrency, DebtViewItem::setPreviousPaymentAmountCurrency);
         previousPaymentAmountCurrencyColumn.setEditorComponent(previousPaymentAmountCurrencyComboBox);
 
-        final var saveButton = new Button(VaadinIcon.CHECK.create(), e -> editor.save());
 
-        final var cancelButton = new Button(VaadinIcon.CLOSE.create(), e -> editor.cancel());
-        cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR);
-        final var actions = new HorizontalLayout(saveButton, cancelButton);
-        actions.setPadding(false);
-        editColumn.setEditorComponent(actions);
-
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));
         grid.setSizeFull();
         add(grid);
     }

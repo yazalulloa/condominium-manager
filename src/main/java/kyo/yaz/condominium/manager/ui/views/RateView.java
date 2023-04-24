@@ -122,10 +122,8 @@ public class RateView extends BaseVerticalLayout {
                             button.setIcon(new Icon(VaadinIcon.TRASH));
                         }))
                 .setHeader(Labels.DELETE)
-                .setFrozenToEnd(true)
-                .setFlexGrow(0)
-        ;
-
+                .setTextAlign(ColumnTextAlign.END)
+                .setFlexGrow(0);
 
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
         grid.setPageSize(gridPaginator.itemsPerPage());

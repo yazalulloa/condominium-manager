@@ -5,6 +5,8 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.dnd.GridDropLocation;
+import com.vaadin.flow.component.grid.dnd.GridDropMode;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -15,15 +17,16 @@ import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 public class ExtraChargesView extends BaseDiv {
-    private final Set<ExtraChargeViewItem> items = new LinkedHashSet<>();
-    private final Grid<ExtraChargeViewItem> grid = new Grid<>(ExtraChargeViewItem.class, false);
+    private final LinkedList<ExtraChargeViewItem> items = new LinkedList<>();
     private final ExtraChargeForm form = new ExtraChargeForm();
     private final Button addBtn = new Button(Labels.ADD);
+    private final Grid<ExtraChargeViewItem> grid = new Grid<>(ExtraChargeViewItem.class, false);
+
+    private ExtraChargeViewItem draggedItem;
 
 
     public void init() {
@@ -35,7 +38,7 @@ public class ExtraChargesView extends BaseDiv {
         setItemsGrid();
     }
 
-    public Set<ExtraChargeViewItem> items() {
+    public Collection<ExtraChargeViewItem> items() {
         return items;
     }
 
@@ -56,8 +59,14 @@ public class ExtraChargesView extends BaseDiv {
         form.setHeightFull();
 
         form.addListener(ExtraChargeForm.SaveEvent.class, event -> {
+            final var item = event.getObj();
+            final var indexOf = items.indexOf(item);
+            if (indexOf > -1) {
+                items.set(indexOf, item);
+            } else {
+                items.add(item);
+            }
 
-            items.add(event.getObj());
             setItemsGrid();
         });
 
@@ -69,6 +78,35 @@ public class ExtraChargesView extends BaseDiv {
         grid.addClassNames("extra-charge-grid");
         grid.setColumnReorderingAllowed(true);
         grid.setAllRowsVisible(true);
+
+        grid.setDropMode(GridDropMode.BETWEEN);
+        grid.setRowsDraggable(true);
+
+        grid.addDragStartListener(e -> draggedItem = e.getDraggedItems().get(0));
+
+        final var dataView = grid.setItems(items);
+
+        grid.addDropListener(e -> {
+            final var target = e.getDropTargetItem().orElse(null);
+            final var dropLocation = e.getDropLocation();
+
+            boolean itemWasDroppedOntoItself = draggedItem
+                    .equals(target);
+
+            if (target == null || itemWasDroppedOntoItself)
+                return;
+
+            dataView.removeItem(draggedItem);
+
+            if (dropLocation == GridDropLocation.BELOW) {
+                dataView.addItemAfter(draggedItem, target);
+            } else {
+                dataView.addItemBefore(draggedItem, target);
+            }
+        });
+
+        grid.addDragEndListener(e -> draggedItem = null);
+
         grid.addColumn(ExtraChargeViewItem::getAptNumber).setHeader(Labels.ExtraCharge.APT_LABEL).setSortable(true).setKey(Labels.ExtraCharge.APT_LABEL);
         grid.addColumn(ExtraChargeViewItem::getDescription).setHeader(Labels.ExtraCharge.DESCRIPTION_LABEL);
         grid.addColumn(ExtraChargeViewItem::getAmount).setHeader(Labels.ExtraCharge.AMOUNT_LABEL).setSortable(true).setKey(Labels.ExtraCharge.AMOUNT_LABEL);
