@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -jar yaz-condominium-manager-1.0.0.jar

@@ -9,28 +9,35 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.data.binder.Binder;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
 import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Component
 public class ReceiptDebtsView extends BaseDiv {
 
     private List<DebtViewItem> list = Collections.emptyList();
     private final Grid<DebtViewItem> grid = new Grid<>();
 
-    public ReceiptDebtsView() {
-        setSizeFull();
+    private final TranslationProvider translationProvider;
 
-        init();
+    @Autowired
+    public ReceiptDebtsView(TranslationProvider translationProvider) {
+        this.translationProvider = translationProvider;
     }
 
-    private void init() {
+    public void init() {
+
+        setSizeFull();
         grid.addClassNames("debt-grid");
         grid.setAllRowsVisible(true);
         grid.setColumnReorderingAllowed(true);
@@ -53,6 +60,7 @@ public class ReceiptDebtsView extends BaseDiv {
                     .orElseGet(Collections::emptySet)
                     .stream()
                     .map(Enum::name)
+                    .map(translationProvider::translate)
                     .collect(Collectors.joining("\n"));
         }).setHeader(Labels.Debt.MONTHS_LABEL);
 
@@ -107,6 +115,7 @@ public class ReceiptDebtsView extends BaseDiv {
         amountColumn.setEditorComponent(amountField);
 
         final var monthComboBox = ViewUtil.monthMultiComboBox();
+        monthComboBox.setItemLabelGenerator(m -> translationProvider.translate(m.name()));
         binder.forField(monthComboBox)
                 .bind(DebtViewItem::getMonths, DebtViewItem::setMonths);
         monthsColumn.setEditorComponent(monthComboBox);

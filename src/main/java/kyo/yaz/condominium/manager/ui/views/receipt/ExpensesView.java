@@ -12,17 +12,21 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
 import kyo.yaz.condominium.manager.ui.views.domain.ExpenseViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.LinkedList;
 
+
+@org.springframework.stereotype.Component
 public class ExpensesView extends BaseDiv {
 
     private final LinkedList<ExpenseViewItem> items = new LinkedList<>();
@@ -36,6 +40,14 @@ public class ExpensesView extends BaseDiv {
 
 
     private ExpenseViewItem draggedItem;
+
+
+    private final TranslationProvider translationProvider;
+
+    @Autowired
+    public ExpensesView(TranslationProvider translationProvider) {
+        this.translationProvider = translationProvider;
+    }
 
     public void init() {
         addClassName("expenses-view");
@@ -131,7 +143,7 @@ public class ExpensesView extends BaseDiv {
 
         grid.addColumn(ExpenseViewItem::getDescription).setHeader(Labels.Expense.DESCRIPTION_LABEL);
         grid.addColumn(item -> ConvertUtil.format(item.getAmount(), item.getCurrency())).setHeader(Labels.Expense.AMOUNT_LABEL).setSortable(true).setKey(Labels.Expense.AMOUNT_LABEL);
-        grid.addColumn(ExpenseViewItem::getType).setHeader(Labels.Expense.TYPE_LABEL).setSortable(true).setKey(Labels.Expense.TYPE_LABEL);
+        grid.addColumn(e -> translationProvider.translate(e.getType().name())).setHeader(Labels.Expense.TYPE_LABEL).setSortable(true).setKey(Labels.Expense.TYPE_LABEL);
 
         grid.addColumn(
                         new ComponentRenderer<>(Button::new, (button, expense) -> {

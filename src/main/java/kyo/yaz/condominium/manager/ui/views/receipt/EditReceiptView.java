@@ -22,7 +22,10 @@ import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.mapper.DebtMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExpenseMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
-import kyo.yaz.condominium.manager.core.service.entity.*;
+import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
+import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
+import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
+import kyo.yaz.condominium.manager.core.service.entity.SaveReceipt;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
@@ -49,36 +52,40 @@ import java.util.stream.Collectors;
 public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver {
 
 
-    private final ExpensesView expensesView = new ExpensesView();
+    private final ExpensesView expensesView;
     private final ExtraChargesView extraChargesView = new ExtraChargesView();
 
     private final Div reserveFundsDiv = new Div();
     private final ApartmentService apartmentService;
     private final ReceiptService receiptService;
     private final BuildingService buildingService;
-    private final RateService rateService;
     private final SaveReceipt saveReceipt;
 
     private Long receiptId;
-    private ReceiptForm receiptForm;
+    private final ReceiptForm receiptForm;
     private Receipt receipt;
     private Building building;
 
-    private final ReceiptDebtsView receiptDebtsView = new ReceiptDebtsView();
+    private final ReceiptDebtsView receiptDebtsView;
 
     @Autowired
-    public EditReceiptView(ApartmentService apartmentService, ReceiptService receiptService, BuildingService buildingService, RateService rateService, SaveReceipt saveReceipt) {
+    public EditReceiptView(ExpensesView expensesView, ApartmentService apartmentService, ReceiptService receiptService, BuildingService buildingService,
+                           SaveReceipt saveReceipt, ReceiptForm receiptForm, ReceiptDebtsView receiptDebtsView) {
         super();
+        this.expensesView = expensesView;
         this.apartmentService = apartmentService;
         this.receiptService = receiptService;
         this.buildingService = buildingService;
-        this.rateService = rateService;
         this.saveReceipt = saveReceipt;
+        this.receiptForm = receiptForm;
+        this.receiptDebtsView = receiptDebtsView;
     }
 
     private void init() {
         addClassName("edit-receipt-view");
         setSizeFull();
+        receiptForm.init();
+        receiptDebtsView.init();
         extraChargesView.init();
         expensesView.init();
         addContent();
@@ -144,7 +151,6 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
 
     private void addContent() {
 
-        receiptForm = new ReceiptForm(rateService);
 
         receiptForm.buildingComboBox().addValueChangeListener(event -> {
             if (receiptId == null) {

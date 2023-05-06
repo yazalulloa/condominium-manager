@@ -32,6 +32,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Vertx;
 import jakarta.annotation.security.PermitAll;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
 import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
@@ -79,9 +80,10 @@ public class ReceiptView extends BaseVerticalLayout {
     private final ProgressLayout progressLayout = new ProgressLayout();
     private final CreatePdfReceiptService createPdfReceiptService;
     private final SendEmailReceipts sendEmailReceipts;
+    private final TranslationProvider translationProvider;
 
     @Autowired
-    public ReceiptView(Vertx vertx, BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts) {
+    public ReceiptView(Vertx vertx, BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts, TranslationProvider translationProvider) {
         super();
         this.vertx = vertx;
         this.buildingService = buildingService;
@@ -89,7 +91,7 @@ public class ReceiptView extends BaseVerticalLayout {
         this.loadCsvReceipt = loadCsvReceipt;
         this.createPdfReceiptService = createPdfReceiptService;
         this.sendEmailReceipts = sendEmailReceipts;
-
+        this.translationProvider = translationProvider;
     }
 
     @Override
@@ -162,7 +164,7 @@ public class ReceiptView extends BaseVerticalLayout {
         grid.addColumn(Receipt::id).setHeader(Labels.Receipt.ID_LABEL).setSortable(true).setKey(Labels.Receipt.ID_LABEL);
         grid.addColumn(Receipt::buildingId).setHeader(Labels.Receipt.BUILDING_LABEL).setSortable(true).setKey(Labels.Receipt.BUILDING_LABEL);
         grid.addColumn(Receipt::year).setHeader(Labels.Receipt.YEAR_LABEL).setSortable(true).setKey(Labels.Receipt.YEAR_LABEL);
-        grid.addColumn(Receipt::month).setHeader(Labels.Receipt.MONTH_LABEL).setSortable(true).setKey(Labels.Receipt.MONTH_LABEL);
+        grid.addColumn(r -> translationProvider.translate(r.month().name())).setHeader(Labels.Receipt.MONTH_LABEL).setSortable(true).setKey(Labels.Receipt.MONTH_LABEL);
         grid.addColumn(Receipt::date).setHeader(Labels.Receipt.DATE_LABEL).setSortable(true).setKey(Labels.Receipt.DATE_LABEL);
         grid.addColumn(receipt -> ConvertUtil.format(receipt.totalCommonExpenses(), receipt.totalCommonExpensesCurrency())).setHeader(Labels.Receipt.EXPENSE_COMMON_LABEL);
         grid.addColumn(receipt -> ConvertUtil.format(receipt.totalUnCommonExpenses(), receipt.totalUnCommonExpensesCurrency())).setHeader(Labels.Receipt.EXPENSE_UNCOMMON_LABEL);

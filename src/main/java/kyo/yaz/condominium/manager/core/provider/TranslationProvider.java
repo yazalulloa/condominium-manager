@@ -22,6 +22,9 @@ public class TranslationProvider implements I18NProvider {
     public List<Locale> getProvidedLocales() {
         return locales;
     }
+    public String translate(String str) {
+        return getTranslation(str, LOCALE_ES);
+    }
 
     @Override
     public String getTranslation(String key, Locale locale, Object... params) {
