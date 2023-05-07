@@ -13,7 +13,10 @@ RUN mvn package -Pproduction
 
 FROM openjdk:17-alpine
 WORKDIR /app
+RUN mkdir -p config
+RUN mkdir -p frontend
 COPY --from=build /app/target/*.jar .
-ADD application.yml ./config
-ADD verticles.yml ./config
+COPY --from=build /app/frontend/* ./frontend/
+COPY application.yml ./config/
+COPY verticles.yml ./config/
 ENTRYPOINT ["java","-jar","yaz-condominium-manager-1.0.0.jar"]

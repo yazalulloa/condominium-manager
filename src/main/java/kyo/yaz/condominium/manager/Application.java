@@ -47,7 +47,7 @@ public class Application extends SpringBootServletInitializer implements AppShel
         final var isShowDir = Optional.ofNullable(System.getenv("SHOW_DIR"))
                 .map(Boolean::parseBoolean)
                 .orElse(false);
-        
+
         if (isShowDir)
             FileUtil.showDir();
 
