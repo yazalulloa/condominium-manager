@@ -1,9 +1,15 @@
 package kyo.yaz.condominium.manager.core.util;
 
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.TimeZone;
 
+@Slf4j
 public class NetworkUtil {
 
     public static String getPublicIp() {
@@ -17,5 +23,14 @@ public class NetworkUtil {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public static void showPublicIp() {
+        final var timeZone = TimeZone.getDefault();
+        log.info(timeZone.toString());
+        TimeZone.setDefault(timeZone);
+        Single.fromCallable(NetworkUtil::getPublicIp)
+                .subscribeOn(Schedulers.io())
+                .subscribe(ip -> log.info("PUBLIC_IP {}", ip), throwable -> log.error("FAILED_TO_GET_PUBLIC_IP", throwable));
     }
 }

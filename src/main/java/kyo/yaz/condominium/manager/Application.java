@@ -6,9 +6,8 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
-import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import kyo.yaz.condominium.manager.core.util.NetworkUtil;
+import kyo.yaz.condominium.manager.ui.views.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,7 +17,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.TimeZone;
+import java.util.Optional;
 
 /**
  * The entry point of the Spring Boot application.
@@ -42,12 +41,15 @@ import java.util.TimeZone;
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
 
     public static void main(String[] args) {
-        final var timeZone = TimeZone.getDefault();
-        log.info(timeZone.toString());
-        TimeZone.setDefault(timeZone);
-        Single.fromCallable(NetworkUtil::getPublicIp)
-                .subscribeOn(Schedulers.io())
-                .subscribe(ip -> log.info("PUBLIC_IP {}", ip), throwable -> log.error("FAILED_TO_GET_PUBLIC_IP", throwable));
+        NetworkUtil.showPublicIp();
+
+
+        final var isShowDir = Optional.ofNullable(System.getenv("SHOW_DIR"))
+                .map(Boolean::parseBoolean)
+                .orElse(false);
+        
+        if (isShowDir)
+            FileUtil.showDir();
 
         SpringApplication.run(Application.class, args);
     }
