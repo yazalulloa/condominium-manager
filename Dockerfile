@@ -11,7 +11,8 @@ COPY package-lock.json .
 COPY tsconfig.json .
 RUN mvn package -Pproduction
 
-FROM openjdk:17-alpine
+FROM eclipse-temurin:17-jdk-alpine
+# FROM openjdk:17-alpine
 WORKDIR /app
 RUN mkdir -p config
 RUN mkdir -p frontend
