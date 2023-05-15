@@ -122,3 +122,5 @@ test-config
 !src/main/dev-bundle/webapp/*
 !src/main/dev-bundle/webapp/VAADIN/build/*
 env.conf
+
+src/test/java/GmailTest.java
