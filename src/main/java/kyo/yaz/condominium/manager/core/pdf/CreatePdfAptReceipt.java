@@ -224,7 +224,9 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
         document.add(new Paragraph(new Text("\n")));
 
         if (!aptTotal.extraCharges().isEmpty()) {
-            final var div = new Div().setKeepTogether(true);
+            final var div = new Div()
+                    //.setKeepTogether(true)
+                    ;
             div.add(new Paragraph("\n"));
             div.add(new Paragraph(new Text("CARGOS EXTRA").setBold().setUnderline()));
 
@@ -244,7 +246,9 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
         document.add(new Paragraph(new Text("\n")));
 
         {
-            final var div = new Div().setKeepTogether(true);
+            final var div = new Div()
+                    //.setKeepTogether(true)
+                    ;
 
 
             div.add(new Paragraph(new Text("FONDO DE RESERVA").setBold().setUnderline()));
@@ -265,9 +269,9 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
         document.add(new Paragraph(new Text("\n")));
 
         {
-
-
-            final var div = new Div().setKeepTogether(true);
+            final var div = new Div()
+                    //.setKeepTogether(true)
+                    ;
             div.add(new Paragraph(new Text("DEUDAS").setBold().setUnderline()));
 
             final var table = debtTable(receipt().debts());

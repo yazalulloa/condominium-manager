@@ -3,13 +3,13 @@ package kyo.yaz.condominium.manager.ui.views.receipt;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -20,17 +20,14 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.component.upload.receivers.FileBuffer;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
-import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.vertx.core.Vertx;
 import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
@@ -46,14 +43,13 @@ import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.receipt.pdf.ReceipPdfView;
+import kyo.yaz.condominium.manager.ui.views.receipt.service.DownloadReceiptZipService;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.FileInputStream;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -71,7 +67,6 @@ public class ReceiptView extends BaseVerticalLayout {
 
     private final Text countText = new Text(null);
     private final Button addEntityButton = new Button(Labels.Receipt.ADD_BUTTON_LABEL);
-    private final Vertx vertx;
     private final BuildingService buildingService;
     private final DeleteDialog deleteDialog = new DeleteDialog();
     private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
@@ -81,17 +76,20 @@ public class ReceiptView extends BaseVerticalLayout {
     private final CreatePdfReceiptService createPdfReceiptService;
     private final SendEmailReceipts sendEmailReceipts;
     private final TranslationProvider translationProvider;
+    private final DownloadReceiptZipService downloadReceiptZipService;
 
     @Autowired
-    public ReceiptView(Vertx vertx, BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts, TranslationProvider translationProvider) {
+    public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts, TranslationProvider translationProvider, DownloadReceiptZipService downloadReceiptZipService) {
         super();
-        this.vertx = vertx;
         this.buildingService = buildingService;
         this.receiptService = receiptService;
         this.loadCsvReceipt = loadCsvReceipt;
         this.createPdfReceiptService = createPdfReceiptService;
         this.sendEmailReceipts = sendEmailReceipts;
         this.translationProvider = translationProvider;
+        this.downloadReceiptZipService = downloadReceiptZipService;
+
+        downloadReceiptZipService.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
     }
 
     @Override
@@ -106,56 +104,13 @@ public class ReceiptView extends BaseVerticalLayout {
         configureGrid();
         VaadinSession.getCurrent().setAttribute("receipt", null);
 
+
+        progressLayout.setWidth(90, Unit.PERCENTAGE);
         progressLayout.setVisible(false);
 
         add(getToolbar(), progressLayout, grid, gridPaginator);
     }
 
-    private ComponentRenderer<Anchor, Receipt> downloadAnchor() {
-
-        return new ComponentRenderer<>(Anchor::new, (anchor, item) -> {
-
-            final var downloadButton = new Button(new Icon(VaadinIcon.DOWNLOAD_ALT));
-            downloadButton.setDisableOnClick(true);
-
-            downloadButton.addClickListener(v -> {
-
-                progressLayout.setProgressText("Creando archivos");
-                progressLayout.progressBar().setIndeterminate(true);
-                progressLayout.setVisible(true);
-            });
-
-            downloadButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY_INLINE);
-
-            anchor.setHref(new StreamResource(createPdfReceiptService.fileName(item), () -> {
-                anchor.setEnabled(false);
-                try {
-
-
-                    final var path = createPdfReceiptService.zip(item)
-                            .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
-                            .blockingGet();
-
-                    uiAsyncAction(() -> progressLayout.setProgressText("Descargando"));
-
-                    vertx.setTimer(TimeUnit.SECONDS.toMillis(2), l -> {
-                        uiAsyncAction(() -> {
-                            progressLayout.setVisible(false);
-                            anchor.setEnabled(true);
-                            downloadButton.setEnabled(true);
-                        });
-                    });
-
-                    return new FileInputStream(path);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }));
-
-            anchor.getElement().setAttribute("download", true);
-            anchor.add(downloadButton);
-        });
-    }
 
     private void configureGrid() {
         grid.addClassNames("apartments-grid");
@@ -179,7 +134,7 @@ public class ReceiptView extends BaseVerticalLayout {
 
         //final var menuBar = new MenuBar();
 
-        grid.addColumn(downloadAnchor())
+        grid.addColumn(downloadReceiptZipService.downloadAnchor())
                 .setHeader(Labels.DOWNLOAD)
                 .setTextAlign(ColumnTextAlign.CENTER)
                 // .setFrozenToEnd(true)
@@ -278,7 +233,7 @@ public class ReceiptView extends BaseVerticalLayout {
         });
 
         createPdfReceiptService.createFiles(receipt)
-                .observeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                .observeOn(Schedulers.io())
                 .flatMap(list -> sendEmailReceipts.send(receipt, list))
                 .toFlowable()
                 .flatMap(list -> {
@@ -308,7 +263,7 @@ public class ReceiptView extends BaseVerticalLayout {
                 .ignoreElements()
                 .andThen(receiptService.updateSent(receipt))
                 .andThen(refreshData())
-                .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                .subscribeOn(Schedulers.io())
                 .subscribe(completableObserver());
     }
 
@@ -388,7 +343,7 @@ public class ReceiptView extends BaseVerticalLayout {
                 progressLayout.setVisible(true);
 
                 loadCsvReceipt.load(buildingId, inputStream)
-                        .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+                        .subscribeOn(Schedulers.io())
                         .subscribe(singleObserver(receipt -> {
 
                             uiAsyncAction(() -> {
@@ -468,6 +423,13 @@ public class ReceiptView extends BaseVerticalLayout {
         final var countMono = setCount();
 
         final var updateGrid = entityList()
+                .doOnSubscribe(d -> {
+                    uiAsyncAction(() -> {
+                        progressLayout.progressBar().setIndeterminate(true);
+                        progressLayout.setProgressText("Buscando recibos");
+                        progressLayout.setVisible(true);
+                    });
+                })
                 .map(list -> (Runnable) () -> {
 
                     grid.setPageSize(gridPaginator.itemsPerPage());
@@ -476,7 +438,10 @@ public class ReceiptView extends BaseVerticalLayout {
                     grid.getDataProvider().refreshAll();
                 });
 
-        return Single.zip(countMono, updateGrid, List::of)
+        final var hideProgressBar = Single.fromCallable(() -> (Runnable) () -> progressLayout.setVisible(false));
+
+        return Single.mergeArray(countMono, updateGrid, hideProgressBar)
+                .toList()
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement();
     }

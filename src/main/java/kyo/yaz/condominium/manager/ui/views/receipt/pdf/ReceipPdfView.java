@@ -2,11 +2,15 @@ package kyo.yaz.condominium.manager.ui.views.receipt.pdf;
 
 import com.vaadin.componentfactory.pdfviewer.PdfViewer;
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -34,6 +38,7 @@ import java.io.FileNotFoundException;
 public class ReceipPdfView extends BaseDiv {
     public static final String PAGE_TITLE = Labels.Receipt.PDF_VIEW_PAGE_TITLE;
 
+    private final VerticalLayout progressContainer = new VerticalLayout();
     private final ProgressLayout progressLayout = new ProgressLayout();
     private final GetPdfItems getPdfItems;
 
@@ -55,16 +60,38 @@ public class ReceipPdfView extends BaseDiv {
         final var title = new H5("Recibo de Pago PDF");
         title.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE, LumoUtility.AlignContent.CENTER, LumoUtility.AlignSelf.CENTER, LumoUtility.AlignItems.CENTER);
         final var horizontalLayout = new HorizontalLayout(goBackBtn, title);
-        add(horizontalLayout, progressLayout);
+
+        progressContainer.add(progressLayout);
+        progressContainer.setAlignItems(FlexComponent.Alignment.CENTER);
+        progressContainer.setAlignSelf(FlexComponent.Alignment.CENTER);
+        progressContainer.setSizeFull();
+        progressContainer.setMargin(true);
+
+        add(horizontalLayout, progressContainer);
         init();
     }
 
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        getPdfItems.delete();
+    }
+
     public void init() {
+        final var receipt = (Receipt) VaadinSession.getCurrent().getAttribute("receipt");
+
+        if (receipt == null) {
+            navigate(ReceiptView.class);
+            return;
+        }
+
+        progressLayout.setWidth(50, Unit.PERCENTAGE);
         progressLayout.setProgressText("Creando archivos");
         progressLayout.progressBar().setIndeterminate(true);
         progressLayout.setVisible(true);
+        getPdfItems.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
 
-        getPdfItems.pdfItems((Receipt) VaadinSession.getCurrent().getAttribute("receipt"))
+        getPdfItems.pdfItems(receipt)
                 .observeOn(Schedulers.io())
                 .subscribe(singleObserver(list -> {
                     final var tabSheet = new TabSheet();
@@ -73,7 +100,7 @@ public class ReceipPdfView extends BaseDiv {
                     list.forEach(item -> tabSheet.add(item.id(), lazyComponent(item)));
 
                     uiAsyncAction(() -> {
-                        progressLayout.setVisible(false);
+                        remove(progressContainer);
                         add(tabSheet);
                         tabSheet.setSizeFull();
                     });

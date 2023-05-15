@@ -41,9 +41,10 @@ public class GmailProvider {
 
         final var localServerReceiver = new LocalServerReceiver.Builder().setPort(port).build();
 
-        final var credential = new AuthorizationCodeInstalledApp(googleAuthorizationCodeFlow, localServerReceiver).authorize("user");
+        final var authorize = new AuthorizationCodeInstalledApp(googleAuthorizationCodeFlow, localServerReceiver).authorize("user");
 
-        return new Gmail.Builder(transport, jsonFactory, credential)
+
+        return new Gmail.Builder(transport, jsonFactory, authorize)
                 .setApplicationName(appName)
                 .build();
     }

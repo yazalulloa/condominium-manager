@@ -20,6 +20,7 @@ import kyo.yaz.condominium.manager.ui.views.domain.ExpenseViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -27,11 +28,12 @@ import java.util.LinkedList;
 
 
 @org.springframework.stereotype.Component
+@Scope("prototype")
 public class ExpensesView extends BaseDiv {
 
     private final LinkedList<ExpenseViewItem> items = new LinkedList<>();
     private final Grid<ExpenseViewItem> grid = new Grid<>(ExpenseViewItem.class, false);
-    private final ExpenseForm form = new ExpenseForm();
+
     private final Button addBtn = new Button(Labels.ADD);
 
 
@@ -41,11 +43,12 @@ public class ExpensesView extends BaseDiv {
 
     private ExpenseViewItem draggedItem;
 
-
+    private final ExpenseForm form;
     private final TranslationProvider translationProvider;
 
     @Autowired
-    public ExpensesView(TranslationProvider translationProvider) {
+    public ExpensesView(ExpenseForm form, TranslationProvider translationProvider) {
+        this.form = form;
         this.translationProvider = translationProvider;
     }
 

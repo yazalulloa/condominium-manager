@@ -54,6 +54,7 @@ public class SendEmailVerticle extends AbstractVerticle {
                 .build();
 
         map.put(receiptEmailFrom, gmailProvider.gmail());
+
         return map.get(receiptEmailFrom);
     }
 

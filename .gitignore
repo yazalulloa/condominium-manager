@@ -113,6 +113,7 @@ node_modules
 
 gmail
 config
+test-config
 !package-lock.json
 
 !src/main/resources/

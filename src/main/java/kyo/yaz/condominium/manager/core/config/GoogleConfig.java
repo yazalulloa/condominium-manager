@@ -25,7 +25,7 @@ public class GoogleConfig {
     @Bean
     public HttpTransport providesHttpTransport() {
         try {
-            return GoogleNetHttpTransport.newTrustedTransport();
+                return GoogleNetHttpTransport.newTrustedTransport();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

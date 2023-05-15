@@ -12,14 +12,19 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ExpenseViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-
+@Component
+@Scope("prototype")
 public class ExpenseForm extends BaseForm {
 
     @PropertyId("description")
@@ -36,15 +41,19 @@ public class ExpenseForm extends BaseForm {
 
 
     private final Binder<ExpenseViewItem> binder = new BeanValidationBinder<>(ExpenseViewItem.class);
+    private final TranslationProvider translationProvider;
 
     ExpenseViewItem expense;
 
-    public ExpenseForm() {
+    @Autowired
+    public ExpenseForm(TranslationProvider translationProvider) {
+        this.translationProvider = translationProvider;
         addClassName("expense-form");
 
 
         typeComboBox.setAllowCustomValue(false);
         typeComboBox.setAutoOpen(true);
+        typeComboBox.setItemLabelGenerator(m -> this.translationProvider.translate(m.name()));
 
         add(
                 descriptionField,

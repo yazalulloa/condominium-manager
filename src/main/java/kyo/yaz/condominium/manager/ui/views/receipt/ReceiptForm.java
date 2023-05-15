@@ -16,11 +16,13 @@ import kyo.yaz.condominium.manager.ui.views.domain.ReceiptFormItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Month;
 
 @Component
+@Scope("prototype")
 public class ReceiptForm extends BaseForm {
 
     @PropertyId("buildingId")

@@ -15,6 +15,7 @@ import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -23,6 +24,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
+@Scope("prototype")
 public class ReceiptDebtsView extends BaseDiv {
 
     private List<DebtViewItem> list = Collections.emptyList();
@@ -35,6 +37,12 @@ public class ReceiptDebtsView extends BaseDiv {
         this.translationProvider = translationProvider;
     }
 
+
+    private String gridKeys() {
+        return grid.getColumns().stream().map(Grid.Column::getKey)
+                .collect(Collectors.joining(", "));
+    }
+
     public void init() {
 
         setSizeFull();
@@ -42,7 +50,11 @@ public class ReceiptDebtsView extends BaseDiv {
         grid.setAllRowsVisible(true);
         grid.setColumnReorderingAllowed(true);
         final var editor = grid.getEditor();
-        grid.addColumn(item -> item.getAptNumber() + " " + item.getName()).setHeader(Labels.Debt.APT_LABEL).setSortable(true).setKey(Labels.Debt.APT_LABEL);
+
+        grid.addColumn(item -> item.getAptNumber() + " " + item.getName())
+                .setHeader(Labels.Debt.APT_LABEL)
+                .setSortable(true)
+                .setKey(Labels.Debt.APT_LABEL);
 
         grid.setSelectionMode(Grid.SelectionMode.SINGLE)
                 .addSelectionListener(event -> event.getFirstSelectedItem().ifPresent(item -> {

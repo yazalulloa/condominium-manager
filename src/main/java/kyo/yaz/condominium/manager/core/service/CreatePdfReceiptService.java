@@ -60,9 +60,8 @@ public class CreatePdfReceiptService {
                 ;
     }
 
-    public Single<List<CreatePdfReceipt>> createFiles(Receipt receipt, boolean shouldDeleteAfter) {
+    public Single<List<CreatePdfReceipt>> pdfReceipts(String tempPath, Receipt receipt) {
         return Single.defer(() -> {
-            final var tempPath = "tmp/" + UUID.randomUUID() + "/";
             final var path = Paths.get(tempPath + receipt.buildingId() + "/");
             Files.createDirectories(path);
 
@@ -72,45 +71,59 @@ public class CreatePdfReceiptService {
 
             return Single.zip(buildingSingle, apartmentsByBuilding, (building, apartments) -> {
 
-                        final var list = new LinkedList<CreatePdfReceipt>();
+                final var list = new LinkedList<CreatePdfReceipt>();
 
-                        final var buildingPdfReceipt = CreateBuildingPdfReceipt.builder()
-                                .translationProvider(translationProvider)
-                                .path(path.resolve(building.id() + ".pdf"))
-                                .receipt(receipt)
-                                .building(building)
-                                .build();
+                final var buildingPdfReceipt = CreateBuildingPdfReceipt.builder()
+                        .translationProvider(translationProvider)
+                        .path(path.resolve(building.id() + ".pdf"))
+                        .receipt(receipt)
+                        .building(building)
+                        .build();
 
-                        list.add(buildingPdfReceipt);
+                list.add(buildingPdfReceipt);
 
-                        apartments.stream()
-                                .<CreatePdfReceipt>map(apartment -> {
-                                    return CreatePdfAptReceipt.builder()
-                                            .translationProvider(translationProvider)
-                                            .title("AVISO DE COBRO")
-                                            .path(path.resolve(apartment.apartmentId().number() + ".pdf"))
-                                            .receipt(receipt)
-                                            .apartment(apartment)
-                                            .building(building)
-                                            .build();
+                apartments.stream()
+                        .<CreatePdfReceipt>map(apartment -> {
+                            return CreatePdfAptReceipt.builder()
+                                    .translationProvider(translationProvider)
+                                    .title("AVISO DE COBRO")
+                                    .path(path.resolve(apartment.apartmentId().number() + ".pdf"))
+                                    .receipt(receipt)
+                                    .apartment(apartment)
+                                    .building(building)
+                                    .build();
 
-                                })
-                                .forEach(list::add);
+                        })
+                        .forEach(list::add);
 
-                        return list;
-                    })
-                    .flatMapObservable(Observable::fromIterable)
-                    .doOnNext(CreatePdfReceipt::createPdf)
-                    .toList(LinkedList::new)
-                    .doAfterTerminate(() -> {
-                        if (shouldDeleteAfter) {
-                            deleteDirAfterDelay.deleteDir(tempPath);
-                        }
-                    });
+                return list;
+            });
         });
     }
 
-    public Single<List<CreatePdfReceipt>> createFiles(Receipt receipt) {
+    public Single<LinkedList<CreatePdfReceipt>> createFiles(Receipt receipt, boolean shouldDeleteAfter) {
+        return createFiles(receipt, shouldDeleteAfter, () -> {
+        });
+    }
+
+    public Single<LinkedList<CreatePdfReceipt>> createFiles(Receipt receipt, boolean shouldDeleteAfter, Runnable pdfCreated) {
+
+        final var tempPath = "tmp/" + UUID.randomUUID() + "/";
+        return pdfReceipts(tempPath, receipt)
+                .flatMapObservable(Observable::fromIterable)
+                .doOnNext(pdfReceipt -> {
+                    pdfReceipt.createPdf();
+                    pdfCreated.run();
+                })
+                .toList(LinkedList::new)
+                .doAfterTerminate(() -> {
+                    if (shouldDeleteAfter) {
+                        deleteDirAfterDelay.deleteDir(tempPath);
+                    }
+                });
+    }
+
+    public Single<LinkedList<CreatePdfReceipt>> createFiles(Receipt receipt) {
         return createFiles(receipt, true);
     }
 
