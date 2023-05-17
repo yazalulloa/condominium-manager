@@ -7,12 +7,10 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -65,7 +63,7 @@ public class RateView extends BaseVerticalLayout {
     }
 
     private void init() {
-        addClassName("list-view");
+        addClassName("rates-view");
         setSizeFull();
         configureGrid();
 
@@ -85,15 +83,8 @@ public class RateView extends BaseVerticalLayout {
     }
 
     private Component footer() {
-
-        final var verticalLayout = new VerticalLayout(totalCountText);
-
-        final var footer = new HorizontalLayout(gridPaginator, verticalLayout);
-
-        footer.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        footer.setFlexGrow(2, gridPaginator);
-        footer.setFlexGrow(1, verticalLayout);
-
+        final var footer = new Div(gridPaginator, totalCountText);
+        footer.addClassName("footer");
         return footer;
     }
 
@@ -137,7 +128,7 @@ public class RateView extends BaseVerticalLayout {
                 .subscribe(completableObserver());
     }
 
-    private HorizontalLayout getToolbar() {
+    private Component getToolbar() {
         final var addButton = new Button(Labels.ADD);
         addButton.setDisableOnClick(true);
         addButton.addClickListener(e -> {
@@ -156,9 +147,8 @@ public class RateView extends BaseVerticalLayout {
 
         });
 
-        HorizontalLayout toolbar = new HorizontalLayout(addButton, queryCountText);
+        final var toolbar = new Div(addButton, queryCountText);
         toolbar.addClassName("toolbar");
-        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         return toolbar;
     }
 

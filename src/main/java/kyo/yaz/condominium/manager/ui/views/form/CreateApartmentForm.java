@@ -11,7 +11,6 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
-import kyo.yaz.condominium.manager.core.domain.PaymentType;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ApartmentViewItem;
@@ -34,11 +33,11 @@ public class CreateApartmentForm extends BaseForm {
     @PropertyId("idDoc")
     private final TextField idDocField = new TextField(Labels.Apartment.ID_DOC_LABEL);
 
-    @PropertyId("paymentType")
-    private final ComboBox<PaymentType> paymentTypeComboBox = new ComboBox<>(Labels.Apartment.PAYMENT_TYPE_LABEL, PaymentType.values);
+    /*@PropertyId("paymentType")
+    private final ComboBox<PaymentType> paymentTypeComboBox = new ComboBox<>(Labels.Apartment.PAYMENT_TYPE_LABEL, PaymentType.values);*/
 
     @PropertyId("amountToPay")
-    private final BigDecimalField amountToPayField = new BigDecimalField(Labels.Apartment.AMOUNT_LABEL);
+    private final BigDecimalField amountToPayField = new BigDecimalField(Labels.Apartment.ALIQUOT_LABEL);
 
 
     private final EmailsForm emailsForm = new EmailsForm();
@@ -51,7 +50,7 @@ public class CreateApartmentForm extends BaseForm {
     public CreateApartmentForm() {
         addClassName("apartment-form");
 
-        paymentTypeComboBox.setItemLabelGenerator(PaymentType::name);
+        //paymentTypeComboBox.setItemLabelGenerator(PaymentType::name);
 
         // configureGrid();
 
@@ -60,7 +59,7 @@ public class CreateApartmentForm extends BaseForm {
                 numberField,
                 nameField,
                 idDocField,
-                paymentTypeComboBox,
+                // paymentTypeComboBox,
                 amountToPayField,
                 emailsForm,
                 createButtonsLayout());

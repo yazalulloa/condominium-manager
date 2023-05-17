@@ -6,10 +6,10 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
@@ -88,7 +88,7 @@ public class BuildingView extends BaseDiv {
     }
 
     private void configureGrid() {
-
+        grid.addClassNames("building-grid");
         // grid.setHeight("100%");
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
@@ -98,12 +98,7 @@ public class BuildingView extends BaseDiv {
         grid.addItemDoubleClickListener(e -> editEntity(e.getItem().id()));
     }
 
-    private HorizontalLayout createCard(Building building) {
-
-        final var card = new HorizontalLayout();
-        card.addClassName("card");
-        card.setSpacing(false);
-        card.getThemeList().add("spacing-s");
+    private Component createCard(Building building) {
 
         final var name = new Span(building.name());
         name.addClassName("name");
@@ -115,6 +110,33 @@ public class BuildingView extends BaseDiv {
         rif.addClassName("rif");
 
 
+        final var header = new Div(name, id, rif);
+        header.addClassName("header");
+
+        final var deleteIcon = IconUtil.trash();
+        deleteIcon.addClassName("icon");
+        final var deleteBtn = new Button(deleteIcon);
+        deleteBtn.addClickListener(v -> deleteDialog(building));
+
+        final var editBuildingIcon = VaadinIcon.EDIT.create();
+        editBuildingIcon.addClassName("icon");
+        editBuildingIcon.setColor("#13b931");
+        final var editBtn = new Button(editBuildingIcon);
+        editBtn.addClickListener(v -> editEntity(building.id()));
+
+        final var buttonLayout = new Div(deleteBtn, editBtn);
+        buttonLayout.addClassName("buttons");
+
+        final var card = new Div();
+        card.addClassName("card");
+        final var buildingInfo = new Div(header, description(building));
+        buildingInfo.addClassName("info");
+        card.add(buildingInfo, buttonLayout);
+
+        return card;
+    }
+
+    private Component description(Building building) {
         final var mainCurrency = new Span(Labels.Building.MAIN_CURRENCY_LABEL + ": " + building.mainCurrency().name());
         mainCurrency.addClassName("main-currency");
 
@@ -145,43 +167,10 @@ public class BuildingView extends BaseDiv {
         final var amountOfApts = new Span(Labels.Building.AMOUNT_OF_APTS + ": " + building.amountOfApts());
         amountOfApts.addClassName("amount-of-apts");
 
-        final var description = new FlexLayout(mainCurrency, debtCurrency, currenciesToShowAmountToPay, extraCharges, fixedPay, receiptEmailFrom, roundUpPayments, amountOfApts);
+        final var description = new Div(mainCurrency, debtCurrency, currenciesToShowAmountToPay, extraCharges, fixedPay, receiptEmailFrom, roundUpPayments, amountOfApts);
+        description.addClassName("body");
 
-        description.addClassName("description");
-        description.setFlexWrap(FlexLayout.FlexWrap.WRAP);
-        description.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        description.setAlignContent(FlexLayout.ContentAlignment.SPACE_BETWEEN);
-
-        final var header = new HorizontalLayout(name, id, rif);
-        header.addClassName("header");
-        header.setSpacing(false);
-        header.getThemeList().add("spacing-s");
-
-        final var deleteIcon = IconUtil.trash();
-        deleteIcon.addClassName("icon");
-        final var deleteBtn = new Button(deleteIcon);
-        deleteBtn.addClickListener(v -> deleteDialog(building));
-
-        final var editBuildingIcon = VaadinIcon.EDIT.create();
-        editBuildingIcon.addClassName("icon");
-        editBuildingIcon.setColor("#13b931");
-        final var editBtn = new Button(editBuildingIcon);
-        editBtn.addClickListener(v -> editEntity(building.id()));
-
-        final var buttonLayout = new FlexLayout(deleteBtn, editBtn);
-        //buttonLayout.setPadding(true);
-        buttonLayout.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
-        buttonLayout.addClassName("buttons");
-        buttonLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.EVENLY);
-        buttonLayout.setAlignSelf(FlexComponent.Alignment.END);
-
-        final var buildingInfo = new VerticalLayout(header, description);
-        card.add(buildingInfo, buttonLayout);
-        card.setFlexGrow(0, buttonLayout);
-        card.setFlexGrow(1, buildingInfo);
-
-        return card;
+        return description;
     }
 
     private void deleteDialog(Building building) {

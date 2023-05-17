@@ -1,4 +1,6 @@
 @import url('./views/building-view.css');
+@import url('./views/apartment-view.css');
+@import url('./views/rates-view.css');
 @import url('./main-layout.css');
 
 a[highlight] {
@@ -15,14 +17,33 @@ a[highlight] {
 
 @media all and (max-width: 1100px) {
   .list-view.editing .toolbar,
-  .list-view.editing .buildings-grid {
+  .list-view.editing .building-grid {
     display: none;
   }
+}
+
+.grid-paginator {
+
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  flex-basis: auto;
+  align-items: center;
+  gap: 16px;
+
+   .items-per-page {
+      width: 5em;
+   }
+
+   .page {
+      width: 5em;
+   }
 }
 
 * {
     /*font-family: "Lucida Console", "Courier New", monospace;
     font-size: 1rem;*/
+
     spacing-xs: 4px;
     spacing-s: 8px;
     spacing-m: 16px;

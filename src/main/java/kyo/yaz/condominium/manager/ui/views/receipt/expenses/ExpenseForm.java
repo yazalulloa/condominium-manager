@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views.receipt;
+package kyo.yaz.condominium.manager.ui.views.receipt.expenses;
 
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -43,7 +43,7 @@ public class ExpenseForm extends BaseForm {
     private final Binder<ExpenseViewItem> binder = new BeanValidationBinder<>(ExpenseViewItem.class);
     private final TranslationProvider translationProvider;
 
-    ExpenseViewItem expense;
+    ExpenseViewItem item;
 
     @Autowired
     public ExpenseForm(TranslationProvider translationProvider) {
@@ -79,9 +79,10 @@ public class ExpenseForm extends BaseForm {
         cancelBtn.addClickShortcut(Key.ESCAPE);
 
         addBtn.addClickListener(event -> validateAndSave());
-        deleteBtn.addClickListener(event -> fireEvent(new DeleteEvent(this, expense)));
+        deleteBtn.addClickListener(event -> fireEvent(new DeleteEvent(this, item)));
         cancelBtn.addClickListener(event -> {
             binder.readBean(null);
+            fireEvent(new CloseEvent(this));
         });
 
 
@@ -92,8 +93,8 @@ public class ExpenseForm extends BaseForm {
 
     private void validateAndSave() {
         try {
-            binder.writeBean(expense);
-            fireEvent(new SaveEvent(this, expense));
+            binder.writeBean(item);
+            fireEvent(new SaveEvent(this, item));
             setItem(ExpenseViewItem.builder().build());
         } catch (ValidationException e) {
             logger().error("ERROR_VALIDATING", e);
@@ -108,7 +109,7 @@ public class ExpenseForm extends BaseForm {
     }
 
     public void setItem(ExpenseViewItem expense) {
-        this.expense = expense;
+        this.item = expense;
         binder.readBean(expense);
 
     }

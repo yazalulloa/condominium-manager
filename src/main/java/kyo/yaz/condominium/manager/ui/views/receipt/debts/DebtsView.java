@@ -1,23 +1,17 @@
-package kyo.yaz.condominium.manager.ui.views.receipt;
+package kyo.yaz.condominium.manager.ui.views.receipt.debts;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.textfield.BigDecimalField;
-import com.vaadin.flow.component.textfield.IntegerField;
-import com.vaadin.flow.data.binder.Binder;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
 import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
-import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -25,43 +19,66 @@ import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
-public class ReceiptDebtsView extends BaseDiv {
+public class DebtsView extends BaseDiv {
 
-    private List<DebtViewItem> list = Collections.emptyList();
+    private List<DebtViewItem> items = Collections.emptyList();
     private final Grid<DebtViewItem> grid = new Grid<>();
 
     private final TranslationProvider translationProvider;
+    private final DebtForm form;
+
 
     @Autowired
-    public ReceiptDebtsView(TranslationProvider translationProvider) {
+    public DebtsView(TranslationProvider translationProvider, DebtForm form) {
+        super();
         this.translationProvider = translationProvider;
+        this.form = form;
     }
 
-
-    private String gridKeys() {
-        return grid.getColumns().stream().map(Grid.Column::getKey)
-                .collect(Collectors.joining(", "));
-    }
 
     public void init() {
 
-        setSizeFull();
+        addClassName("debts-view");
+        configureGrid();
+        configureForm();
+        add(new H3(Labels.DEBTS), getContent());
+        closeEditor();
+        setItems(items);
+    }
+
+    private com.vaadin.flow.component.Component getContent() {
+
+        HorizontalLayout content = new HorizontalLayout(grid, form);
+        content.setFlexGrow(2, grid);
+        content.setFlexGrow(1, form);
+        content.addClassNames("content");
+        return content;
+    }
+
+    public void setItems(List<DebtViewItem> debtViewItems) {
+        items = debtViewItems;
+        grid.setItems(items);
+        grid.getDataProvider().refreshAll();
+    }
+
+
+    private void configureGrid() {
         grid.addClassNames("debt-grid");
         grid.setAllRowsVisible(true);
         grid.setColumnReorderingAllowed(true);
-        final var editor = grid.getEditor();
+        //final var editor = grid.getEditor();
 
         grid.addColumn(item -> item.getAptNumber() + " " + item.getName())
                 .setHeader(Labels.Debt.APT_LABEL)
                 .setSortable(true)
                 .setKey(Labels.Debt.APT_LABEL);
 
-        grid.setSelectionMode(Grid.SelectionMode.SINGLE)
+       /* grid.setSelectionMode(Grid.SelectionMode.SINGLE)
                 .addSelectionListener(event -> event.getFirstSelectedItem().ifPresent(item -> {
                     if (editor.isOpen())
                         editor.cancel();
                     grid.getEditor().editItem(item);
-                }));
+                }));*/
 
         final var receiptColumn = grid.addColumn(DebtViewItem::getReceipts).setHeader(Labels.Debt.RECEIPT_LABEL).setSortable(true).setKey(Labels.Debt.RECEIPT_LABEL);
         final var amountColumn = grid.addColumn(DebtViewItem::getAmount).setHeader(Labels.Debt.AMOUNT_LABEL).setSortable(true).setKey(Labels.Debt.AMOUNT_LABEL);
@@ -83,7 +100,7 @@ public class ReceiptDebtsView extends BaseDiv {
         grid.getColumns().forEach(col -> col.setAutoWidth(true));
 
 
-        final var saveButton = new Button(VaadinIcon.CHECK.create(), e -> editor.save());
+       /* final var saveButton = new Button(VaadinIcon.CHECK.create(), e -> editor.save());
 
         final var cancelButton = new Button(VaadinIcon.CLOSE.create(), e -> editor.cancel());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR);
@@ -140,19 +157,61 @@ public class ReceiptDebtsView extends BaseDiv {
         binder.forField(previousPaymentAmountCurrencyComboBox)
                 .bind(DebtViewItem::getPreviousPaymentAmountCurrency, DebtViewItem::setPreviousPaymentAmountCurrency);
         previousPaymentAmountCurrencyColumn.setEditorComponent(previousPaymentAmountCurrencyComboBox);
-
+*/
 
         grid.setSizeFull();
-        add(grid);
+        grid.asSingleSelect().addValueChangeListener(event -> editEntity(event.getValue()));
     }
 
-    public void setItems(List<DebtViewItem> debtViewItems) {
-        list = debtViewItems;
-        grid.setItems(list);
-        grid.getDataProvider().refreshAll();
+    private void configureForm() {
+        form.setWidth("25em");
+        form.setHeightFull();
+
+        form.addListener(DebtForm.SaveEvent.class, event -> {
+
+            final var item = event.getObj();
+            final var indexOf = items.indexOf(item);
+            if (indexOf > -1) {
+                items.set(indexOf, item);
+            } else {
+                items.add(item);
+            }
+
+            setItems(items);
+        });
+
+        form.addListener(DebtForm.DeleteEvent.class, event -> resetItem(event.getObj()));
+        form.addListener(DebtForm.CloseEvent.class, e -> closeEditor());
+    }
+
+    public void editEntity(DebtViewItem item) {
+        if (item == null) {
+            closeEditor();
+        } else {
+            form.setItem(item);
+            form.setVisible(true);
+            addClassName("editing");
+        }
+    }
+
+    private void resetItem(DebtViewItem item) {
+        item.setAmount(BigDecimal.ZERO);
+        item.setReceipts(0);
+        item.setMonths(Collections.emptySet());
+        item.setPreviousPaymentAmount(BigDecimal.ZERO);
+        item.setPreviousPaymentAmountCurrency(null);
+
+        form.setItem(form.defaultItem());
+        setItems(items);
+    }
+
+    private void closeEditor() {
+        form.setItem(null);
+        form.setVisible(false);
+        removeClassName("editing");
     }
 
     public List<DebtViewItem> list() {
-        return list;
+        return items;
     }
 }

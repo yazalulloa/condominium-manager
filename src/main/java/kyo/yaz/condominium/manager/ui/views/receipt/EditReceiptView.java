@@ -5,11 +5,9 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -34,6 +32,9 @@ import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.ScrollPanel;
 import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.extracharges.ExtraChargesView;
+import kyo.yaz.condominium.manager.ui.views.receipt.debts.DebtsView;
+import kyo.yaz.condominium.manager.ui.views.receipt.expenses.ExpenseForm;
+import kyo.yaz.condominium.manager.ui.views.receipt.expenses.ExpensesView;
 import kyo.yaz.condominium.manager.ui.views.util.AppUtil;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -66,11 +67,11 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
     private Receipt receipt;
     private Building building;
 
-    private final ReceiptDebtsView receiptDebtsView;
+    private final DebtsView debtsView;
 
     @Autowired
     public EditReceiptView(ExpensesView expensesView, ApartmentService apartmentService, ReceiptService receiptService, BuildingService buildingService,
-                           SaveReceipt saveReceipt, ReceiptForm receiptForm, ReceiptDebtsView receiptDebtsView) {
+                           SaveReceipt saveReceipt, ReceiptForm receiptForm, DebtsView debtsView) {
         super();
         this.expensesView = expensesView;
         this.apartmentService = apartmentService;
@@ -78,14 +79,13 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
         this.buildingService = buildingService;
         this.saveReceipt = saveReceipt;
         this.receiptForm = receiptForm;
-        this.receiptDebtsView = receiptDebtsView;
+        this.debtsView = debtsView;
     }
 
     private void init() {
         addClassName("edit-receipt-view");
-        setSizeFull();
         receiptForm.init();
-        receiptDebtsView.init();
+        debtsView.init();
         extraChargesView.init();
         expensesView.init();
         addContent();
@@ -122,7 +122,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                     .date(formItem.getDate())
                     .expenses(ConvertUtil.toList(expensesView.items(), ExpenseMapper::to))
                     //.debts(ConvertUtil.toList(debts, DebtMapper::to))
-                    .debts(ConvertUtil.toList(receiptDebtsView.list(), DebtMapper::to))
+                    .debts(ConvertUtil.toList(debtsView.list(), DebtMapper::to))
                     .extraCharges(ConvertUtil.toList(extraChargesView.items(), ExtraChargeMapper::to))
                     .rate(formItem.getRate())
                     .build();
@@ -157,7 +157,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                 final var value = event.getValue();
 
                 if (value == null) {
-                    receiptDebtsView.setVisible(false);
+                    debtsView.setVisible(false);
                     extraChargesView.setVisible(false);
                 } else {
                     setAptNumbers(value)
@@ -170,11 +170,9 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
         });
 
         extraChargesView.setVisible(false);
-        receiptDebtsView.setVisible(false);
+        debtsView.setVisible(false);
 
-        final var debtsLayout = new VerticalLayout(new H3(Labels.DEBTS), receiptDebtsView);
-
-        add(receiptForm, createButtonsLayout(), reserveFundsDiv, expensesView, new Hr(), debtsLayout, new Hr(), extraChargesView, new Hr());
+        add(receiptForm, createButtonsLayout(), reserveFundsDiv, expensesView, new Hr(), debtsView, new Hr(), extraChargesView, new Hr());
     }
 
     private void navigateBack() {
@@ -212,8 +210,8 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                         })
                         .collect(Collectors.toCollection(LinkedList::new));
 
-                receiptDebtsView.setItems(debtViewItems);
-                receiptDebtsView.setVisible(true);
+                debtsView.setItems(debtViewItems);
+                debtsView.setVisible(true);
                 extraChargesView.setApartments(aptNumbers);
                 extraChargesView.setVisible(true);
                 loadReserveFunds();
@@ -278,7 +276,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                 .map(runnable -> {
                     return () -> {
 
-                        receiptDebtsView.setItems(ConvertUtil.toList(receipt.debts(), DebtMapper::to));
+                        debtsView.setItems(ConvertUtil.toList(receipt.debts(), DebtMapper::to));
                         expensesView.setItems(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
                         extraChargesView.setItems(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
 

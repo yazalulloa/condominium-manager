@@ -21,8 +21,6 @@ import java.util.Optional;
 
 
 public class MainLayout extends AppLayout {
-
-
     private H2 viewTitle;
 
     private final UserSession userSession = new UserSession();
@@ -50,7 +48,7 @@ public class MainLayout extends AppLayout {
 
         Scroller scroller = new Scroller(createNavigation());
 
-        addToDrawer(header, scroller, createFooter());
+        addToDrawer(header, scroller);
     }
 
     private AppNav createNavigation() {

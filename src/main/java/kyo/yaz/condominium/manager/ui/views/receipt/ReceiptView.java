@@ -397,7 +397,7 @@ public class ReceiptView extends BaseVerticalLayout {
         });
 
 
-        HorizontalLayout toolbar = new HorizontalLayout(filterText, buildingComboBox, addEntityButton, upload(), countText);
+        final var toolbar = new HorizontalLayout(filterText, buildingComboBox, addEntityButton, upload(), countText);
         toolbar.addClassName("toolbar");
         toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         return toolbar;

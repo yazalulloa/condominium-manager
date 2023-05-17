@@ -43,7 +43,6 @@ public class GmailProvider {
 
         final var authorize = new AuthorizationCodeInstalledApp(googleAuthorizationCodeFlow, localServerReceiver).authorize("user");
 
-
         return new Gmail.Builder(transport, jsonFactory, authorize)
                 .setApplicationName(appName)
                 .build();

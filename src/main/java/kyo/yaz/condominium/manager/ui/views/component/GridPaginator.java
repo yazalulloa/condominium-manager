@@ -1,11 +1,10 @@
 package kyo.yaz.condominium.manager.ui.views.component;
 
-import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 
 import java.math.BigDecimal;
@@ -13,7 +12,7 @@ import java.math.RoundingMode;
 import java.util.Optional;
 import java.util.TreeSet;
 
-public class GridPaginator extends HorizontalLayout {
+public class GridPaginator extends Div {
     private final ComboBox<Integer> itemsPerPageComBox = ViewUtil.itemPerPageComboBox();
     private final ComboBox<Integer> pageComboBox = new ComboBox<>();
     private final Runnable runnable;
@@ -27,8 +26,12 @@ public class GridPaginator extends HorizontalLayout {
 
     public GridPaginator(long totalCount, Runnable runnable) {
         this.runnable = runnable;
+        addClassName("grid-paginator");
         set(totalCount);
         initViews();
+
+        itemsPerPageComBox.addClassName("items-per-page");
+        pageComboBox.addClassName("page");
     }
 
     public void set(long totalCount) {
@@ -97,8 +100,8 @@ public class GridPaginator extends HorizontalLayout {
         pageComboBox.setAutoOpen(true);
         pageComboBox.setItemLabelGenerator(String::valueOf);
 
-        itemsPerPageComBox.setWidth(80, Unit.PIXELS);
-        pageComboBox.setWidth(80, Unit.PIXELS);
+        // itemsPerPageComBox.setWidth(80, Unit.EM);
+        // pageComboBox.setWidth(80, Unit.EM);
 
         final var firstPage = new Button();
         final var previousPage = new Button();

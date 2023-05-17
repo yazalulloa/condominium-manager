@@ -37,6 +37,7 @@ public class Labels {
         public static final String EMAILS_LABEL = "Emails";
         public static final String PAYMENT_TYPE_LABEL = "Tipo de pago";
         public static final String AMOUNT_LABEL = "Monto";
+        public static final String ALIQUOT_LABEL = "Aliquota";
     }
 
     public static class Building {

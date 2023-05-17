@@ -9,4 +9,6 @@ import java.util.List;
 public interface BuildingCustomRepository {
 
     Mono<List<Building>> list(String filter, Pageable page);
+
+    Mono<Building> updateAptCount(String id, long aptCount);
 }

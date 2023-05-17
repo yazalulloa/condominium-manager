@@ -22,7 +22,7 @@ public interface ApartmentMapper {
 
     default Apartment map(ApartmentViewItem item) {
         final var apartmentId = new Apartment.ApartmentId(item.getBuildingId(), item.getNumber());
-        return new Apartment(apartmentId, item.getName(), item.getIdDoc(), item.getEmails(), item.getPaymentType(), item.getAmountToPay());
+        return new Apartment(apartmentId, item.getName(), item.getIdDoc(), item.getEmails(), item.getAmountToPay());
     }
 
     default ApartmentViewItem map(Apartment apartment) {
@@ -31,6 +31,6 @@ public interface ApartmentMapper {
         return new ApartmentViewItem(
                 optional.map(Apartment.ApartmentId::buildingId).orElse(null),
                 optional.map(Apartment.ApartmentId::number).orElse(null), apartment.name(), apartment.idDoc(), apartment.emails(),
-                apartment.paymentType(), apartment.amountToPay());
+                apartment.amountToPay());
     }
 }

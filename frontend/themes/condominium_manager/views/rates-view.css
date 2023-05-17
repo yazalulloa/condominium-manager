@@ -1,0 +1,56 @@
+.rates-view {
+  height: 100%;
+  width: 100%;
+}
+
+.rates-view .toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  flex-basis: auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.rates-view .footer {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  flex-basis: auto;
+  align-items: center;
+  gap: 16px;
+
+}
+
+.rates-view .card {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  flex-basis: auto;
+  justify-content: start;
+  gap: 16px;
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius);
+  box-shadow: var(--lumo-box-shadow-xs);
+  padding: calc(var(--lumo-space-s) * 1.5) var(--lumo-space-m);
+
+  .header {
+      font-size: small;
+      font-weight: bold;
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+      flex-basis: auto;
+      align-items: center;
+      gap: 16px;
+  }
+
+  .body {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        flex-basis: auto;
+        align-items: center;
+        gap: 16px;
+    }
+}

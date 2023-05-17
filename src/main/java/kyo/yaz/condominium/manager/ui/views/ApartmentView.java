@@ -6,15 +6,16 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
-import com.vaadin.flow.component.html.Hr;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -48,13 +49,15 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     private final Text queryCountText = new Text(null);
     private final Text totalCountText = new Text(null);
     private final Button addApartmentButton = new Button(Labels.ADD);
-    private final ApartmentService service;    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
+    private final ApartmentService apartmentService;
+    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final BuildingService buildingService;
     private CreateApartmentForm createApartmentForm;
+
     @Autowired
-    public ApartmentView(ApartmentService service, BuildingService buildingService) {
+    public ApartmentView(ApartmentService apartmentService, BuildingService buildingService) {
         super();
-        this.service = service;
+        this.apartmentService = apartmentService;
         this.buildingService = buildingService;
     }
 
@@ -62,10 +65,23 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         initData();
+
+        ui(ui -> {
+            final var page = ui.getPage();
+            page.retrieveExtendedClientDetails(receiver -> {
+                final var width = receiver.getScreenWidth();
+                logger().info("width {}", width);
+            });
+
+            page.addBrowserWindowResizeListener(
+                    event -> {
+                        logger().info("width {}", event.getWidth());
+                    });
+        });
     }
 
     private void init() {
-        addClassName("list-view");
+        addClassName("apartment-view");
         setSizeFull();
         configureGrid();
         configureForm();
@@ -76,19 +92,13 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
 
     private Component footer() {
 
-        final var verticalLayout = new VerticalLayout(totalCountText);
-
-        final var footer = new HorizontalLayout(gridPaginator, verticalLayout);
-
-        footer.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        footer.setFlexGrow(2, gridPaginator);
-        footer.setFlexGrow(1, verticalLayout);
-
+        final var footer = new Div(gridPaginator, totalCountText);
+        footer.addClassName("footer");
         return footer;
     }
 
     private Component getContent() {
-        HorizontalLayout content = new HorizontalLayout(grid, createApartmentForm);
+        final var content = new HorizontalLayout(grid, createApartmentForm);
         content.setFlexGrow(2, grid);
         content.setFlexGrow(1, createApartmentForm);
         content.addClassNames("content");
@@ -98,17 +108,23 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
 
     private void configureGrid() {
         grid.addClassNames("apartments-grid");
-        grid.setColumnReorderingAllowed(true);
+//        grid.setColumnReorderingAllowed(true);
+//
+//        grid.addColumn(apartment -> apartment.apartmentId().buildingId()).setHeader(Labels.Apartment.BUILDING_LABEL).setSortable(true).setKey(Labels.Apartment.BUILDING_LABEL);
+//        grid.addColumn(apartment -> apartment.apartmentId().number()).setHeader(Labels.Apartment.NUMBER_LABEL).setSortable(true).setKey(Labels.Apartment.NUMBER_LABEL);
+//        grid.addColumn(Apartment::name).setHeader(Labels.Apartment.NAME_LABEL).setSortable(true).setKey(Labels.Apartment.NAME_LABEL);
+//        grid.addColumn(Apartment::idDoc).setHeader(Labels.Apartment.ID_DOC_LABEL).setSortable(true).setKey(Labels.Apartment.ID_DOC_LABEL);
+//        grid.addColumn(apartment -> String.join("\n", apartment.emails())).setHeader(Labels.Apartment.EMAILS_LABEL).setKey(Labels.Apartment.EMAILS_LABEL);
+//        // grid.addColumn(Apartment::paymentType).setHeader(Labels.Apartment.PAYMENT_TYPE_LABEL).setKey(Labels.Apartment.PAYMENT_TYPE_LABEL);
+//        grid.addColumn(Apartment::amountToPay).setHeader(Labels.Apartment.ALIQUOT_LABEL).setSortable(true).setKey(Labels.Apartment.ALIQUOT_LABEL);
+//
+//        grid.getColumns().forEach(col -> col.setAutoWidth(true));
 
-        grid.addColumn(apartment -> apartment.apartmentId().buildingId()).setHeader(Labels.Apartment.BUILDING_LABEL).setSortable(true).setKey(Labels.Apartment.BUILDING_LABEL);
-        grid.addColumn(apartment -> apartment.apartmentId().number()).setHeader(Labels.Apartment.NUMBER_LABEL).setSortable(true).setKey(Labels.Apartment.NUMBER_LABEL);
-        grid.addColumn(Apartment::name).setHeader(Labels.Apartment.NAME_LABEL).setSortable(true).setKey(Labels.Apartment.NAME_LABEL);
-        grid.addColumn(Apartment::idDoc).setHeader(Labels.Apartment.ID_DOC_LABEL).setSortable(true).setKey(Labels.Apartment.ID_DOC_LABEL);
-        grid.addColumn(apartment -> String.join("\n", apartment.emails())).setHeader(Labels.Apartment.EMAILS_LABEL).setKey(Labels.Apartment.EMAILS_LABEL);
-        grid.addColumn(Apartment::paymentType).setHeader(Labels.Apartment.PAYMENT_TYPE_LABEL).setKey(Labels.Apartment.PAYMENT_TYPE_LABEL);
-        grid.addColumn(Apartment::amountToPay).setHeader(Labels.Apartment.AMOUNT_LABEL).setSortable(true).setKey(Labels.Apartment.AMOUNT_LABEL);
 
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
+        grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
+        grid.addComponentColumn(this::card);
+
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
 
@@ -116,6 +132,33 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         add(grid, contextMenu);
 
         grid.asSingleSelect().addValueChangeListener(event -> editEntity(event.getValue()));
+    }
+
+    private Component card(Apartment apartment) {
+        final var div = new Div();
+        div.addClassName("card");
+
+        final var header = new Div(new Span(apartment.apartmentId().buildingId()), new Span(apartment.apartmentId().number()));
+        header.addClassName("header");
+
+        final var body = new Div(new Span(apartment.name()));
+        body.addClassName("body");
+
+        final var idDoc = apartment.idDoc();
+
+        if (idDoc != null && !idDoc.isEmpty()) {
+            body.add(new Span(idDoc));
+        }
+
+        final var emails = String.join(",", apartment.emails());
+        body.add(new Span(emails));
+
+        final var amountToPay = Labels.Apartment.ALIQUOT_LABEL + ": %s".formatted(apartment.amountToPay());
+        body.add(amountToPay);
+
+        div.add(header);
+        div.add(body);
+        return div;
     }
 
     private void configureForm() {
@@ -130,8 +173,9 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     @Override
     public void delete(Apartment obj) {
 
-        service.delete(obj)
+        apartmentService.delete(obj)
                 .andThen(refreshData())
+                .andThen(updateBuildingCount(obj.apartmentId().buildingId()))
                 .subscribeOn(Schedulers.io())
                 .subscribe(completableObserver());
     }
@@ -144,7 +188,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
 
     private void initData() {
 
-        Single.zip(service.countAll(), buildingService.buildingIds(), (count, buildingIds) ->
+        Single.zip(apartmentService.countAll(), buildingService.buildingIds(), (count, buildingIds) ->
                         (Runnable) () -> {
 
                             init();
@@ -165,7 +209,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     }
 
     private Single<Paging<Apartment>> pagingMono() {
-        return service.paging(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
+        return apartmentService.paging(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
     }
 
     private Completable refreshData() {
@@ -184,7 +228,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
                 .ignoreElement();
     }
 
-    private HorizontalLayout getToolbar() {
+    private Component getToolbar() {
         filterText.setPlaceholder("Buscar");
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.LAZY);
@@ -207,9 +251,8 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
             }
         });
 
-        HorizontalLayout toolbar = new HorizontalLayout(filterText, buildingComboBox, addApartmentButton, queryCountText);
+        final var toolbar = new Div(filterText, buildingComboBox, addApartmentButton, queryCountText);
         toolbar.addClassName("toolbar");
-        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         return toolbar;
     }
 
@@ -236,9 +279,10 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     }
 
     private void saveEntity(CreateApartmentForm.SaveEvent event) {
-        service.save(ApartmentMapper.to(event.getObj()))
+        apartmentService.save(ApartmentMapper.to(event.getObj()))
                 .ignoreElement()
                 .andThen(refreshData())
+                .andThen(updateBuildingCount(event.getObj().getBuildingId()))
                 .subscribeOn(Schedulers.io())
                 .subscribe(completableObserver());
 
@@ -248,6 +292,11 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     private void deleteEntity(CreateApartmentForm.DeleteEvent event) {
         delete(ApartmentMapper.to(event.getObj()));
         closeEditor();
+    }
+
+    private Completable updateBuildingCount(String buildingId) {
+        return apartmentService.countByBuilding(buildingId)
+                .flatMapCompletable(count -> buildingService.updateAptCount(buildingId, count));
     }
 
     private static class ApartmentContextMenu extends GridContextMenu<Apartment> {
@@ -260,8 +309,6 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
             //add(new Hr());
         }
     }
-
-
 
 
 }

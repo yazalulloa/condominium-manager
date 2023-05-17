@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views.receipt;
+package kyo.yaz.condominium.manager.ui.views.receipt.expenses;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -39,7 +39,6 @@ public class ExpensesView extends BaseDiv {
 
     private BigDecimal totalCommon = BigDecimal.ZERO;
     private BigDecimal totalUnCommon = BigDecimal.ZERO;
-
 
     private ExpenseViewItem draggedItem;
 

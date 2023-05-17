@@ -83,11 +83,11 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
     private void initData() {
 
 
-        final var aptNumbersSingle = Maybe.fromOptional(Optional.of(buildingIdParam))
+        final var aptNumbersSingle = Maybe.fromOptional(Optional.ofNullable(buildingIdParam))
                 .flatMapSingle(apartmentService::aptNumbers)
                 .switchIfEmpty(Maybe.fromCallable(Collections::emptyList));
 
-        final var buildingMaybe = Maybe.fromOptional(Optional.of(buildingIdParam))
+        final var buildingMaybe = Maybe.fromOptional(Optional.ofNullable(buildingIdParam))
                 .flatMap(buildingService::find);
 
         Maybe.zip(buildingMaybe, aptNumbersSingle, (building, list) -> {

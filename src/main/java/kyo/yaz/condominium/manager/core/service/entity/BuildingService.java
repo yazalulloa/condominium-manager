@@ -1,6 +1,7 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableSource;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
@@ -54,5 +55,11 @@ public class BuildingService {
     public Single<Building> get(String id) {
         return find(id)
                 .switchIfEmpty(Single.error(new RuntimeException("Building not found")));
+    }
+
+    public CompletableSource updateAptCount(String id, Long count) {
+
+        final var mono = repository.updateAptCount(id, count);
+        return RxJava3Adapter.monoToCompletable(mono);
     }
 }
