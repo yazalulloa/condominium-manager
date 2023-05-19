@@ -1,7 +1,5 @@
 package kyo.yaz.condominium.manager.ui.views.util;
 
-import com.vaadin.flow.component.Component;
-
 public class Labels {
 
     public static final String NEXT_PAGE = "Siguiente Página";
@@ -18,6 +16,7 @@ public class Labels {
     public static final String NEW_DEBT = "Nueva Deuda";
     public static final String ASK_CONFIRMATION_DELETE_RATE = "Esta seguro de borrar la tasa de cambio\n %s %s %s?";
     public static final String ASK_CONFIRMATION_DELETE_BUILDING = "Esta seguro de borrar el edificio\n %s?";
+    public static final String ASK_CONFIRMATION_DELETE_EMAIL_CONFIG = "Esta seguro de borrar la configuracioon de email\n %s?";
     public static final String COPY = "Copiar";
     public static final String ADD = "Añadir";
     public static final String EXTRA_CHARGE_TITLE = "Cargo Extra";
@@ -78,7 +77,7 @@ public class Labels {
         public static final String EXPENSE_UNCOMMON_LABEL = "Gastos no comunes";
         public static final String DEBT_RECEIPT_TOTAL_NUMBER_LABEL = "Recibos";
         public static final String DEBT_RECEIPT_TOTAL_AMOUNT_LABEL = "Total de deuda";
-        public static final String CREATED_AT_LABEL = "Fecha de creacion";
+        public static final String CREATED_AT_LABEL = "Fecha de creación";
         public static final String RECEIPT_DATE_LABEL = "Fecha de recibo";
         public static final String RATE_LABEL = "Tasa";
         public static final String ASK_CONFIRMATION_DELETE = "Esta seguro de borrar el recibo\n %s %s %s?";
@@ -138,5 +137,17 @@ public class Labels {
         public static final String CURRENCY_LABEL = "Moneda";
         public static final String PERCENTAGE_LABEL = "Porcentaje";
         public static final String ACTIVE_LABEL = "Activado";
+    }
+
+    public static class EmailConfig {
+        public static final String ID_LABEL = "ID";
+        public static final String FROM_LABEL = "Email";
+        public static final String ACTIVE_LABEL = "Activado";
+        public static final String CONFIGURATION_LABEL = "Configuración";
+        public static final String STORED_CREDENTIAL_LABEL = "Credential";
+        public static final String IS_AVAILABLE_LABEL = "Disponible";
+        public static final String CREATED_AT_LABEL = "Fecha de creación";
+        public static final String UPDATED_AT_LABEL = "Actualizado en";
+        public static final String LAST_CHECK_AT_LABEL = "Ultimo chequeo";
     }
 }

@@ -6,16 +6,22 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRegistration;
 import kyo.yaz.condominium.manager.core.util.NetworkUtil;
 import kyo.yaz.condominium.manager.ui.views.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
 
 import java.util.Optional;
 
@@ -31,6 +37,7 @@ import java.util.Optional;
 @EnableScheduling
 @EnableAsync
 @ComponentScan
+@ServletComponentScan
 @Theme(value = "condominium_manager")
 @Push(PushMode.AUTOMATIC)
 @PWA(name = "Condominium Manager", shortName = "CM")
@@ -54,5 +61,15 @@ public class Application extends SpringBootServletInitializer implements AppShel
         SpringApplication.run(Application.class, args);
     }
 
+   /* public void onStartup(ServletContext container) throws ServletException {
+        AnnotationConfigWebApplicationContext ctx
+                = new AnnotationConfigWebApplicationContext();
+        ctx.register(WebMvcConfigure.class);
+        ctx.setServletContext(container);
 
+        ServletRegistration.Dynamic servlet = container.addServlet(
+                "dispatcherExample", new DispatcherServlet(ctx));
+        servlet.setLoadOnStartup(1);
+        servlet.addMapping("/");
+    }*/
 }

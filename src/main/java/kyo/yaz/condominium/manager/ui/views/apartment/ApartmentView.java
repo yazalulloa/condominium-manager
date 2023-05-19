@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views;
+package kyo.yaz.condominium.manager.ui.views.apartment;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
@@ -29,7 +29,6 @@ import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.actions.DeleteEntity;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
-import kyo.yaz.condominium.manager.ui.views.form.CreateApartmentForm;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,11 +47,11 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
 
     private final Text queryCountText = new Text(null);
     private final Text totalCountText = new Text(null);
-    private final Button addApartmentButton = new Button(Labels.ADD);
+    private final Button addBtn = new Button(Labels.ADD);
     private final ApartmentService apartmentService;
     private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final BuildingService buildingService;
-    private CreateApartmentForm createApartmentForm;
+    private CreateApartmentForm form;
 
     @Autowired
     public ApartmentView(ApartmentService apartmentService, BuildingService buildingService) {
@@ -98,9 +97,9 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     }
 
     private Component getContent() {
-        final var content = new HorizontalLayout(grid, createApartmentForm);
+        final var content = new HorizontalLayout(grid, form);
         content.setFlexGrow(2, grid);
-        content.setFlexGrow(1, createApartmentForm);
+        content.setFlexGrow(1, form);
         content.addClassNames("content");
         content.setSizeFull();
         return content;
@@ -162,12 +161,12 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     }
 
     private void configureForm() {
-        createApartmentForm = new CreateApartmentForm();
-        createApartmentForm.setWidth("25em");
-        createApartmentForm.setHeightFull();
-        createApartmentForm.addListener(CreateApartmentForm.SaveEvent.class, this::saveEntity);
-        createApartmentForm.addListener(CreateApartmentForm.DeleteEvent.class, this::deleteEntity);
-        createApartmentForm.addListener(CreateApartmentForm.CloseEvent.class, e -> closeEditor());
+        form = new CreateApartmentForm();
+        form.setWidth("25em");
+        form.setHeightFull();
+        form.addListener(CreateApartmentForm.SaveEvent.class, this::saveEntity);
+        form.addListener(CreateApartmentForm.DeleteEvent.class, this::deleteEntity);
+        form.addListener(CreateApartmentForm.CloseEvent.class, e -> closeEditor());
     }
 
     @Override
@@ -192,7 +191,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
                         (Runnable) () -> {
 
                             init();
-                            createApartmentForm.setBuildingIds(buildingIds);
+                            form.setBuildingIds(buildingIds);
                             buildingComboBox.setItems(buildingIds);
                             setCountText(count, count);
                         })
@@ -237,8 +236,8 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
                 updateGrid();
             }
         });
-        addApartmentButton.setDisableOnClick(true);
-        addApartmentButton.addClickListener(click -> addEntity());
+        addBtn.setDisableOnClick(true);
+        addBtn.addClickListener(click -> addEntity());
 
 
         //buildingComboBox.setHelperText(Labels.Apartment.BUILDING_LABEL);
@@ -251,7 +250,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
             }
         });
 
-        final var toolbar = new Div(filterText, buildingComboBox, addApartmentButton, queryCountText);
+        final var toolbar = new Div(filterText, buildingComboBox, addBtn, queryCountText);
         toolbar.addClassName("toolbar");
         return toolbar;
     }
@@ -260,16 +259,16 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         if (apartment == null) {
             closeEditor();
         } else {
-            createApartmentForm.setApartment(ApartmentMapper.to(apartment));
-            createApartmentForm.setVisible(true);
+            form.setItem(ApartmentMapper.to(apartment));
+            form.setVisible(true);
             addClassName("editing");
         }
     }
 
     private void closeEditor() {
-        createApartmentForm.setApartment(null);
-        createApartmentForm.setVisible(false);
-        addApartmentButton.setEnabled(true);
+        form.setItem(null);
+        form.setVisible(false);
+        addBtn.setEnabled(true);
         removeClassName("editing");
     }
 

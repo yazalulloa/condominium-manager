@@ -4,15 +4,22 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.upload.FailedEvent;
+import com.vaadin.flow.component.upload.FileRejectedEvent;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.UploadI18N;
+import com.vaadin.flow.component.upload.receivers.FileBuffer;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -167,6 +174,48 @@ public class ViewUtil {
         span.setTitle(title);
         span.setText(text);
         return span;
+    }
+
+    public static Upload singleUpload(
+            String fileName,
+            String acceptedFileTypes,
+            Consumer<InputStream> inputStreamConsumer,
+            Consumer<FileRejectedEvent> fileRejectedEventConsumer,
+            Consumer<FailedEvent> failedEventConsumer) {
+        final var buffer = new FileBuffer();
+        final var upload = new Upload(buffer);
+        upload.setDropAllowed(true);
+        upload.setAutoUpload(true);
+        if (acceptedFileTypes != null) {
+            upload.setAcceptedFileTypes(acceptedFileTypes);
+        }
+        upload.setMaxFiles(1);
+        int maxFileSizeInBytes = 2 * 1024 * 1024;
+        upload.setMaxFileSize(maxFileSizeInBytes);
+
+        final var i18n = new UploadI18N();
+
+        final var str = Optional.ofNullable(fileName).orElse("");
+        i18n.setAddFiles(new UploadI18N.AddFiles().setOne("Seleccione %s".formatted(str)));
+        i18n.setDropFiles(new UploadI18N.DropFiles().setOne("Arrastre %s".formatted(str)));
+
+        upload.setI18n(i18n);
+
+        upload.addSucceededListener(event -> {
+
+            final var inputStream = buffer.getInputStream();
+            inputStreamConsumer.accept(inputStream);
+
+            upload.clearFileList();
+
+
+        });
+
+        upload.addFileRejectedListener(fileRejectedEventConsumer::accept);
+
+        upload.addFailedListener(failedEventConsumer::accept);
+
+        return upload;
     }
 
 }

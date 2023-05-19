@@ -11,10 +11,11 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import kyo.yaz.condominium.manager.core.config.domain.UserSession;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
 import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
-import kyo.yaz.condominium.manager.ui.views.ApartmentView;
+import kyo.yaz.condominium.manager.ui.views.apartment.ApartmentView;
 import kyo.yaz.condominium.manager.ui.views.RateView;
 import kyo.yaz.condominium.manager.ui.views.building.BuildingView;
 import kyo.yaz.condominium.manager.ui.views.domain.User;
+import kyo.yaz.condominium.manager.ui.views.email_config.EmailConfigView;
 import kyo.yaz.condominium.manager.ui.views.receipt.ReceiptView;
 
 import java.util.Optional;
@@ -57,7 +58,8 @@ public class MainLayout extends AppLayout {
                 .addItem(new AppNavItem(BuildingView.PAGE_TITLE, BuildingView.class, new Icon(VaadinIcon.BUILDING)))
                 .addItem(new AppNavItem(RateView.PAGE_TITLE, RateView.class, new Icon(VaadinIcon.COIN_PILES)))
                 .addItem(new AppNavItem(ApartmentView.PAGE_TITLE, ApartmentView.class, new Icon(VaadinIcon.USER)))
-                .addItem(new AppNavItem(ReceiptView.PAGE_TITLE, ReceiptView.class, new Icon(VaadinIcon.FILE_TEXT)));
+                .addItem(new AppNavItem(ReceiptView.PAGE_TITLE, ReceiptView.class, new Icon(VaadinIcon.FILE_TEXT)))
+                .addItem(new AppNavItem(EmailConfigView.PAGE_TITLE, EmailConfigView.class, new Icon(VaadinIcon.ENVELOPE)));
 
     }
 

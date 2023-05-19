@@ -1,5 +1,6 @@
-package kyo.yaz.condominium.manager.ui.views.form;
+package kyo.yaz.condominium.manager.ui.views.apartment;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -14,6 +15,7 @@ import com.vaadin.flow.data.binder.ValidationException;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ApartmentViewItem;
+import kyo.yaz.condominium.manager.ui.views.form.EmailsForm;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 
 import java.util.Collections;
@@ -43,17 +45,16 @@ public class CreateApartmentForm extends BaseForm {
     private final EmailsForm emailsForm = new EmailsForm();
 
 
-    ApartmentViewItem apartment;
+    ApartmentViewItem item;
 
     Binder<ApartmentViewItem> binder = new BeanValidationBinder<>(ApartmentViewItem.class);
 
     public CreateApartmentForm() {
         addClassName("apartment-form");
+        init();
+    }
 
-        //paymentTypeComboBox.setItemLabelGenerator(PaymentType::name);
-
-        // configureGrid();
-
+    private void init() {
         add(
                 buildingField,
                 numberField,
@@ -64,16 +65,7 @@ public class CreateApartmentForm extends BaseForm {
                 emailsForm,
                 createButtonsLayout());
 
-
         binder.bindInstanceFields(this);
-
-
-      /*  binder.bind(buildingField, ApartmentViewItem::getBuildingId, ApartmentViewItem::setBuildingId);
-        binder.bind(numberField, ApartmentViewItem::getNumber, ApartmentViewItem::setNumber);
-        binder.bind(nameField, ApartmentViewItem::getName, ApartmentViewItem::setName);
-        binder.bind(buildingField, ApartmentViewItem::getBuildingId, ApartmentViewItem::setBuildingId);
-        binder.bind(buildingField, ApartmentViewItem::getBuildingId, ApartmentViewItem::setBuildingId);
-        binder.bind(buildingField, ApartmentViewItem::getBuildingId, ApartmentViewItem::setBuildingId);*/
     }
 
 
@@ -81,7 +73,7 @@ public class CreateApartmentForm extends BaseForm {
         buildingField.setItems(buildingIds);
     }
 
-    private HorizontalLayout createButtonsLayout() {
+    private Component createButtonsLayout() {
 
         final var save = new Button(Labels.SAVE);
         final var delete = new Button(Labels.DELETE);
@@ -95,9 +87,8 @@ public class CreateApartmentForm extends BaseForm {
         close.addClickShortcut(Key.ESCAPE);
 
         save.addClickListener(event -> validateAndSave());
-        delete.addClickListener(event -> fireEvent(new DeleteEvent(this, apartment)));
+        delete.addClickListener(event -> fireEvent(new DeleteEvent(this, item)));
         close.addClickListener(event -> fireEvent(new CloseEvent(this)));
-
 
         binder.addStatusChangeListener(e -> save.setEnabled(binder.isValid()));
 
@@ -106,10 +97,10 @@ public class CreateApartmentForm extends BaseForm {
 
     private void validateAndSave() {
         try {
-            apartment.setEmails(emailsForm.getEmails());
-            binder.writeBean(apartment);
+            item.setEmails(emailsForm.getEmails());
+            binder.writeBean(item);
 
-            fireEvent(new SaveEvent(this, apartment));
+            fireEvent(new SaveEvent(this, item));
         } catch (ValidationException e) {
             logger().error("ERROR_VALIDATING", e);
 
@@ -118,11 +109,11 @@ public class CreateApartmentForm extends BaseForm {
         }
     }
 
-    public void setApartment(ApartmentViewItem apartment) {
-        this.apartment = apartment;
-        binder.readBean(apartment);
+    public void setItem(ApartmentViewItem item) {
+        this.item = item;
+        binder.readBean(item);
 
-        final var emails = Optional.ofNullable(apartment)
+        final var emails = Optional.ofNullable(item)
                 .map(ApartmentViewItem::getEmails)
                 .orElseGet(Collections::emptySet);
 

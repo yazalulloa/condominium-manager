@@ -1,0 +1,64 @@
+.email-config-view {
+  height: 100%;
+  width: 100%;
+}
+
+.email-config-view .toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  flex-basis: auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.email-config-view .footer {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  flex-basis: auto;
+  align-items: center;
+  gap: 16px;
+
+}
+
+.email-config-view .card {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  flex-basis: auto;
+  justify-content: start;
+  gap: 16px;
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius);
+  box-shadow: var(--lumo-box-shadow-xs);
+  padding: calc(var(--lumo-space-s) * 1.5) var(--lumo-space-m);
+
+  .info {
+       display: flex;
+       flex-wrap: wrap;
+       flex-direction: row;
+       flex-basis: auto;
+       justify-content: start;
+       gap: 16px;
+  }
+
+  .buttons {
+           display: flex;
+           flex-wrap: wrap;
+           flex-direction: row;
+           flex-basis: auto;
+           align-items: start;
+           justify-content: start;
+           gap: 16px;
+      }
+}
+
+.email-config-form {
+          display: flex;
+          flex-wrap: wrap;
+          flex-direction: column;
+          flex-basis: auto;
+          gap: 16px;
+
+}

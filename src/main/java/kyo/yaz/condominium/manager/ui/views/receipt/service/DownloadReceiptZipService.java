@@ -1,7 +1,8 @@
 package kyo.yaz.condominium.manager.ui.views.receipt.service;
 
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Vertx;
 import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
@@ -10,12 +11,15 @@ import kyo.yaz.condominium.manager.core.service.GetPdfItems;
 import kyo.yaz.condominium.manager.core.util.ZipUtility;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.actions.DownloadReceiptZipAction;
-import kyo.yaz.condominium.manager.ui.views.component.DownloadReceiptZipAnchor;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.vaadin.firitin.components.DynamicFileDownloader;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,60 +47,96 @@ public class DownloadReceiptZipService {
         this.plConsumer = plConsumer;
     }
 
-    public ComponentRenderer<Anchor, Receipt> downloadAnchor() {
-        return new ComponentRenderer<>(Anchor::new, new DownloadReceiptZipAnchor(new DownloadReceiptZipAction<>() {
-            @Override
-            public void downloadBtnClicked() {
+    private void startProgress() {
+        updateProgress(pl -> {
+            pl.setProgressText("Creando archivos");
+            pl.progressBar().setIndeterminate(true);
+            pl.setVisible(true);
+        });
+    }
+
+    private final DownloadReceiptZipAction<Receipt> zipAction = new DownloadReceiptZipAction<>() {
+        @Override
+        public void downloadBtnClicked() {
+            startProgress();
+        }
+
+        @Override
+        public String fileName(Receipt obj) {
+            return createPdfReceiptService.fileName(obj);
+        }
+
+        @Override
+        public String filePath(Receipt receipt) {
+
+            return zipPath(receipt)
+                    .subscribeOn(Schedulers.io())
+                    .doAfterTerminate(getPdfItems::delete)
+                    .blockingGet();
+        }
+
+        @Override
+        public void downloadFinished(Runnable runnable) {
+            vertx.setTimer(TimeUnit.SECONDS.toMillis(2), l -> {
                 updateProgress(pl -> {
-                    pl.setProgressText("Creando archivos");
-                    pl.progressBar().setIndeterminate(true);
-                    pl.setVisible(true);
+
+                    pl.setVisible(false);
+                    runnable.run();
                 });
-            }
+            });
+        }
+    };
 
-            @Override
-            public String fileName(Receipt obj) {
-                return createPdfReceiptService.fileName(obj);
-            }
+    public Single<String> zipPath(Receipt receipt) {
+        getPdfItems.setPlConsumer(plConsumer);
 
-            @Override
-            public String filePath(Receipt receipt) {
-                getPdfItems.setPlConsumer(plConsumer);
-
-                return getPdfItems.pdfItems(receipt)
-                        .map(list -> {
-                            updateProgress(pl -> {
-                                pl.setProgressText("Creando zip");
-                                pl.progressBar().setIndeterminate(true);
-                            });
-
-                            final var dirPath = "tmp/" + receipt.buildingId() + "/";
-                            final var zipPath = dirPath + fileName(receipt);
-                            Files.createDirectories(Paths.get(dirPath));
-                            final var files = list.stream().map(PdfReceiptItem::path)
-                                    .map(Path::toFile)
-                                    .toList();
-
-                            ZipUtility.zip(files, zipPath);
-                            updateProgress(pl -> pl.setProgressText("Descargando"));
-                            return zipPath;
-                        })
-                        .subscribeOn(Schedulers.io())
-                        .doAfterTerminate(getPdfItems::delete)
-                        .blockingGet();
-            }
-
-            @Override
-            public void downloadFinished(Runnable runnable) {
-                vertx.setTimer(TimeUnit.SECONDS.toMillis(2), l -> {
+        return getPdfItems.pdfItems(receipt)
+                .map(list -> {
                     updateProgress(pl -> {
-
-                        pl.setVisible(false);
-                        runnable.run();
+                        pl.setProgressText("Creando zip");
+                        pl.progressBar().setIndeterminate(true);
                     });
+
+                    final var dirPath = "tmp/" + receipt.buildingId() + "/";
+                    final var zipPath = dirPath + zipAction.fileName(receipt);
+                    Files.createDirectories(Paths.get(dirPath));
+                    final var files = list.stream().map(PdfReceiptItem::path)
+                            .map(Path::toFile)
+                            .toList();
+
+                    ZipUtility.zip(files, zipPath);
+                    updateProgress(pl -> pl.setProgressText("Descargando"));
+                    return zipPath;
                 });
+    }
+
+    public DynamicFileDownloader fileDownloader(Receipt receipt) {
+        final var fileDownloader = new DynamicFileDownloader("", zipAction.fileName(receipt), outputStream -> {
+            startProgress();
+
+            final var path = zipPath(receipt)
+                    .subscribeOn(Schedulers.io())
+                    .blockingGet();
+
+            try (var inputStream = new BufferedInputStream(new FileInputStream(path));
+                 var targetStream = new BufferedOutputStream(outputStream)) {
+                inputStream.transferTo(targetStream);
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-        }));
+        });
+
+        fileDownloader.addClassName("file-downloader");
+        fileDownloader.setDisableOnClick(true);
+
+        fileDownloader.addDownloadFinishedListener(e -> {
+            fileDownloader.setEnabled(true);
+            updateProgress(pl -> pl.setVisible(false));
+        });
+
+        fileDownloader.add(new Icon(VaadinIcon.DOWNLOAD_ALT));
+        return fileDownloader;
     }
 
     private void updateProgress(Consumer<ProgressLayout> consumer) {

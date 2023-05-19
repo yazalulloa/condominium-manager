@@ -22,25 +22,24 @@
 
 
  .building-view .card {
-
-     width: 100%;
-     display: flex;
-     flex-wrap: wrap;
-     flex-direction: row;
-     flex-basis: auto;
-     gap: 8px;
-     justify-content: center;
-     background-color: var(--lumo-base-color);
-     border-radius: var(--lumo-border-radius);
-     box-shadow: var(--lumo-box-shadow-xs);
-     padding: calc(var(--lumo-space-s) * 1.5) var(--lumo-space-m);
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  flex-basis: auto;
+  justify-content: start;
+  gap: 8px;
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius);
+  box-shadow: var(--lumo-box-shadow-xs);
+  padding: calc(var(--lumo-space-s) * 1.5) var(--lumo-space-m);
 
      .info {
          display: flex;
-         flex-wrap: wrap;
-         flex-direction: column;
-         flex-basis: auto;
-         gap: 8px;
+          flex-wrap: wrap;
+          flex-direction: column;
+          flex-basis: auto;
+          justify-content: start;
+          gap: 8px;
 
          .header {
              font-size: small;
@@ -61,15 +60,18 @@
              align-items: center;
              gap: 10px;
         }
+
+      .buttons {
+           display: flex;
+           flex-wrap: wrap;
+           flex-direction: row;
+           flex-basis: auto;
+           align-items: start;
+           justify-content: start;
+           gap: 16px;
+      }
+
     }
 
-     .buttons {
-         display: flex;
-         flex-wrap: wrap;
-         flex-direction: row;
-         flex-basis: auto;
-         align-items: center;
-         justify-content: center;
-         gap: 16px;
-    }
+
 }

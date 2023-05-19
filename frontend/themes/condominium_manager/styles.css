@@ -1,6 +1,8 @@
 @import url('./views/building-view.css');
 @import url('./views/apartment-view.css');
 @import url('./views/rates-view.css');
+@import url('./views/email-config-view.css');
+@import url('./views/receipt-view.css');
 @import url('./main-layout.css');
 
 a[highlight] {

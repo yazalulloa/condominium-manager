@@ -34,7 +34,7 @@ public class VertxHandlerImpl implements VertxHandler {
     @Override
     public <T> Single<Message<T>> request(String address, Object object, DeliveryOptions deliveryOptions) {
         return this.<Message<T>>single(ar -> vertx.eventBus().request(address, object, deliveryOptions, ar))
-                //.onErrorResumeNext(t -> Single.error(VertxUtil.removeReply(t)))
+                    .onErrorResumeNext(t -> Single.error(VertxUtil.removeReply(t)))
                 ;
     }
 

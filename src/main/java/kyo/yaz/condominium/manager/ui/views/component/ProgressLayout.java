@@ -14,6 +14,7 @@ public class ProgressLayout extends Div {
 
     public ProgressLayout() {
         super();
+        setWidthFull();
         progressBarSubLabel.getStyle().set("font-size", "var(--lumo-font-size-xs)");
 
         final var progressBarLabel = new FlexLayout();

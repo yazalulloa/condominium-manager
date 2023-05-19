@@ -8,8 +8,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -20,6 +21,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.component.upload.receivers.FileBuffer;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -36,6 +39,7 @@ import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
+import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
@@ -51,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import java.util.stream.Stream;
 
 @PageTitle(ReceiptView.PAGE_TITLE)
 @PermitAll
@@ -99,7 +103,7 @@ public class ReceiptView extends BaseVerticalLayout {
     }
 
     private void init() {
-        addClassName("list-view");
+        addClassName("receipt-view");
         setSizeFull();
         configureGrid();
         VaadinSession.getCurrent().setAttribute("receipt", null);
@@ -114,60 +118,18 @@ public class ReceiptView extends BaseVerticalLayout {
 
     private void configureGrid() {
         grid.addClassNames("apartments-grid");
-        grid.setColumnReorderingAllowed(true);
 
-        grid.addColumn(Receipt::id).setHeader(Labels.Receipt.ID_LABEL).setSortable(true).setKey(Labels.Receipt.ID_LABEL);
-        grid.addColumn(Receipt::buildingId).setHeader(Labels.Receipt.BUILDING_LABEL).setSortable(true).setKey(Labels.Receipt.BUILDING_LABEL);
-        grid.addColumn(Receipt::year).setHeader(Labels.Receipt.YEAR_LABEL).setSortable(true).setKey(Labels.Receipt.YEAR_LABEL);
-        grid.addColumn(r -> translationProvider.translate(r.month().name())).setHeader(Labels.Receipt.MONTH_LABEL).setSortable(true).setKey(Labels.Receipt.MONTH_LABEL);
-        grid.addColumn(Receipt::date).setHeader(Labels.Receipt.DATE_LABEL).setSortable(true).setKey(Labels.Receipt.DATE_LABEL);
-        grid.addColumn(receipt -> ConvertUtil.format(receipt.totalCommonExpenses(), receipt.totalCommonExpensesCurrency())).setHeader(Labels.Receipt.EXPENSE_COMMON_LABEL);
-        grid.addColumn(receipt -> ConvertUtil.format(receipt.totalUnCommonExpenses(), receipt.totalUnCommonExpensesCurrency())).setHeader(Labels.Receipt.EXPENSE_UNCOMMON_LABEL);
-        grid.addColumn(Receipt::debtReceiptsAmount).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL);
-        grid.addColumn(Receipt::totalDebt).setHeader(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL).setSortable(true).setKey(Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL);
-        grid.addColumn(receipt -> ConvertUtil.format(receipt.rate().rate(), receipt.rate().toCurrency())).setHeader(Labels.Receipt.RATE_LABEL).setSortable(true).setKey(Labels.Receipt.RATE_LABEL);
-        grid.addColumn(receipt -> DateUtil.formatVe(receipt.createdAt())).setHeader(Labels.Receipt.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Receipt.CREATED_AT_LABEL);
-        grid.addComponentColumn(receipt -> IconUtil.checkMarkOrCross(Optional.ofNullable(receipt.sent()).orElse(false)))
-                .setTooltipGenerator(receipt -> Optional.ofNullable(receipt.lastSent()).map(DateUtil::formatVe).orElse(null))
-                .setTextAlign(ColumnTextAlign.CENTER)
-                .setHeader(Labels.Receipt.SENT_LABEL);
 
-        //final var menuBar = new MenuBar();
-
-        grid.addColumn(downloadReceiptZipService.downloadAnchor())
-                .setHeader(Labels.DOWNLOAD)
-                .setTextAlign(ColumnTextAlign.CENTER)
-                // .setFrozenToEnd(true)
-                .setFlexGrow(0);
-
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));
-
-        grid.addComponentColumn(receipt -> {
-            final var menuBar = new MenuBar();
-            menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
-            final var menuItem = menuBar.addItem("•••");
-            menuItem.getElement().setAttribute("aria-label", "Mas opciones");
-
-            final var subMenu = menuItem.getSubMenu();
-
-            final var sendEmailMenu = subMenu.addItem(Labels.SEND_EMAIL, e -> sendEmails(receipt));
-            sendEmailMenu.addComponentAsFirst(createIcon(VaadinIcon.ENVELOPE));
-
-            final var copyMenu = subMenu.addItem(Labels.COPY, e -> copyReceipt(receipt));
-            copyMenu.addComponentAsFirst(createIcon(VaadinIcon.COPY));
-
-            final var deleteMenu = subMenu.addItem(Labels.DELETE, e -> deleteReceipt(receipt));
-            deleteMenu.addComponentAsFirst(createIcon(VaadinIcon.TRASH));
-
-            final var viewPdfsMenu = subMenu.addItem(Labels.VIEW_PDFS, e -> viewPdfs(receipt));
-            viewPdfsMenu.addComponentAsFirst(createIcon(VaadinIcon.FILE));
-
-            return menuBar;
-        }).setWidth("70px").setFlexGrow(0);
+        grid.addComponentColumn(this::card);
+        grid.setItemDetailsRenderer(createPersonDetailsRenderer());
 
         final var contextMenu = grid.addContextMenu();
 
         contextMenu.setDynamicContentHandler(Objects::nonNull);
+
+        final var editMenu = contextMenu.addItem(Labels.EDIT);
+        editMenu.addComponentAsFirst(createIcon(VaadinIcon.EDIT));
+        editMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::editEntity));
 
         final var sendEmailMenu = contextMenu.addItem(Labels.SEND_EMAIL);
         sendEmailMenu.addComponentAsFirst(createIcon(VaadinIcon.ENVELOPE));
@@ -185,14 +147,104 @@ public class ReceiptView extends BaseVerticalLayout {
         viewPdfsMenu.addComponentAsFirst(createIcon(VaadinIcon.FILE));
         viewPdfsMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::viewPdfs));
 
+
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
 
-        grid.addSelectionListener(selection -> {
-
-            selection.getFirstSelectedItem()
-                    .ifPresent(this::editEntity);
+        grid.addItemDoubleClickListener(selection -> {
+            editEntity(selection.getItem());
         });
+    }
+
+    private Renderer<Receipt> createPersonDetailsRenderer() {
+
+
+        return new ComponentRenderer<>(Div::new, (div, receipt) -> {
+            final var rate = receipt.rate();
+
+            div.add(new Span("%s %s %s %s %s".formatted(Labels.Receipt.RATE_LABEL, rate.rate(), rate.source(), rate.dateOfRate(), rate.createdAt())));
+        });
+    }
+
+    private MenuBar menuBar(Receipt receipt) {
+        final var menuBar = new MenuBar();
+        menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
+        final var menuItem = menuBar.addItem("•••");
+        menuItem.getElement().setAttribute("aria-label", "Mas opciones");
+
+        final var subMenu = menuItem.getSubMenu();
+
+        final var editMenu = subMenu.addItem(Labels.EDIT, e -> editEntity(receipt));
+        editMenu.addComponentAsFirst(createIcon(VaadinIcon.EDIT));
+
+        final var sendEmailMenu = subMenu.addItem(Labels.SEND_EMAIL, e -> sendEmails(receipt));
+        sendEmailMenu.addComponentAsFirst(createIcon(VaadinIcon.ENVELOPE));
+
+        final var copyMenu = subMenu.addItem(Labels.COPY, e -> copyReceipt(receipt));
+        copyMenu.addComponentAsFirst(createIcon(VaadinIcon.COPY));
+
+        final var deleteMenu = subMenu.addItem(Labels.DELETE, e -> deleteReceipt(receipt));
+        deleteMenu.addComponentAsFirst(createIcon(VaadinIcon.TRASH));
+
+        final var viewPdfsMenu = subMenu.addItem(Labels.VIEW_PDFS, e -> viewPdfs(receipt));
+        viewPdfsMenu.addComponentAsFirst(createIcon(VaadinIcon.FILE));
+
+        return menuBar;
+    }
+
+    private Component card(Receipt receipt) {
+        final var div = new Div();
+        div.addClassName("card");
+        div.add(cardHeader(receipt));
+        div.add(cardBody(receipt));
+
+        final var deleteBtn = new Button(IconUtil.trash());
+        deleteBtn.addClickListener(v -> deleteReceipt(receipt));
+
+
+        final var buttons = new Div(deleteBtn, menuBar(receipt), newDownloadBtn(receipt));
+        buttons.addClassName("buttons");
+
+        div.add(buttons);
+        return div;
+    }
+
+    private Component cardHeader(Receipt receipt) {
+
+        final var array = Stream.of(receipt.id(), receipt.buildingId(), receipt.year(), receipt.month(), receipt.date())
+                .map(Objects::toString)
+                .map(Span::new)
+                .toArray(Span[]::new);
+        final var div = new Div(array);
+        div.addClassName("header");
+        return div;
+    }
+
+    private Component newDownloadBtn(Receipt receipt) {
+        return downloadReceiptZipService.fileDownloader(receipt);
+    }
+
+    private Component cardBody(Receipt receipt) {
+        final var div = new Div();
+        div.addClassName("body");
+        Map.of(
+                Labels.Receipt.EXPENSE_COMMON_LABEL, ConvertUtil.format(receipt.totalCommonExpenses(), receipt.totalCommonExpensesCurrency()),
+                Labels.Receipt.EXPENSE_UNCOMMON_LABEL, ConvertUtil.format(receipt.totalUnCommonExpenses(), receipt.totalUnCommonExpensesCurrency()),
+                Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL, receipt.debtReceiptsAmount(),
+                Labels.Receipt.DEBT_RECEIPT_TOTAL_AMOUNT_LABEL, receipt.totalDebt(),
+                Labels.Receipt.RATE_LABEL, ConvertUtil.format(receipt.rate().rate(), receipt.rate().toCurrency()),
+                Labels.Receipt.CREATED_AT_LABEL, DateUtil.formatVe(receipt.createdAt())
+
+        ).forEach((label, value) -> div.add(new Span("%s: %s".formatted(label, value.toString()))));
+
+        final var sentIcon = IconUtil.checkMarkOrCross(Optional.ofNullable(receipt.sent()).orElse(false));
+        if (receipt.lastSent() != null) {
+            sentIcon.setTooltipText(DateUtil.formatVe(receipt.lastSent()));
+        }
+        final var sent = new Span(new Span(Labels.Receipt.SENT_LABEL + ": "), sentIcon);
+
+        div.add(sent);
+        return div;
     }
 
     private void viewPdfs(Receipt receipt) {

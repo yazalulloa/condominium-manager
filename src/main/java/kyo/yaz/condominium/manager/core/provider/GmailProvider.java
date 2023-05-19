@@ -6,16 +6,14 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
+import com.google.api.client.util.store.DataStoreFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import lombok.Builder;
 import lombok.ToString;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.List;
 
 @Builder(toBuilder = true)
@@ -23,8 +21,10 @@ import java.util.List;
 public class GmailProvider {
     private final String appName;
     private final int port;
-    private final String credentialsPath;
-    private final String tokensPath;
+    //private final String credentialsPath;
+    //private final String tokensPath;
+    private final Reader clientSecretsReader;
+    private final DataStoreFactory tokenDataStore;
 
     private final HttpTransport transport;
     private final JsonFactory jsonFactory;
@@ -32,10 +32,12 @@ public class GmailProvider {
 
     public Gmail gmail() throws IOException {
         List<String> SCOPES = List.of(GmailScopes.GMAIL_LABELS, GmailScopes.GMAIL_SEND);
-        final var inputStream = new FileInputStream(credentialsPath);
-        final var googleClientSecrets = GoogleClientSecrets.load(jsonFactory, new InputStreamReader(inputStream));
+        //final var reader = new InputStreamReader(new FileInputStream(credentialsPath));
+
+        final var googleClientSecrets = GoogleClientSecrets.load(jsonFactory, clientSecretsReader);
         final var googleAuthorizationCodeFlow = new GoogleAuthorizationCodeFlow.Builder(transport, jsonFactory, googleClientSecrets, SCOPES)
-                .setDataStoreFactory(new FileDataStoreFactory(new File(tokensPath)))
+                //.setDataStoreFactory(new FileDataStoreFactory(new File(tokensPath)))
+                .setDataStoreFactory(tokenDataStore)
                 .setAccessType("offline")
                 .build();
 

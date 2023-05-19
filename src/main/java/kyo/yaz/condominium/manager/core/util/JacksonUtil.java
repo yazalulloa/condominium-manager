@@ -2,6 +2,7 @@ package kyo.yaz.condominium.manager.core.util;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.cfg.MapperBuilder;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -9,6 +10,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.blackbird.BlackbirdModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import io.vertx.core.json.jackson.DatabindCodec;
 
 import java.util.Collection;
 import java.util.Map;
@@ -89,5 +91,9 @@ public class JacksonUtil {
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
                 .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
+    }
+
+    public static void validateJson(String json) throws JsonProcessingException {
+        DatabindCodec.mapper().readTree(json);
     }
 }
