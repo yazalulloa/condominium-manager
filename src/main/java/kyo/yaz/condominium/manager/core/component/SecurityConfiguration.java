@@ -13,12 +13,8 @@ public class SecurityConfiguration extends VaadinWebSecurity {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.oauth2Login().loginPage("/" + LoginView.URL).permitAll()
-                .and()
-                .authorizeHttpRequests()
-                .requestMatchers(new AntPathRequestMatcher("/actuator/health"))
-                .permitAll();
-
+        http.oauth2Login(configurer -> configurer.loginPage("/" + LoginView.URL).permitAll())
+                .authorizeHttpRequests(c -> c.requestMatchers(new AntPathRequestMatcher("/actuator/*")).permitAll());
 
         super.configure(http);
     }

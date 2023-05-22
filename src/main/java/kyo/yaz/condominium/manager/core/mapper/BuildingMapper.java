@@ -24,7 +24,7 @@ public interface BuildingMapper {
         return new BuildingViewItem(item.id(), item.name(), item.rif(),
                 item.mainCurrency(), item.debtCurrency(), item.currenciesToShowAmountToPay(),
                 item.fixedPay(), item.fixedPayAmount(),
-                item.receiptEmailFrom(), item.roundUpPayments());
+                item.roundUpPayments(), item.emailConfig(), item.createdAt(), item.updatedAt());
     }
 }
 

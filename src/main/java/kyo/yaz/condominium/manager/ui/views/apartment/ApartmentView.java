@@ -51,7 +51,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     private final ApartmentService apartmentService;
     private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final BuildingService buildingService;
-    private CreateApartmentForm form;
+    private final CreateApartmentForm form = new CreateApartmentForm();
 
     @Autowired
     public ApartmentView(ApartmentService apartmentService, BuildingService buildingService) {
@@ -65,7 +65,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         super.onAttach(attachEvent);
         initData();
 
-        ui(ui -> {
+      /*  ui(ui -> {
             final var page = ui.getPage();
             page.retrieveExtendedClientDetails(receiver -> {
                 final var width = receiver.getScreenWidth();
@@ -76,12 +76,13 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
                     event -> {
                         logger().info("width {}", event.getWidth());
                     });
-        });
+        });*/
     }
 
     private void init() {
         addClassName("apartment-view");
         setSizeFull();
+        gridPaginator.init();
         configureGrid();
         configureForm();
 
@@ -161,7 +162,6 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     }
 
     private void configureForm() {
-        form = new CreateApartmentForm();
         form.setWidth("25em");
         form.setHeightFull();
         form.addListener(CreateApartmentForm.SaveEvent.class, this::saveEntity);
@@ -187,13 +187,14 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
 
     private void initData() {
 
-        Single.zip(apartmentService.countAll(), buildingService.buildingIds(), (count, buildingIds) ->
+
+        Single.zip(paging(), buildingService.buildingIds(), (paging, buildingIds) ->
                         (Runnable) () -> {
 
-                            init();
                             form.setBuildingIds(buildingIds);
                             buildingComboBox.setItems(buildingIds);
-                            setCountText(count, count);
+                            setItems(paging);
+                            init();
                         })
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
@@ -207,22 +208,23 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         totalCountText.setText(String.format("Total de Apartamentos: %d", totalCount));
     }
 
-    private Single<Paging<Apartment>> pagingMono() {
+    private Single<Paging<Apartment>> paging() {
         return apartmentService.paging(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
+    }
+
+    private void setItems(Paging<Apartment> paging) {
+        grid.setPageSize(gridPaginator.itemsPerPage());
+        grid.setItems(paging.results());
+
+        setCountText(paging.queryCount(), paging.totalCount());
+
+        grid.getDataProvider().refreshAll();
     }
 
     private Completable refreshData() {
 
-        return pagingMono()
-                .map(paging -> (Runnable) () -> {
-
-                    grid.setPageSize(gridPaginator.itemsPerPage());
-                    grid.setItems(paging.results());
-
-                    setCountText(paging.queryCount(), paging.totalCount());
-
-                    grid.getDataProvider().refreshAll();
-                })
+        return paging()
+                .map(paging -> (Runnable) () -> setItems(paging))
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement();
     }

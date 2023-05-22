@@ -3,6 +3,7 @@ package kyo.yaz.condominium.manager.core.service.entity;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.ReceiptQueryRequest;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import reactor.adapter.rxjava.RxJava3Adapter;
+import reactor.core.publisher.Mono;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -40,6 +42,30 @@ public class ReceiptService {
                 .build();
 
         return RxJava3Adapter.monoToSingle(repository.list(request));
+    }
+
+    public Single<Paging<Receipt>> paging(String buildingId, String filter, int page, int pageSize) {
+
+        final var sortings = new LinkedHashSet<Sorting<ReceiptQueryRequest.SortField>>();
+        sortings.add(ReceiptQueryRequest.sorting(ReceiptQueryRequest.SortField.ID, Sort.Direction.DESC));
+
+        final var request = ReceiptQueryRequest.builder()
+                .buildingId(buildingId)
+                .expense(filter)
+                .page(PageRequest.of(page, pageSize))
+                .sortings(sortings)
+                .build();
+
+        return RxJava3Adapter.monoToSingle(paging(request));
+    }
+
+    private Mono<Paging<Receipt>> paging(ReceiptQueryRequest request) {
+        final var listMono = repository.list(request);
+        final var totalCountMono = repository.count();
+        final var queryCountMono = repository.count(request);
+
+        return Mono.zip(totalCountMono, queryCountMono, listMono)
+                .map(tuple -> new Paging<>(tuple.getT1(), tuple.getT2(), tuple.getT3()));
     }
 
     public Completable delete(Long id) {

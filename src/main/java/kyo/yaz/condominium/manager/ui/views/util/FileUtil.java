@@ -3,7 +3,10 @@ package kyo.yaz.condominium.manager.ui.views.util;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -32,5 +35,18 @@ public class FileUtil {
                 for (File value : files) showDir(indent + 4, value, consumer);
             }
         }
+    }
+
+    public static void writeEnvToFile(String env, String file) {
+        Optional.ofNullable(System.getenv(env))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .ifPresent(s -> {
+                    try {
+                        Files.writeString(Paths.get(file), s);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 }

@@ -9,6 +9,7 @@ import com.vaadin.flow.component.upload.FileRejectedEvent;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.component.upload.receivers.FileBuffer;
+import com.vaadin.flow.server.VaadinSession;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -28,12 +29,22 @@ public class ViewUtil {
 
     public static final List<Integer> ITEM_PER_PAGE_OPTIONS = List.of(5, 10, 15, 20, 30, 50, 100);
 
+    public static final String ATTR_ITEM_PER_PAGE = "attribute-item-per-page-session";
+
     private ViewUtil() {
     }
 
     public static ComboBox<Integer> itemPerPageComboBox() {
         final var itemPerPageComboBox = new ComboBox<>(null, ITEM_PER_PAGE_OPTIONS);
-        itemPerPageComboBox.setValue(20);
+        final var itemPerPage = VaadinSession.getCurrent().getAttribute(ATTR_ITEM_PER_PAGE);
+
+        if (itemPerPage instanceof Integer) {
+            itemPerPageComboBox.setValue((Integer) itemPerPage);
+        } else {
+            itemPerPageComboBox.setValue(20);
+
+        }
+        itemPerPageComboBox.addValueChangeListener(e -> VaadinSession.getCurrent().setAttribute(ATTR_ITEM_PER_PAGE, e.getValue()));
         return itemPerPageComboBox;
     }
 

@@ -8,11 +8,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import kyo.yaz.condominium.manager.core.domain.Currency;
-import kyo.yaz.condominium.manager.core.domain.ReceiptEmailFrom;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.Set;
 
 @Jacksonized
@@ -51,15 +51,25 @@ public class BuildingViewItem {
     @NotEmpty
     @JsonProperty
     private Set<Currency> currenciesToShowAmountToPay;
+
     @JsonProperty
     private boolean fixedPay;
+
     @JsonProperty
     private BigDecimal fixedPayAmount;
-    @NotNull
-    @JsonProperty
-    private ReceiptEmailFrom receiptEmailFrom;
 
     @NotNull
     @JsonProperty
     private Boolean roundUpPayments;
+
+    @NotNull
+    @NotBlank
+    @JsonProperty
+    private String emailConfig;
+
+    @JsonProperty
+    private final ZonedDateTime createdAt;
+
+    @JsonProperty
+    private final ZonedDateTime updatedAt;
 }

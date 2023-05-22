@@ -61,6 +61,7 @@ public class BuildingView extends BaseDiv {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
+
         refreshListData()
                 .doOnSuccess(r -> uiAsyncAction(this::init, r))
                 .ignoreElement()
@@ -155,7 +156,7 @@ public class BuildingView extends BaseDiv {
         final var fixedPay = new Span(fixedPayText, component);
         fixedPay.addClassName("fixed-pay");
 
-        final var receiptEmailFrom = new Span(Labels.Building.RECEIPT_EMAIL_FROM_LABEL + ": " + building.receiptEmailFrom().email());
+        final var receiptEmailFrom = new Span(Labels.Building.RECEIPT_EMAIL_FROM_LABEL + ": " + building.emailConfig());
         receiptEmailFrom.addClassName("receipt-email-from");
 
         final var roundUpPaymentIcon = IconUtil.checkMarkOrCross(ObjectUtil.aBoolean(building.roundUpPayments()));

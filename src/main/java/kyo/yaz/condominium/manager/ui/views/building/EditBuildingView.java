@@ -4,7 +4,6 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -12,6 +11,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.mapper.BuildingMapper;
@@ -19,6 +19,8 @@ import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
 import kyo.yaz.condominium.manager.core.mapper.ReserveFundMapper;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
+import kyo.yaz.condominium.manager.core.service.entity.EmailConfigService;
+import kyo.yaz.condominium.manager.persistence.entity.EmailConfig;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.ScrollPanel;
 import kyo.yaz.condominium.manager.ui.views.extracharges.ExtraChargesView;
@@ -27,6 +29,7 @@ import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -42,14 +45,16 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
     private final Button cancelBtn = new Button(Labels.CANCEL);
     private final BuildingService buildingService;
     private final ApartmentService apartmentService;
+    private final EmailConfigService emailConfigService;
     private String buildingIdParam;
     private boolean extraChargesVisible;
 
     @Autowired
-    public EditBuildingView(BuildingService buildingService, ApartmentService apartmentService) {
+    public EditBuildingView(BuildingService buildingService, ApartmentService apartmentService, EmailConfigService emailConfigService) {
         super();
         this.buildingService = buildingService;
         this.apartmentService = apartmentService;
+        this.emailConfigService = emailConfigService;
     }
 
     @Override
@@ -90,12 +95,16 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
         final var buildingMaybe = Maybe.fromOptional(Optional.ofNullable(buildingIdParam))
                 .flatMap(buildingService::find);
 
-        Maybe.zip(buildingMaybe, aptNumbersSingle, (building, list) -> {
+        final var emailConfigsSingle = emailConfigService.listForComboBox()
+                .toMaybe();
+
+        Maybe.zip(buildingMaybe, aptNumbersSingle, emailConfigsSingle, (building, list, emailConfigs) -> {
                     return (Runnable) () -> {
                         extraChargesView.setItems(ConvertUtil.toList(building.extraCharges(), ExtraChargeMapper::to));
                         extraChargesView.setApartments(list);
 
                         form.setBuilding(BuildingMapper.to(building));
+                        form.setEmailConfigs(emailConfigs);
                         reserveFundView.addItems(ConvertUtil.toList(building.reserveFunds(), ReserveFundMapper::to));
                         extraChargesVisible = !list.isEmpty();
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import kyo.yaz.condominium.manager.persistence.entity.EmailConfig;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
@@ -20,7 +21,7 @@ import lombok.extern.jackson.Jacksonized;
 public class SendEmailRequest {
 
     @JsonProperty
-    private final ReceiptEmailFrom receiptEmailFrom;
+    private final EmailConfig emailConfig;
     @JsonProperty
     private final String message;
 }

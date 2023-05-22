@@ -32,14 +32,13 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
-import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
+import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
 import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
-import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
@@ -79,18 +78,18 @@ public class ReceiptView extends BaseVerticalLayout {
     private final ProgressLayout progressLayout = new ProgressLayout();
     private final CreatePdfReceiptService createPdfReceiptService;
     private final SendEmailReceipts sendEmailReceipts;
-    private final TranslationProvider translationProvider;
     private final DownloadReceiptZipService downloadReceiptZipService;
 
     @Autowired
-    public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt, CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts, TranslationProvider translationProvider, DownloadReceiptZipService downloadReceiptZipService) {
+    public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt,
+                       CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts,
+                       DownloadReceiptZipService downloadReceiptZipService) {
         super();
         this.buildingService = buildingService;
         this.receiptService = receiptService;
         this.loadCsvReceipt = loadCsvReceipt;
         this.createPdfReceiptService = createPdfReceiptService;
         this.sendEmailReceipts = sendEmailReceipts;
-        this.translationProvider = translationProvider;
         this.downloadReceiptZipService = downloadReceiptZipService;
 
         downloadReceiptZipService.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
@@ -105,6 +104,8 @@ public class ReceiptView extends BaseVerticalLayout {
     private void init() {
         addClassName("receipt-view");
         setSizeFull();
+
+        gridPaginator.init();
         configureGrid();
         VaadinSession.getCurrent().setAttribute("receipt", null);
 
@@ -284,6 +285,8 @@ public class ReceiptView extends BaseVerticalLayout {
             progressLayout.setVisible(true);
         });
 
+
+
         createPdfReceiptService.createFiles(receipt)
                 .observeOn(Schedulers.io())
                 .flatMap(list -> sendEmailReceipts.send(receipt, list))
@@ -325,21 +328,15 @@ public class ReceiptView extends BaseVerticalLayout {
                 .subscribe(completableObserver());
     }
 
-    private Single<Runnable> setCount() {
-        return receiptService.countAll()
-                .map(count -> () -> setCountText(count));
-    }
-
     private void initData() {
-        final var countMono = setCount();
 
-        final var setBuildingsIds = buildingService.buildingIds()
-                .map(set -> (Runnable) () -> {
-                    buildingIds.addAll(set);
-                    buildingComboBox.setItems(buildingIds);
-                });
-
-        Single.zip(countMono, setBuildingsIds, (count, setBuildings) -> List.of(this::init, count, setBuildings))
+        Single.zip(paging(), buildingService.buildingIds(), (paging, set) ->
+                        (Runnable) () -> {
+                            buildingIds.addAll(set);
+                            buildingComboBox.setItems(buildingIds);
+                            setItems(paging);
+                            init();
+                        })
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
                 .subscribeOn(Schedulers.io())
@@ -459,9 +456,10 @@ public class ReceiptView extends BaseVerticalLayout {
         VaadinSession.getCurrent().setAttribute("receipt", receipt);
     }
 
-    private void setCountText(Long count) {
-        countText.setText(String.format(Labels.Receipt.AMOUNT_OF_LABEL, count));
-        gridPaginator.set(count);
+    private void setCountText(long queryCount, long totalCount) {
+        countText.setText(String.format(Labels.Receipt.AMOUNT_OF_LABEL, queryCount));
+        gridPaginator.set(queryCount);
+        // totalCountText.setText(String.format("Total de Apartamentos: %d", totalCount));
     }
 
     private void updateGrid() {
@@ -472,9 +470,8 @@ public class ReceiptView extends BaseVerticalLayout {
 
     private Completable refreshData() {
 
-        final var countMono = setCount();
 
-        final var updateGrid = entityList()
+        final var updateGrid = paging()
                 .doOnSubscribe(d -> {
                     uiAsyncAction(() -> {
                         progressLayout.progressBar().setIndeterminate(true);
@@ -482,24 +479,27 @@ public class ReceiptView extends BaseVerticalLayout {
                         progressLayout.setVisible(true);
                     });
                 })
-                .map(list -> (Runnable) () -> {
-
-                    grid.setPageSize(gridPaginator.itemsPerPage());
-                    grid.setItems(list);
-
-                    grid.getDataProvider().refreshAll();
-                });
+                .map(paging -> (Runnable) () -> setItems(paging));
 
         final var hideProgressBar = Single.fromCallable(() -> (Runnable) () -> progressLayout.setVisible(false));
 
-        return Single.mergeArray(countMono, updateGrid, hideProgressBar)
+        return Single.mergeArray(updateGrid, hideProgressBar)
                 .toList()
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement();
     }
 
-    private Single<List<Receipt>> entityList() {
-        return receiptService.list(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
+    private void setItems(Paging<Receipt> paging) {
+        grid.setPageSize(gridPaginator.itemsPerPage());
+        grid.setItems(paging.results());
+
+        setCountText(paging.queryCount(), paging.totalCount());
+
+        grid.getDataProvider().refreshAll();
+    }
+
+    private Single<Paging<Receipt>> paging() {
+        return receiptService.paging(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
     }
 
     private void editEntity(Receipt receipt) {

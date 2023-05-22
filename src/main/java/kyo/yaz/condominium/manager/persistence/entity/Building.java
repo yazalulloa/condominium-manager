@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import kyo.yaz.condominium.manager.core.domain.Currency;
-import kyo.yaz.condominium.manager.core.domain.ReceiptEmailFrom;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
 import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
 import lombok.AllArgsConstructor;
@@ -19,6 +18,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -52,12 +52,20 @@ public class Building {
     private final Boolean fixedPay;
     @JsonProperty
     private final BigDecimal fixedPayAmount;
-    @JsonProperty
-    private final ReceiptEmailFrom receiptEmailFrom;
+
     @JsonProperty
     private final Boolean roundUpPayments;
     @JsonProperty
     private final Long amountOfApts;
     @JsonProperty
     private final List<ReserveFund> reserveFunds;
+
+    @JsonProperty
+    private final String emailConfig;
+
+    @JsonProperty
+    private final ZonedDateTime createdAt;
+
+    @JsonProperty
+    private final ZonedDateTime updatedAt;
 }

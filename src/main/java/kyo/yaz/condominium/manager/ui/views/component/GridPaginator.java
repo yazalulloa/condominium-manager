@@ -6,12 +6,14 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Optional;
 import java.util.TreeSet;
 
+@Slf4j
 public class GridPaginator extends Div {
     private final ComboBox<Integer> itemsPerPageComBox = ViewUtil.itemPerPageComboBox();
     private final ComboBox<Integer> pageComboBox = new ComboBox<>();
@@ -19,16 +21,12 @@ public class GridPaginator extends Div {
     private long totalCount = 0;
     private long numberOfPages = 0;
 
-
     public GridPaginator(Runnable runnable) {
-        this(0, runnable);
-    }
 
-    public GridPaginator(long totalCount, Runnable runnable) {
         this.runnable = runnable;
         addClassName("grid-paginator");
         set(totalCount);
-        initViews();
+        //init();
 
         itemsPerPageComBox.addClassName("items-per-page");
         pageComboBox.addClassName("page");
@@ -93,7 +91,7 @@ public class GridPaginator extends Div {
         }
     }
 
-    private void initViews() {
+    public void init() {
 
         itemsPerPageComBox.setAutoOpen(true);
         itemsPerPageComBox.setItemLabelGenerator(String::valueOf);
@@ -141,12 +139,12 @@ public class GridPaginator extends Div {
             }
         });
 
-        itemsPerPageComBox.addValueChangeListener(o -> {
-            calculatePages();
-        });
+        itemsPerPageComBox.addValueChangeListener(o -> calculatePages());
         pageComboBox.addValueChangeListener(o -> {
 
             if (o.getValue() != null) {
+
+                log.info("runnable {}", o.getValue());
                 runnable.run();
             }
         });

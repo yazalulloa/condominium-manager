@@ -39,6 +39,13 @@ public class ReceiptRepositoryImpl implements ReceiptCustomRepository {
         return template.find(query, Receipt.class);
     }
 
+    @Override
+    public Mono<Long> count(ReceiptQueryRequest request) {
+        final var query = query(request);
+
+        return template.count(query, Receipt.class);
+    }
+
     public Query query(ReceiptQueryRequest request) {
         final var query = new Query();
 

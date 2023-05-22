@@ -16,4 +16,6 @@ public interface EmailConfigCustomRepository {
     Mono<Long> count(EmailConfigQueryRequest request);
 
     Mono<EmailConfig> updateCheck(String id, String error);
+
+    Flux<EmailConfig> findByIdFrom();
 }

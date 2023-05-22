@@ -68,6 +68,14 @@ public class EmailConfigRepositoryImpl implements EmailConfigCustomRepository {
     }
 
     @Override
+    public Flux<EmailConfig> findByIdFrom() {
+        final var query = new Query();
+        query.fields().include("from");
+
+        return find(query);
+    }
+
+    @Override
     public Mono<List<EmailConfig>> list(EmailConfigQueryRequest request) {
 
         return find(request)
@@ -86,6 +94,10 @@ public class EmailConfigRepositoryImpl implements EmailConfigCustomRepository {
 
         log.info("QUERY: " + query);
 
+        return find(query);
+    }
+
+    private Flux<EmailConfig> find(Query query) {
         return template.find(query, EmailConfig.class);
     }
 

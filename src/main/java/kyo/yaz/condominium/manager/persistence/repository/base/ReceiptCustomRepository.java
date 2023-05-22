@@ -12,4 +12,6 @@ public interface ReceiptCustomRepository {
     Mono<List<Receipt>> list(ReceiptQueryRequest request);
 
     Flux<Receipt> find(ReceiptQueryRequest request);
+
+    Mono<Long> count(ReceiptQueryRequest request);
 }

@@ -77,6 +77,8 @@ public class EmailConfigView extends BaseVerticalLayout {
         addClassName("email-config-view");
 
         setSizeFull();
+
+        gridPaginator.init();
         configureGrid();
         configureForm();
 
@@ -202,12 +204,14 @@ public class EmailConfigView extends BaseVerticalLayout {
     }
 
     private void updateGrid() {
+        logger().info("updateGrid");
         refreshData()
                 .subscribeOn(Schedulers.io())
                 .subscribe(completableObserver());
     }
 
     private Completable refreshData() {
+        logger().info("refreshData");
 
         return pagingMono()
                 .map(paging -> (Runnable) () -> {
@@ -261,6 +265,7 @@ public class EmailConfigView extends BaseVerticalLayout {
 
         service.save(config)
                 .flatMapCompletable(b -> b ? refreshData() : Completable.complete())
+                .andThen(service.clear())
                 .andThen(service.check(config))
                 .subscribeOn(Schedulers.io())
                 .subscribe(completableObserver());

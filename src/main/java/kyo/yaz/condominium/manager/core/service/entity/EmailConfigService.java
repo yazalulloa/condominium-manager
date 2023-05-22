@@ -2,6 +2,7 @@ package kyo.yaz.condominium.manager.core.service.entity;
 
 import com.google.api.client.auth.oauth2.TokenResponseException;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.verticle.SendEmailVerticle;
@@ -20,13 +21,14 @@ import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 @Service
 @Slf4j
 public class EmailConfigService {
-    
+
     private final VertxHandler vertxHandler;
     private final EmailConfigRepository repository;
 
@@ -34,6 +36,15 @@ public class EmailConfigService {
     public EmailConfigService(VertxHandler vertxHandler, EmailConfigRepository repository) {
         this.vertxHandler = vertxHandler;
         this.repository = repository;
+    }
+
+    public Maybe<EmailConfig> find(String id) {
+        return RxJava3Adapter.monoToMaybe(repository.findById(id));
+    }
+
+    public Single<EmailConfig> get(String id) {
+        return find(id)
+                .switchIfEmpty(Single.error(new RuntimeException("EmailConfig not found")));
     }
 
     public Single<Paging<EmailConfig>> paging(String filter, int page, int pageSize) {
@@ -89,6 +100,11 @@ public class EmailConfigService {
         return RxJava3Adapter.monoToSingle(repository.count());
     }
 
+    public Completable clear() {
+        return vertxHandler.get(SendEmailVerticle.CLEAR)
+                .ignoreElement();
+    }
+
     public Completable check(EmailConfig emailConfig) {
         return vertxHandler.get(SendEmailVerticle.CHECK_EMAIL_CONFIG, emailConfig)
                 .map(o -> repository.updateCheck(emailConfig.id(), null))
@@ -114,5 +130,10 @@ public class EmailConfigService {
                 .map(this::check)
                 .toList()
                 .flatMapCompletable(Completable::concat);
+    }
+
+    public Single<List<EmailConfig>> listForComboBox() {
+        final var mono = repository.findByIdFrom().collectList();
+        return RxJava3Adapter.monoToSingle(mono);
     }
 }

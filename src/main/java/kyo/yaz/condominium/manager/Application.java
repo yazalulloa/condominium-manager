@@ -6,9 +6,6 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRegistration;
 import kyo.yaz.condominium.manager.core.util.NetworkUtil;
 import kyo.yaz.condominium.manager.ui.views.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +17,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
-import org.springframework.web.servlet.DispatcherServlet;
 
 import java.util.Optional;
 
@@ -50,6 +45,9 @@ public class Application extends SpringBootServletInitializer implements AppShel
     public static void main(String[] args) {
         NetworkUtil.showPublicIp();
 
+        FileUtil.writeEnvToFile("APPLICATION_FILE", "application.yml");
+        FileUtil.writeEnvToFile("VERTICLES_FILE", "verticles.yml");
+
 
         final var isShowDir = Optional.ofNullable(System.getenv("SHOW_DIR"))
                 .map(Boolean::parseBoolean)
@@ -60,6 +58,8 @@ public class Application extends SpringBootServletInitializer implements AppShel
 
         SpringApplication.run(Application.class, args);
     }
+
+
 
    /* public void onStartup(ServletContext container) throws ServletException {
         AnnotationConfigWebApplicationContext ctx

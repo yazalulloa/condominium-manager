@@ -4,14 +4,10 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.reactivex.rxjava3.core.Completable;
@@ -27,6 +23,8 @@ import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
+import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
+import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,15 +64,18 @@ public class RateView extends BaseVerticalLayout {
         addClassName("rates-view");
         setSizeFull();
         configureGrid();
+        gridPaginator.init();
 
         add(getToolbar(), grid, footer());
     }
 
     private void initData() {
-        rateService.countAll()
-                .map(count -> (Runnable) () -> {
+
+
+        paging()
+                .map(paging -> (Runnable) () -> {
+                    setItems(paging);
                     init();
-                    setCountText(count, count);
                 })
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
@@ -91,7 +92,10 @@ public class RateView extends BaseVerticalLayout {
     private void configureGrid() {
         grid.addClassNames("rates-grid");
 
-        grid.setColumnReorderingAllowed(true);
+
+        grid.addComponentColumn(this::card);
+
+      /*  grid.setColumnReorderingAllowed(true);
         //grid.addColumn(Rate::id).setHeader(Labels.Rate.ID_LABEL).setSortable(true).setKey(Labels.Rate.ID_LABEL);
         grid.addColumn(Rate::rate).setHeader(Labels.Rate.RATE_LABEL).setSortable(true).setKey(Labels.Rate.RATE_LABEL);
         grid.addColumn(Rate::dateOfRate).setHeader(Labels.Rate.DATE_OF_RATE_LABEL).setSortable(true).setKey(Labels.Rate.DATE_OF_RATE_LABEL);
@@ -104,21 +108,47 @@ public class RateView extends BaseVerticalLayout {
                             button.addThemeVariants(ButtonVariant.LUMO_ICON,
                                     ButtonVariant.LUMO_ERROR,
                                     ButtonVariant.LUMO_TERTIARY);
-                            button.addClickListener(e -> {
-
-                                deleteDialog.setText(Labels.ASK_CONFIRMATION_DELETE_RATE.formatted(item.rate(), item.dateOfRate(), item.fromCurrency() + "->" + item.toCurrency()));
-                                deleteDialog.setDeleteAction(() -> delete(item));
-                                deleteDialog.open();
-                            });
+                            button.addClickListener(e -> deleteDialog(item));
                             button.setIcon(new Icon(VaadinIcon.TRASH));
                         }))
                 .setHeader(Labels.DELETE)
                 .setTextAlign(ColumnTextAlign.END)
                 .setFlexGrow(0);
 
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));
+        grid.getColumns().forEach(col -> col.setAutoWidth(true));*/
+
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
+    }
+
+    private void deleteDialog(Rate item) {
+        deleteDialog.setText(Labels.ASK_CONFIRMATION_DELETE_RATE.formatted(item.rate(), item.dateOfRate(), item.fromCurrency() + "->" + item.toCurrency()));
+        deleteDialog.setDeleteAction(() -> delete(item));
+        deleteDialog.open();
+    }
+
+    private Component card(Rate rate) {
+
+
+        final var body = new Div(new Span(ConvertUtil.format(rate.rate(), rate.toCurrency())), new Span(rate.dateOfRate().toString()),
+                new Span(rate.source().name()));
+
+        body.addClassName("body");
+
+        final var footer = new Div(new Span(rate.rate().toString()), new Span(String.format("%s -> %s", rate.fromCurrency().name(), rate.toCurrency().name())),
+                new Span(DateUtil.formatVe(rate.createdAt())));
+
+        footer.addClassName("footer");
+
+        final var deleteBtn = new Button(IconUtil.trash());
+        deleteBtn.addClickListener(v -> deleteDialog(rate));
+
+        final var buttons = new Div(deleteBtn);
+        buttons.addClassName("buttons");
+
+        final var div = new Div(body, footer, buttons);
+        div.addClassName("card");
+        return div;
     }
 
     public void delete(Rate rate) {
@@ -152,7 +182,7 @@ public class RateView extends BaseVerticalLayout {
         return toolbar;
     }
 
-    private Single<Paging<Rate>> pagingMono() {
+    private Single<Paging<Rate>> paging() {
         return rateService.paging(gridPaginator.currentPage(), gridPaginator.itemsPerPage());
     }
 
@@ -164,20 +194,19 @@ public class RateView extends BaseVerticalLayout {
 
     private Completable refreshData() {
 
-        return pagingMono()
-                .map(paging -> (Runnable) () -> {
-
-                    grid.setPageSize(gridPaginator.itemsPerPage());
-                    grid.setItems(paging.results());
-
-                    setCountText(paging.queryCount(), paging.totalCount());
-
-                    //grid.setItems(query -> service.fetchPage(filterText.getValue(), query.getPage(), query.getPageSize()));
-                    //grid.setItems(list);
-                    grid.getDataProvider().refreshAll();
-                })
+        return paging()
+                .map(paging -> (Runnable) () -> setItems(paging))
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement();
+    }
+
+    private void setItems(Paging<Rate> paging) {
+        grid.setPageSize(gridPaginator.itemsPerPage());
+        grid.setItems(paging.results());
+
+        setCountText(paging.queryCount(), paging.totalCount());
+
+        grid.getDataProvider().refreshAll();
     }
 
     private Completable newRate() {

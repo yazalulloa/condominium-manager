@@ -7,8 +7,6 @@ import com.google.api.services.gmail.Gmail;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.eventbus.Message;
-import kyo.yaz.condominium.manager.core.domain.ReceiptEmailFrom;
 import kyo.yaz.condominium.manager.core.domain.SendEmailRequest;
 import kyo.yaz.condominium.manager.core.provider.GmailProvider;
 import kyo.yaz.condominium.manager.core.util.GmailUtil;
@@ -21,7 +19,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.Base64;
 import java.util.HashMap;
@@ -35,17 +32,47 @@ public class SendEmailVerticle extends Rx3Verticle {
 
     public static final String SEND = "send-email";
     public static final String CHECK_EMAIL_CONFIG = "check-email-config";
-    private static final Map<ReceiptEmailFrom, Gmail> map = new HashMap<>();
+    public static final String CLEAR = "clear-email-config";
+    private static final Map<String, Gmail> map = new HashMap<>();
     private final HttpTransport transport;
     private final JsonFactory jsonFactory;
 
     @Override
     public void start() throws Exception {
-        vertx.eventBus().consumer(SEND, this::send);
+        eventBusConsumer(SEND, this::send);
+        vertx.eventBus().consumer(CLEAR, m -> {
+            map.clear();
+            m.reply(true);
+        });
         eventBusConsumer(CHECK_EMAIL_CONFIG, this::checkEmailConfig);
     }
 
     private Single<Boolean> checkEmailConfig(EmailConfig emailConfig) {
+
+        return gmailSingle(emailConfig)
+                .map(gmail -> {
+                    final var labelList = gmail.users().labels().list("me");
+                    final var httpRequest = labelList.buildHttpRequest();
+
+                    return httpRequest.executeAsync();
+                })
+                .flatMap(Single::fromFuture)
+                .map(response -> {
+                    final var statusCode = response.getStatusCode();
+                    final var body = response.parseAsString();
+
+                    // log.info("code {} body {}", statusCode, body);
+
+                    return statusCode == 200;
+                });
+    }
+
+    private Single<Gmail> gmailSingle(EmailConfig emailConfig) {
+        final var gmail = map.get(emailConfig.id());
+
+        if (gmail != null) {
+            return Single.just(gmail);
+        }
 
         final var dir = "gmail/" + emailConfig.id();
 
@@ -72,68 +99,36 @@ public class SendEmailVerticle extends Rx3Verticle {
                             .transport(transport)
                             .build();
 
-                    final var gmail = gmailProvider.gmail();
-                    final var labelList = gmail.users().labels().list("me");
-                    final var httpRequest = labelList.buildHttpRequest();
-
-                    return httpRequest.executeAsync();
-                }))
-                .flatMap(Single::fromFuture)
-                .map(response -> {
-                    final var statusCode = response.getStatusCode();
-                    final var body = response.parseAsString();
-
-                   // log.info("code {} body {}", statusCode, body);
-
-                    return statusCode == 200;
-                });
-
-
+                    return gmailProvider.gmail();
+                }));
     }
 
-    private Gmail gmail(ReceiptEmailFrom receiptEmailFrom) throws IOException {
-        final var gmail = map.get(receiptEmailFrom);
 
-        if (gmail != null) {
-            return gmail;
-        }
+    private Single<String> send(SendEmailRequest request) {
 
-        final var jsonObject = config().getJsonObject(receiptEmailFrom.name());
+        return gmailSingle(request.emailConfig())
+                .map(gmail -> {
 
-        final var gmailProvider = GmailProvider.builder()
-                .appName(config().getString("app_name"))
-                .port(config().getInteger("port"))
-                //.credentialsPath(jsonObject.getString("credentials_path"))
-                // .tokensPath(jsonObject.getString("tokens_path"))
-                .jsonFactory(jsonFactory)
-                .transport(transport)
-                .build();
 
-        map.put(receiptEmailFrom, gmailProvider.gmail());
+                    final var gMessage = GmailUtil.fromBase64(request.message());
+                    final var send = gmail.users().messages().send("me", gMessage);
 
-        return map.get(receiptEmailFrom);
-    }
 
-    private void send(Message<SendEmailRequest> message) {
+                    return vertx.<String>executeBlocking(promise -> {
+                        try {
+                            final var execute = send.execute();
+                            final var string = execute.toString();
+                            log.info("MSG_SENT: {}", string);
+                            promise.complete(string);
 
-        try {
-            final var request = message.body();
+                        } catch (Exception e) {
+                            log.error("ERROR_SENDING_EMAIL", e);
+                            promise.fail(e);
+                        }
+                    });
 
-            final var gMessage = GmailUtil.fromBase64(request.message());
-            final var gmail = gmail(request.receiptEmailFrom());
 
-            //log.info("SENDING {}", gMessage);
-
-            final var send = gmail.users().messages().send("me", gMessage);
-            final var execute = send.execute();
-            final var string = execute.toString();
-
-            log.info("MSG_SENT: {}", string);
-            message.reply(string);
-        } catch (Exception e) {
-
-            log.error("ERROR_SENDING_EMAIL", e);
-            message.reply(VertxUtil.replyException(e, getClass().toString()));
-        }
+                })
+                .flatMap(vertxHandler()::single);
     }
 }

@@ -27,16 +27,28 @@
   flex-wrap: wrap;
   flex-direction: row;
   flex-basis: auto;
-  justify-content: start;
+  justify-content: space-between;
   gap: 16px;
   background-color: var(--lumo-base-color);
   border-radius: var(--lumo-border-radius);
   box-shadow: var(--lumo-box-shadow-xs);
-  padding: calc(var(--lumo-space-s) * 1.5) var(--lumo-space-m);
+  padding: calc(var(--lumo-space-s) * 1) var(--lumo-space-m);
 
-  .header {
-      font-size: small;
-      font-weight: bold;
+
+
+     .body {
+        display: flex;
+        font-weight: bold;
+        flex-wrap: wrap;
+        flex-direction: row;
+        flex-basis: auto;
+        align-items: center;
+        gap: 16px;
+    }
+
+
+  .footer {
+      font-size: medium;
       display: flex;
       flex-wrap: wrap;
       flex-direction: row;
@@ -45,12 +57,9 @@
       gap: 16px;
   }
 
-  .body {
-        display: flex;
-        flex-wrap: wrap;
-        flex-direction: row;
-        flex-basis: auto;
-        align-items: center;
-        gap: 16px;
-    }
+
+  .buttons {
+
+  }
+
 }
