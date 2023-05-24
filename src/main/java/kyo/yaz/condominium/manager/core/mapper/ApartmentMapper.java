@@ -1,7 +1,7 @@
 package kyo.yaz.condominium.manager.core.mapper;
 
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
-import kyo.yaz.condominium.manager.ui.views.domain.ApartmentViewItem;
+import kyo.yaz.condominium.manager.ui.views.apartment.ApartmentViewItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

@@ -6,7 +6,7 @@ import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.persistence.domain.IAmountCurrency;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
-import kyo.yaz.condominium.manager.ui.views.domain.ReceiptFormItem;
+import kyo.yaz.condominium.manager.ui.views.receipt.ReceiptFormItem;
 import org.springframework.data.util.Pair;
 
 import java.math.BigDecimal;

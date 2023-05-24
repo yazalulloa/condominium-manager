@@ -3,6 +3,9 @@
 @import url('./views/rates-view.css');
 @import url('./views/email-config-view.css');
 @import url('./views/receipt-view.css');
+@import url('./views/expenses-view.css');
+@import url('./views/debts-view.css');
+@import url('./views/extra-charges-view.css');
 @import url('./main-layout.css');
 
 a[highlight] {
@@ -52,3 +55,24 @@ a[highlight] {
     spacing-l: 32px;
     spacing-xl: 64px;
 }
+
+ .fixed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: translateY(0);
+        transition: transform 0.3s ease-out;
+ }
+
+ .fixed.scroll {
+        transform: translateY(-100%);
+ }
+
+ .v-dragged.card {
+     outline: 1px dotted hotpink;
+     opacity: 0.5;
+ }
+
+ .v-drag-over-target.card {
+     outline: 1px solid lightgreen;
+ }

@@ -11,7 +11,6 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import io.reactivex.rxjava3.core.Maybe;
-import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.mapper.BuildingMapper;
@@ -20,7 +19,6 @@ import kyo.yaz.condominium.manager.core.mapper.ReserveFundMapper;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.EmailConfigService;
-import kyo.yaz.condominium.manager.persistence.entity.EmailConfig;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.ScrollPanel;
 import kyo.yaz.condominium.manager.ui.views.extracharges.ExtraChargesView;
@@ -29,7 +27,6 @@ import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 
@@ -103,8 +100,8 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
                         extraChargesView.setItems(ConvertUtil.toList(building.extraCharges(), ExtraChargeMapper::to));
                         extraChargesView.setApartments(list);
 
-                        form.setBuilding(BuildingMapper.to(building));
                         form.setEmailConfigs(emailConfigs);
+                        form.setBuilding(BuildingMapper.to(building));
                         reserveFundView.addItems(ConvertUtil.toList(building.reserveFunds(), ReserveFundMapper::to));
                         extraChargesVisible = !list.isEmpty();
 

@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views.domain;
+package kyo.yaz.condominium.manager.ui.views.component;
 
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;

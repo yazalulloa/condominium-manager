@@ -1,11 +1,18 @@
 package kyo.yaz.condominium.manager.ui.views.receipt.debts;
 
-import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
-import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
+import kyo.yaz.condominium.manager.ui.views.component.DragDropDiv;
+import kyo.yaz.condominium.manager.ui.views.component.DragDropList;
+import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -13,16 +20,17 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
 public class DebtsView extends BaseDiv {
 
-    private List<DebtViewItem> items = Collections.emptyList();
-    private final Grid<DebtViewItem> grid = new Grid<>();
+    private final DragDropList<DebtViewItem, DragDropDiv<DebtViewItem>> debts = new DragDropList<>();
+/*    private List<DebtViewItem> items = Collections.emptyList();
+    private final Grid<DebtViewItem> grid = new Grid<>();*/
 
     private final TranslationProvider translationProvider;
     private final DebtForm form;
@@ -39,149 +47,95 @@ public class DebtsView extends BaseDiv {
     public void init() {
 
         addClassName("debts-view");
-        configureGrid();
+        //configureGrid();
         configureForm();
         add(new H3(Labels.DEBTS), getContent());
         closeEditor();
-        setItems(items);
     }
 
     private com.vaadin.flow.component.Component getContent() {
 
-        HorizontalLayout content = new HorizontalLayout(grid, form);
-        content.setFlexGrow(2, grid);
+        final var content = new HorizontalLayout(debts, form);
+        content.setFlexGrow(2, debts);
         content.setFlexGrow(1, form);
         content.addClassNames("content");
         return content;
     }
 
     public void setItems(List<DebtViewItem> debtViewItems) {
-        items = debtViewItems;
-        grid.setItems(items);
-        grid.getDataProvider().refreshAll();
+        debts.removeAll();
+        debtViewItems.stream().map(this::addDebt).forEach(debts::addComponent);
     }
 
+    private DragDropDiv<DebtViewItem> card(DebtViewItem item) {
 
-    private void configureGrid() {
-        grid.addClassNames("debt-grid");
-        grid.setAllRowsVisible(true);
-        grid.setColumnReorderingAllowed(true);
-        //final var editor = grid.getEditor();
+        final var card = new DragDropDiv<>(item);
+        card.addClassName("card");
+        final var header = new Div(new Span(item.getAptNumber()), new Span(item.getName()));
+        header.addClassName("header");
+        final var body = new Div(new Span("Recibos : %s".formatted(item.getReceipts())),
+                new Span("Monto : %s".formatted(ConvertUtil.format(item.getAmount(), null))));
 
-        grid.addColumn(item -> item.getAptNumber() + " " + item.getName())
-                .setHeader(Labels.Debt.APT_LABEL)
-                .setSortable(true)
-                .setKey(Labels.Debt.APT_LABEL);
+        if (item.getMonths() != null && !item.getMonths().isEmpty()) {
+            final var str = item.getMonths().stream().map(Enum::name).map(translationProvider::translate).collect(Collectors.joining(", "));
+            body.add(new Span("Meses: " + str));
+        }
 
-       /* grid.setSelectionMode(Grid.SelectionMode.SINGLE)
-                .addSelectionListener(event -> event.getFirstSelectedItem().ifPresent(item -> {
-                    if (editor.isOpen())
-                        editor.cancel();
-                    grid.getEditor().editItem(item);
-                }));*/
+        if (item.getPreviousPaymentAmount() != null && item.getPreviousPaymentAmountCurrency() != null) {
+            body.add(new Span("Abono: " + ConvertUtil.format(item.getPreviousPaymentAmount(), item.getPreviousPaymentAmountCurrency())));
+        }
 
-        final var receiptColumn = grid.addColumn(DebtViewItem::getReceipts).setHeader(Labels.Debt.RECEIPT_LABEL).setSortable(true).setKey(Labels.Debt.RECEIPT_LABEL);
-        final var amountColumn = grid.addColumn(DebtViewItem::getAmount).setHeader(Labels.Debt.AMOUNT_LABEL).setSortable(true).setKey(Labels.Debt.AMOUNT_LABEL);
+        body.addClassName("body");
 
-        final var monthsColumn = grid.addColumn(item -> {
+        final var buttons = new Div(editBtn(new Button(), item), resetBtn(new Button(), item));
+        buttons.addClassName("buttons");
+        card.add(header, body, buttons);
 
-            return Optional.ofNullable(item.getMonths())
-                    .orElseGet(Collections::emptySet)
-                    .stream()
-                    .map(Enum::name)
-                    .map(translationProvider::translate)
-                    .collect(Collectors.joining("\n"));
-        }).setHeader(Labels.Debt.MONTHS_LABEL);
-
-        final var previousPaymentAmountColumn = grid.addColumn(DebtViewItem::getPreviousPaymentAmount).setHeader(Labels.Debt.PREVIOUS_AMOUNT_PAYED_LABEL).setSortable(true).setKey(Labels.Debt.PREVIOUS_AMOUNT_PAYED_LABEL);
-        final var previousPaymentAmountCurrencyColumn = grid.addColumn(DebtViewItem::getPreviousPaymentAmountCurrency).setHeader(Labels.Debt.PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL).setSortable(true).setKey(Labels.Debt.PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL);
-
-
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));
-
-
-       /* final var saveButton = new Button(VaadinIcon.CHECK.create(), e -> editor.save());
-
-        final var cancelButton = new Button(VaadinIcon.CLOSE.create(), e -> editor.cancel());
-        cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_ERROR);
-
-        final var actions = new HorizontalLayout(saveButton, cancelButton);
-
-        final var editColumn = grid.addComponentColumn(item -> {
-                    final var editButton = new Button(Labels.EDIT);
-                    editButton.addClickListener(e -> {
-                        if (editor.isOpen())
-                            editor.cancel();
-                        grid.getEditor().editItem(item);
-                    });
-                    return new HorizontalLayout(editButton);
-                })
-                .setTextAlign(ColumnTextAlign.END)
-                .setFlexGrow(0);
-
-        editColumn.setEditorComponent(actions);
-
-
-        final var binder = new Binder<>(DebtViewItem.class);
-        editor.setBinder(binder);
-        editor.setBuffered(true);
-
-
-        final var receiptsField = new IntegerField();
-
-        binder.forField(receiptsField)
-                //.asRequired("First name must not be empty")
-                //.withStatusLabel(firstNameValidationMessage)
-                .bind(DebtViewItem::getReceipts, DebtViewItem::setReceipts);
-        receiptColumn.setEditorComponent(receiptsField);
-
-        final var amountField = new BigDecimalField();
-
-        binder.forField(amountField)
-                .asRequired("Monto no puede estar vacio")
-                //.withStatusLabel(firstNameValidationMessage)
-                .bind(DebtViewItem::getAmount, DebtViewItem::setAmount);
-        amountColumn.setEditorComponent(amountField);
-
-        final var monthComboBox = ViewUtil.monthMultiComboBox();
-        monthComboBox.setItemLabelGenerator(m -> translationProvider.translate(m.name()));
-        binder.forField(monthComboBox)
-                .bind(DebtViewItem::getMonths, DebtViewItem::setMonths);
-        monthsColumn.setEditorComponent(monthComboBox);
-
-        final var previousPaymentAmountField = new BigDecimalField();
-        binder.forField(previousPaymentAmountField)
-                .bind(DebtViewItem::getPreviousPaymentAmount, DebtViewItem::setPreviousPaymentAmount);
-        previousPaymentAmountColumn.setEditorComponent(previousPaymentAmountField);
-        final var previousPaymentAmountCurrencyComboBox = ViewUtil.currencyComboBox();
-        binder.forField(previousPaymentAmountCurrencyComboBox)
-                .bind(DebtViewItem::getPreviousPaymentAmountCurrency, DebtViewItem::setPreviousPaymentAmountCurrency);
-        previousPaymentAmountCurrencyColumn.setEditorComponent(previousPaymentAmountCurrencyComboBox);
-*/
-
-        grid.setSizeFull();
-        grid.asSingleSelect().addValueChangeListener(event -> editEntity(event.getValue()));
+        return card;
     }
 
     private void configureForm() {
-        form.setWidth("25em");
         form.setHeightFull();
 
         form.addListener(DebtForm.SaveEvent.class, event -> {
 
             final var item = event.getObj();
-            final var indexOf = items.indexOf(item);
-            if (indexOf > -1) {
-                items.set(indexOf, item);
-            } else {
-                items.add(item);
-            }
-
-            setItems(items);
+            debts.saveOrUpdate(item, this::addDebt);
+            closeEditor();
         });
 
         form.addListener(DebtForm.DeleteEvent.class, event -> resetItem(event.getObj()));
         form.addListener(DebtForm.CloseEvent.class, e -> closeEditor());
+    }
+
+    private DragDropDiv<DebtViewItem> addDebt(DebtViewItem item) {
+
+        final var card = card(item);
+        card.addClickListener(e -> {
+            if (e.getClickCount() == 2) {
+                editEntity(item);
+            }
+        });
+
+        return card;
+    }
+
+    private Button editBtn(Button button, DebtViewItem item) {
+        button.addThemeVariants(ButtonVariant.LUMO_ICON,
+                ButtonVariant.LUMO_SUCCESS,
+                ButtonVariant.LUMO_TERTIARY);
+        button.addClickListener(e -> editEntity(item));
+        button.setIcon(new Icon(VaadinIcon.EDIT));
+        return button;
+    }
+
+    private Button resetBtn(Button button, DebtViewItem item) {
+        button.addThemeVariants(ButtonVariant.LUMO_ICON,
+                ButtonVariant.LUMO_ERROR,
+                ButtonVariant.LUMO_TERTIARY);
+        button.addClickListener(e -> resetItem(item));
+        button.setIcon(new Icon(VaadinIcon.CLOSE_SMALL));
+        return button;
     }
 
     public void editEntity(DebtViewItem item) {
@@ -201,8 +155,9 @@ public class DebtsView extends BaseDiv {
         item.setPreviousPaymentAmount(BigDecimal.ZERO);
         item.setPreviousPaymentAmountCurrency(null);
 
-        form.setItem(form.defaultItem());
-        setItems(items);
+        debts.saveOrUpdate(item, this::addDebt);
+
+        closeEditor();
     }
 
     private void closeEditor() {
@@ -211,7 +166,7 @@ public class DebtsView extends BaseDiv {
         removeClassName("editing");
     }
 
-    public List<DebtViewItem> list() {
-        return items;
+    public List<DebtViewItem> debts() {
+        return debts.components().stream().map(DragDropDiv::item).collect(Collectors.toCollection(LinkedList::new));
     }
 }

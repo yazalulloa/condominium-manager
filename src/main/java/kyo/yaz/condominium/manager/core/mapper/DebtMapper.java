@@ -2,7 +2,7 @@ package kyo.yaz.condominium.manager.core.mapper;
 
 
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
-import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
+import kyo.yaz.condominium.manager.ui.views.receipt.debts.DebtViewItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

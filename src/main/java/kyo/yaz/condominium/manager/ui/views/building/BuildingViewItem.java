@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views.domain;
+package kyo.yaz.condominium.manager.ui.views.building;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

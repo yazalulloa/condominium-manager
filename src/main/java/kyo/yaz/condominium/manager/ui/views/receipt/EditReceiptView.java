@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -25,12 +26,11 @@ import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
 import kyo.yaz.condominium.manager.core.service.entity.SaveReceipt;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
-import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.ScrollPanel;
-import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
+import kyo.yaz.condominium.manager.ui.views.receipt.debts.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.extracharges.ExtraChargesView;
 import kyo.yaz.condominium.manager.ui.views.receipt.debts.DebtsView;
 import kyo.yaz.condominium.manager.ui.views.receipt.expenses.ExpenseForm;
@@ -56,6 +56,8 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
     private final ExpensesView expensesView;
     private final ExtraChargesView extraChargesView = new ExtraChargesView();
 
+    private final Span commonExpensesTotal = new Span();
+    private final Span unCommonExpensesTotal = new Span();
     private final Div reserveFundsDiv = new Div();
     private final ApartmentService apartmentService;
     private final ReceiptService receiptService;
@@ -122,7 +124,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                     .date(formItem.getDate())
                     .expenses(ConvertUtil.toList(expensesView.items(), ExpenseMapper::to))
                     //.debts(ConvertUtil.toList(debts, DebtMapper::to))
-                    .debts(ConvertUtil.toList(debtsView.list(), DebtMapper::to))
+                    .debts(ConvertUtil.toList(debtsView.debts(), DebtMapper::to))
                     .extraCharges(ConvertUtil.toList(extraChargesView.items(), ExtraChargeMapper::to))
                     .rate(formItem.getRate())
                     .build();
@@ -172,7 +174,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
         extraChargesView.setVisible(false);
         debtsView.setVisible(false);
 
-        add(receiptForm, createButtonsLayout(), reserveFundsDiv, expensesView, new Hr(), debtsView, new Hr(), extraChargesView, new Hr());
+        add(receiptForm, createButtonsLayout(), new Div(commonExpensesTotal), new Div(unCommonExpensesTotal), reserveFundsDiv, expensesView, new Hr(), debtsView, new Hr(), extraChargesView, new Hr());
     }
 
     private void navigateBack() {
@@ -181,14 +183,11 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
 
     private Single<Runnable> setAptNumbers(String buildingId) {
         final var buildingSingle = buildingService.get(buildingId);
-        final var listSingle = apartmentService.apartmentsByBuilding(buildingId);
+        final var listSingle = apartmentService.aptNumbers(buildingId);
 
         return Single.zip(buildingSingle, listSingle, (building, list) -> {
             return () -> {
                 this.building = building;
-                final var aptNumbers = list.stream().map(Apartment::apartmentId)
-                        .map(Apartment.ApartmentId::number)
-                        .collect(Collectors.toCollection(LinkedList::new));
 
                 final var debtList = Optional.ofNullable(receipt)
                         .map(Receipt::debts)
@@ -212,7 +211,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
 
                 debtsView.setItems(debtViewItems);
                 debtsView.setVisible(true);
-                extraChargesView.setApartments(aptNumbers);
+                extraChargesView.setApartments(list);
                 extraChargesView.setVisible(true);
                 loadReserveFunds();
             };
@@ -235,9 +234,10 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
 
                     });
 
-                    new Paragraph();
-
                 });
+
+        commonExpensesTotal.setText("Gastos comunes total: %s".formatted(expensesView.totalCommon()));
+        unCommonExpensesTotal.setText("Gastos no comunes total: %s".formatted(expensesView.totalUnCommon()));
 
     }
 

@@ -2,6 +2,7 @@ package kyo.yaz.condominium.manager.persistence.repository.impl;
 
 import kyo.yaz.condominium.manager.core.util.MongoDBUtil;
 import kyo.yaz.condominium.manager.core.util.StringUtil;
+import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.ApartmentQueryRequest;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.repository.base.ApartmentCustomRepository;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -123,5 +125,16 @@ public class ApartmentRepositoryImpl implements ApartmentCustomRepository {
         final var query = query(request);
 
         return template.count(query, Apartment.class);
+    }
+
+    @Override
+    public Flux<Apartment> getAptNumberName(String buildingId) {
+        final var query = new Query().addCriteria(Criteria.where("_id.building_id").is(buildingId));
+        query.fields().include("name");
+        return find(query);
+    }
+
+    private Flux<Apartment> find(Query query) {
+        return template.find(query, Apartment.class);
     }
 }

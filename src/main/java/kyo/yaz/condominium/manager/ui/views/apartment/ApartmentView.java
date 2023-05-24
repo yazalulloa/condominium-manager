@@ -3,6 +3,7 @@ package kyo.yaz.condominium.manager.ui.views.apartment;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
@@ -162,7 +163,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     }
 
     private void configureForm() {
-        form.setWidth("25em");
+        form.setWidth(30, Unit.EM);
         form.setHeightFull();
         form.addListener(CreateApartmentForm.SaveEvent.class, this::saveEntity);
         form.addListener(CreateApartmentForm.DeleteEvent.class, this::deleteEntity);

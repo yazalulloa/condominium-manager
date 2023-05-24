@@ -17,7 +17,6 @@ import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
-import kyo.yaz.condominium.manager.ui.views.domain.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,8 @@ import java.time.Month;
 @Component
 @Scope("prototype")
 public class DebtForm extends BaseForm {
-
+    @PropertyId("aptNumber")
+    private final TextField aptNumberField = new TextField(Labels.Debt.APT_LABEL);
     @PropertyId("name")
     private final TextField nameField = new TextField(Labels.Debt.NAME_LABEL);
     @PropertyId("receipts")
@@ -59,7 +59,6 @@ public class DebtForm extends BaseForm {
         monthsPicker.setAutoOpen(true);
         monthsPicker.setItemLabelGenerator(m -> this.translationProvider.translate(m.name()));
 
-        TextField aptNumberField = new TextField(Labels.Debt.APT_LABEL);
         add(
                 aptNumberField,
                 nameField,
@@ -75,7 +74,7 @@ public class DebtForm extends BaseForm {
     }
 
     private HorizontalLayout createButtonsLayout() {
-        final var addBtn = new Button(Labels.ADD);
+        final var addBtn = new Button(Labels.SAVE);
         final var deleteBtn = new Button(Labels.DELETE);
         final var cancelBtn = new Button(Labels.CANCEL);
 

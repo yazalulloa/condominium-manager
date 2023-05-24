@@ -18,7 +18,6 @@ import com.vaadin.flow.data.binder.ValidationException;
 import io.vertx.core.json.JsonObject;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
-import kyo.yaz.condominium.manager.ui.views.domain.EmailConfigViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 

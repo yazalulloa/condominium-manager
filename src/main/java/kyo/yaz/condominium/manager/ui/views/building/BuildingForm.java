@@ -14,7 +14,6 @@ import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.persistence.entity.EmailConfig;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
-import kyo.yaz.condominium.manager.ui.views.domain.BuildingViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 
@@ -27,8 +26,6 @@ import java.util.Optional;
 
 public class BuildingForm extends BaseForm {
 
-
-    public final Binder<BuildingViewItem> binder = new BeanValidationBinder<>(BuildingViewItem.class);
     @PropertyId("id")
     private final TextField idTextField = new TextField("ID");
     @PropertyId("name")
@@ -52,6 +49,10 @@ public class BuildingForm extends BaseForm {
     private final BigDecimalField fixedPayAmountField = new BigDecimalField(Labels.Building.FIXED_PAY_AMOUNT_LABEL);
     @PropertyId("emailConfig")
     private final ComboBox<EmailConfig> emailConfigComboBox = new ComboBox<>(Labels.Building.RECEIPT_EMAIL_FROM_LABEL);
+
+
+
+    public final Binder<BuildingViewItem> binder = new BeanValidationBinder<>(BuildingViewItem.class);
     BuildingViewItem building = BuildingViewItem.builder().build();
 
     private List<EmailConfig> emailConfigs = Collections.emptyList();

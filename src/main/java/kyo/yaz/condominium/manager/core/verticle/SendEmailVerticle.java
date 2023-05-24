@@ -64,7 +64,8 @@ public class SendEmailVerticle extends Rx3Verticle {
                     // log.info("code {} body {}", statusCode, body);
 
                     return statusCode == 200;
-                });
+                })
+                .retry(3);
     }
 
     private Single<Gmail> gmailSingle(EmailConfig emailConfig) {

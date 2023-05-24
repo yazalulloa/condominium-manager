@@ -1,14 +1,17 @@
-package kyo.yaz.condominium.manager.ui.views.domain;
+package kyo.yaz.condominium.manager.ui.views.receipt;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
-import java.math.BigDecimal;
-import java.util.Set;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.time.Month;
 
 @Jacksonized
 @Builder(toBuilder = true)
@@ -17,27 +20,27 @@ import java.util.Set;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@NoArgsConstructor
 @AllArgsConstructor
-public class ApartmentViewItem {
+public class ReceiptFormItem {
 
+    @NotBlank
     @JsonProperty
     private String buildingId;
 
+    @NotNull
     @JsonProperty
-    private String number;
+    private Integer year;
 
+    @NotNull
     @JsonProperty
-    private String name;
+    private Month month;
 
+    @NotNull
     @JsonProperty
-    private String idDoc;
+    private Rate rate;
 
+    @NotNull
     @JsonProperty
-    private Set<String> emails;
-
-    /*@JsonProperty
-    private PaymentType paymentType;*/
-
-    @JsonProperty
-    private BigDecimal amountToPay;
+    private LocalDate date;
 }

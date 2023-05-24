@@ -12,19 +12,21 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
-import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 
 import java.math.BigDecimal;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 
 public class ExtraChargeForm extends BaseForm {
-    @PropertyId("aptNumber")
-    private final ComboBox<String> aptNumberComboBox = new ComboBox<>(Labels.ExtraCharge.APT_LABEL);
+
+    private final ComboBox<Apartment> aptComboBox = new ComboBox<>(Labels.ExtraCharge.APT_LABEL);
 
     @PropertyId("description")
     private final TextField descriptionField = new TextField(Labels.ExtraCharge.DESCRIPTION_LABEL);
@@ -36,6 +38,7 @@ public class ExtraChargeForm extends BaseForm {
     private final ComboBox<Currency> currencyComboBox = ViewUtil.currencyComboBox(Labels.ExtraCharge.CURRENCY_LABEL);
 
 
+    private List<Apartment> apartments = Collections.emptyList();
     private final Binder<ExtraChargeViewItem> binder = new BeanValidationBinder<>(ExtraChargeViewItem.class);
 
     ExtraChargeViewItem item;
@@ -46,21 +49,33 @@ public class ExtraChargeForm extends BaseForm {
         addClassName("extra-charge-form");
 
 
-        aptNumberComboBox.setAllowCustomValue(false);
+        aptComboBox.setAllowCustomValue(false);
+        aptComboBox.setItemLabelGenerator(apt -> "%s %s".formatted(apt.apartmentId().number(), apt.name()));
+
+
+        binder.forField(aptComboBox)
+                .asRequired()
+                .bind(item -> apartments.stream().filter(e -> Objects.equals(item.getAptNumber(), e.apartmentId().number()))
+                                .findFirst()
+                                .orElse(null),
+                        (item, apartment) -> {
+                            item.setAptNumber(apartment.apartmentId().number());
+                            item.setName(apartment.name());
+                        });
 
         add(
-                aptNumberComboBox,
+                aptComboBox,
                 descriptionField,
                 amountField,
                 currencyComboBox,
                 createButtonsLayout());
 
         binder.bindInstanceFields(this);
-        setItem(new ExtraChargeViewItem());
     }
 
-    public void setApartments(Collection<String> apartments) {
-        aptNumberComboBox.setItems(apartments);
+    public void setApartments(List<Apartment> apartments) {
+        this.apartments = apartments;
+        aptComboBox.setItems(apartments);
     }
 
     public ExtraChargeViewItem defaultItem() {
@@ -99,7 +114,6 @@ public class ExtraChargeForm extends BaseForm {
         try {
             binder.writeBean(item);
             fireEvent(new ExtraChargeForm.SaveEvent(this, item));
-            setItem(new ExtraChargeViewItem());
         } catch (ValidationException e) {
             logger().error("ERROR_VALIDATING", e);
             asyncNotification(e.getMessage());
@@ -112,7 +126,6 @@ public class ExtraChargeForm extends BaseForm {
         binder.readBean(viewItem);
 
     }
-
 
 
     private static abstract class ExtraChargeFormEvent extends ViewEvent<ExtraChargeForm, ExtraChargeViewItem> {

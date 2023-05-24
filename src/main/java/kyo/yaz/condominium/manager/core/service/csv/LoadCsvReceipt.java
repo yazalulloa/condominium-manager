@@ -5,14 +5,11 @@ import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,50 +27,33 @@ public class LoadCsvReceipt {
     public Single<Receipt> load(String buildingId, InputStream inputStream) {
         return Single.defer(() -> {
 
-            try (final var workbook = new XSSFWorkbook(inputStream)) {
+            final var csvReceipt = new ParseCsv().csvReceipt(inputStream);
 
-                final var numberOfSheets = workbook.getNumberOfSheets();
+            final var buildingMono = buildingService.get(buildingId);
 
-                final var expensesSheet = workbook.getSheetAt(0);
-                final var debtsSheet = workbook.getSheetAt(1);
-                final var reserveFundSheet = numberOfSheets > 3 ? workbook.getSheetAt(3) : null;
+            final var rateMono = rateService.getLast(Currency.USD, Currency.VED);
 
-                final var extraChargesSheet = numberOfSheets > 4 ? workbook.getSheetAt(4) : null;
+            return Single.zip(buildingMono, rateMono, (building, rate) -> {
 
-                final var parseCsv = new ParseCsv();
+                final var debtList = csvReceipt.debts().stream()
+                        .map(debt -> debt.toBuilder()
+                                .previousPaymentAmountCurrency(debt.previousPaymentAmount() != null ? building.mainCurrency() : null)
+                                .build())
+                        .collect(Collectors.toList());
 
-                final var expenses = parseCsv.expenses(expensesSheet);
-                final var debts = parseCsv.debts(debtsSheet);
-                final var extraCharges = Optional.ofNullable(extraChargesSheet)
-                        .map(parseCsv::extraCharges)
-                        .orElseGet(Collections::emptyList);
-
-
-                final var buildingMono = buildingService.get(buildingId);
-
-                final var rateMono = rateService.getLast(Currency.USD, Currency.VED);
-
-                return Single.zip(buildingMono, rateMono, (building, rate) -> {
-
-                    final var debtList = debts.stream()
-                            .map(debt -> debt.toBuilder()
-                                    .previousPaymentAmountCurrency(debt.previousPaymentAmount() != null ? building.mainCurrency() : null)
-                                    .build())
-                            .collect(Collectors.toList());
-
-                    return Receipt.builder()
-                            .buildingId(buildingId)
-                            .year(LocalDate.now().getYear())
-                            .month(LocalDate.now().getMonth())
-                            .date(LocalDate.now())
-                            .expenses(expenses)
-                            .debts(debtList)
-                            .extraCharges(extraCharges)
-                            .rate(rate)
-                            .build();
-                });
-            }
+                return Receipt.builder()
+                        .buildingId(buildingId)
+                        .year(LocalDate.now().getYear())
+                        .month(LocalDate.now().getMonth())
+                        .date(LocalDate.now())
+                        .expenses(csvReceipt.expenses())
+                        .debts(debtList)
+                        .extraCharges(csvReceipt.extraCharges())
+                        .rate(rate)
+                        .build();
+            });
         });
 
     }
+
 }

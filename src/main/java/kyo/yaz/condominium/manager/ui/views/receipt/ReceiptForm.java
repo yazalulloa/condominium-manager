@@ -2,7 +2,6 @@ package kyo.yaz.condominium.manager.ui.views.receipt;
 
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
@@ -12,7 +11,6 @@ import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
-import kyo.yaz.condominium.manager.ui.views.domain.ReceiptFormItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,9 +54,7 @@ public class ReceiptForm extends BaseForm {
 
         rateComboBox.setItemLabelGenerator(rate -> rate.rate() + " " + rate.dateOfRate() + " " + rate.source() + " " + rate.fromCurrency());
 
-        final var horizontalLayout = new HorizontalLayout(buildingComboBox, yearPicker, monthPicker, datePicker, rateComboBox);
-
-        add(horizontalLayout);
+        add(buildingComboBox, yearPicker, monthPicker, datePicker, rateComboBox);
 
         binder.bindInstanceFields(this);
 

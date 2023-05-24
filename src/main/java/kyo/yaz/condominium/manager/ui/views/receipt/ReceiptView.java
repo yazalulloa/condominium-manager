@@ -44,7 +44,7 @@ import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
-import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
+import kyo.yaz.condominium.manager.ui.views.component.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.receipt.pdf.ReceipPdfView;
 import kyo.yaz.condominium.manager.ui.views.receipt.service.DownloadReceiptZipService;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;

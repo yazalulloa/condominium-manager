@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.ui.views.domain;
+package kyo.yaz.condominium.manager.ui.views.component;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;

@@ -1,6 +1,7 @@
 package kyo.yaz.condominium.manager.ui.views.building;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
@@ -33,7 +34,7 @@ public class ReserveFundView extends BaseDiv {
         addClassName("reserve-fund-view");
         configureGrid();
         configureForm();
-        add(new H3(Labels.RESERVE_FUNDS_TITLE), addBtn, getContent());
+        add(new HorizontalLayout(new H3(Labels.RESERVE_FUNDS_TITLE), addBtn), getContent());
         closeEditor();
         setItemsGrid();
     }
@@ -52,7 +53,7 @@ public class ReserveFundView extends BaseDiv {
     }
 
     private void configureForm() {
-        form.setWidth("25em");
+        form.setWidth(30, Unit.EM);
         form.setHeightFull();
         form.addListener(ReserveFundForm.SaveEvent.class, e -> addItem(e.getObj()));
         form.addListener(ReserveFundForm.DeleteEvent.class, e -> removeItem(e.getObj()));
@@ -62,8 +63,8 @@ public class ReserveFundView extends BaseDiv {
 
     private void configureGrid() {
         grid.addClassNames("reserve-fund-grid");
-        grid.setColumnReorderingAllowed(true);
         grid.setAllRowsVisible(true);
+        grid.setColumnReorderingAllowed(true);
 
         grid.setDropMode(GridDropMode.BETWEEN);
         grid.setRowsDraggable(true);

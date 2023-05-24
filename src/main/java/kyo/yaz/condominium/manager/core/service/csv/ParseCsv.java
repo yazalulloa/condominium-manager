@@ -7,7 +7,10 @@ import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Month;
 import java.util.*;
@@ -57,7 +60,9 @@ public class ParseCsv {
             }
         }
 
-        final var comparator = Comparator.comparing(Expense::type).thenComparing(Expense::description);
+        final var comparator = Comparator.comparing(Expense::type)
+                //.thenComparing(Expense::description)
+                ;
 
         return expenses.stream().sorted(comparator)
                 .collect(Collectors.toCollection(LinkedList::new));
@@ -153,5 +158,32 @@ public class ParseCsv {
                 .orElseGet(Collections::emptySet);
     }
 
+    public CsvReceipt csvReceipt(InputStream inputStream) throws IOException {
+        try (final var workbook = new XSSFWorkbook(inputStream)) {
+
+            final var numberOfSheets = workbook.getNumberOfSheets();
+
+            final var expensesSheet = workbook.getSheetAt(0);
+            final var debtsSheet = workbook.getSheetAt(1);
+            final var reserveFundSheet = numberOfSheets > 3 ? workbook.getSheetAt(3) : null;
+
+            final var extraChargesSheet = numberOfSheets > 4 ? workbook.getSheetAt(4) : null;
+
+
+            final var expenses = expenses(expensesSheet);
+            final var debts = debts(debtsSheet);
+            final var extraCharges = Optional.ofNullable(extraChargesSheet)
+                    .map(this::extraCharges)
+                    .orElseGet(Collections::emptyList);
+
+            return CsvReceipt.builder()
+                    .expenses(expenses)
+                    .debts(debts)
+                    .extraCharges(extraCharges)
+                    .build();
+
+
+        }
+    }
 
 }

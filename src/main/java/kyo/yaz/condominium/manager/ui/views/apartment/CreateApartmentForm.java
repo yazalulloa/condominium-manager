@@ -14,7 +14,6 @@ import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
-import kyo.yaz.condominium.manager.ui.views.domain.ApartmentViewItem;
 import kyo.yaz.condominium.manager.ui.views.form.EmailsForm;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 

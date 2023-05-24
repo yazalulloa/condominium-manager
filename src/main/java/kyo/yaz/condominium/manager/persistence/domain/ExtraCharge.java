@@ -27,6 +27,8 @@ public class ExtraCharge {
     @JsonProperty
     private final String aptNumber;
     @JsonProperty
+    private final String name;
+    @JsonProperty
     private final String description;
     @JsonProperty
     private final BigDecimal amount;

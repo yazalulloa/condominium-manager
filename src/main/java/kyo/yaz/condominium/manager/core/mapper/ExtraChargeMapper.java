@@ -1,7 +1,7 @@
 package kyo.yaz.condominium.manager.core.mapper;
 
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
-import kyo.yaz.condominium.manager.ui.views.domain.ExtraChargeViewItem;
+import kyo.yaz.condominium.manager.ui.views.extracharges.ExtraChargeViewItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -21,6 +21,6 @@ public interface ExtraChargeMapper {
     ExtraCharge map(ExtraChargeViewItem item);
 
     default ExtraChargeViewItem map(ExtraCharge item) {
-        return new ExtraChargeViewItem(item.aptNumber(), item.description(), item.amount(), item.currency());
+        return new ExtraChargeViewItem(item.aptNumber(), item.name(), item.description(), item.amount(), item.currency());
     }
 }

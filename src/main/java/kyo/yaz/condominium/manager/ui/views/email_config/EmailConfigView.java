@@ -30,7 +30,7 @@ import kyo.yaz.condominium.manager.persistence.entity.EmailConfig;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
-import kyo.yaz.condominium.manager.ui.views.domain.DeleteDialog;
+import kyo.yaz.condominium.manager.ui.views.component.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,7 +137,7 @@ public class EmailConfigView extends BaseVerticalLayout {
     }
 
     private void configureForm() {
-        form.setWidth(30, Unit.PERCENTAGE);
+        form.setWidth(30, Unit.EM);
         form.setHeightFull();
         form.addListener(EmailConfigForm.SaveEvent.class, this::saveEntity);
         form.addListener(EmailConfigForm.DeleteEvent.class, this::deleteEntity);

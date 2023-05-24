@@ -83,12 +83,10 @@ public class ApartmentService {
                 .toList(LinkedList::new);
     }
 
-    public Single<List<String>> aptNumbers(String buildingId) {
-        return apartmentsByBuilding(buildingId)
-                .flatMapObservable(Observable::fromIterable)
-                .map(Apartment::apartmentId)
-                .map(Apartment.ApartmentId::number)
-                .toList();
+    public Single<List<Apartment>> aptNumbers(String buildingId) {
+        final var mono = repository.getAptNumberName(buildingId)
+                .collectList();
+        return RxJava3Adapter.monoToSingle(mono);
     }
 
     public Completable delete(Apartment entity) {

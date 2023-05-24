@@ -1,0 +1,39 @@
+.extra-charges-view .card {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  flex-basis: auto;
+  justify-content: space-between;
+  gap: 16px;
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius);
+  box-shadow: var(--lumo-box-shadow-xs);
+  padding: calc(var(--lumo-space-s) * 1) var(--lumo-space-m);
+
+
+     .body {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        flex-basis: auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+
+    .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: row;
+            flex-basis: auto;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+       }
+
+}
+
+.extra-charge-form {
+   width: 30em
+}

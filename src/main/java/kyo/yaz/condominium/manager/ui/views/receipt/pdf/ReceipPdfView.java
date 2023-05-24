@@ -24,7 +24,7 @@ import kyo.yaz.condominium.manager.core.service.GetPdfItems;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
-import kyo.yaz.condominium.manager.ui.views.domain.LazyComponent;
+import kyo.yaz.condominium.manager.ui.views.component.LazyComponent;
 import kyo.yaz.condominium.manager.ui.views.receipt.ReceiptView;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;

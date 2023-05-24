@@ -69,10 +69,10 @@ public class EmailConfigRepositoryImpl implements EmailConfigCustomRepository {
 
     @Override
     public Flux<EmailConfig> findByIdFrom() {
-        final var query = new Query();
-        query.fields().include("from");
+            final var query = new Query();
+            query.fields().include("from");
 
-        return find(query);
+            return find(query);
     }
 
     @Override

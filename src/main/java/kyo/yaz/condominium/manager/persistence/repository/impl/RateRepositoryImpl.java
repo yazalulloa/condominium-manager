@@ -1,6 +1,7 @@
 package kyo.yaz.condominium.manager.persistence.repository.impl;
 
 import kyo.yaz.condominium.manager.persistence.domain.request.RateQueryRequest;
+import kyo.yaz.condominium.manager.persistence.entity.EmailConfig;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.persistence.repository.base.RateCustomRepository;
 import kyo.yaz.condominium.manager.persistence.util.QueryUtil;
@@ -89,7 +90,7 @@ public class RateRepositoryImpl implements RateCustomRepository {
 
         log.info("QUERY: " + query);
 
-        return template.find(query, Rate.class);
+        return find(query);
     }
 
     @Override
@@ -110,5 +111,11 @@ public class RateRepositoryImpl implements RateCustomRepository {
         log.info("QUERY: " + query);
 
         return mongoTemplate.stream(query, Rate.class);
+    }
+
+
+
+    private Flux<Rate> find(Query query) {
+        return template.find(query, Rate.class);
     }
 }

@@ -1,7 +1,7 @@
 package kyo.yaz.condominium.manager.core.mapper;
 
 import kyo.yaz.condominium.manager.persistence.entity.EmailConfig;
-import kyo.yaz.condominium.manager.ui.views.domain.EmailConfigViewItem;
+import kyo.yaz.condominium.manager.ui.views.email_config.EmailConfigViewItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
