@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
-public class CreateApartmentForm extends BaseForm {
+public class ApartmentForm extends BaseForm {
 
     @PropertyId("building_id")
     private final ComboBox<String> buildingField = new ComboBox<>(Labels.Apartment.BUILDING_LABEL);
@@ -48,7 +48,7 @@ public class CreateApartmentForm extends BaseForm {
 
     Binder<ApartmentViewItem> binder = new BeanValidationBinder<>(ApartmentViewItem.class);
 
-    public CreateApartmentForm() {
+    public ApartmentForm() {
         addClassName("apartment-form");
         init();
     }
@@ -120,28 +120,28 @@ public class CreateApartmentForm extends BaseForm {
         emailsForm.setEmails(emails);
     }
 
-    private static abstract class ApartmentFormEvent extends ViewEvent<CreateApartmentForm, ApartmentViewItem> {
+    private static abstract class ApartmentFormEvent extends ViewEvent<ApartmentForm, ApartmentViewItem> {
 
-        protected ApartmentFormEvent(CreateApartmentForm source, ApartmentViewItem obj) {
+        protected ApartmentFormEvent(ApartmentForm source, ApartmentViewItem obj) {
             super(source, obj);
         }
     }
 
     public static class SaveEvent extends ApartmentFormEvent {
-        SaveEvent(CreateApartmentForm source, ApartmentViewItem Apartment) {
+        SaveEvent(ApartmentForm source, ApartmentViewItem Apartment) {
             super(source, Apartment);
         }
     }
 
     public static class DeleteEvent extends ApartmentFormEvent {
-        DeleteEvent(CreateApartmentForm source, ApartmentViewItem Apartment) {
+        DeleteEvent(ApartmentForm source, ApartmentViewItem Apartment) {
             super(source, Apartment);
         }
 
     }
 
     public static class CloseEvent extends ApartmentFormEvent {
-        CloseEvent(CreateApartmentForm source) {
+        CloseEvent(ApartmentForm source) {
             super(source, null);
         }
     }

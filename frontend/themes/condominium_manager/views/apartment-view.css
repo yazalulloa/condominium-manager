@@ -27,8 +27,8 @@
   flex-wrap: wrap;
   flex-direction: row;
   flex-basis: auto;
-  justify-content: start;
-  gap: 16px;
+  justify-content: space-between;
+  gap: 8px;
   background-color: var(--lumo-base-color);
   border-radius: var(--lumo-border-radius);
   box-shadow: var(--lumo-box-shadow-xs);
@@ -52,5 +52,15 @@
         flex-basis: auto;
         align-items: center;
         gap: 16px;
+    }
+
+    .buttons {
+               display: flex;
+               flex-wrap: wrap;
+               flex-direction: row;
+               flex-basis: auto;
+               align-items: center;
+               justify-content: space-between;
+               gap: 16px;
     }
 }

@@ -21,12 +21,12 @@
 }
 
 
- .building-view .card {
+.building-view .card {
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
   flex-basis: auto;
-  justify-content: start;
+  justify-content: space-between;
   gap: 8px;
   background-color: var(--lumo-base-color);
   border-radius: var(--lumo-border-radius);
@@ -61,15 +61,15 @@
              gap: 10px;
         }
 
-      .buttons {
-           display: flex;
-           flex-wrap: wrap;
-           flex-direction: row;
-           flex-basis: auto;
-           align-items: start;
-           justify-content: start;
-           gap: 16px;
-      }
+     .buttons {
+                    display: flex;
+                    flex-wrap: wrap;
+                    flex-direction: row;
+                    flex-basis: auto;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+         }
 
     }
 

@@ -5,12 +5,15 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -27,23 +30,27 @@ import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.ui.MainLayout;
-import kyo.yaz.condominium.manager.ui.views.actions.DeleteEntity;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
+import kyo.yaz.condominium.manager.ui.views.component.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Objects;
+import java.util.function.Consumer;
 
 
 @PageTitle(ApartmentView.PAGE_TITLE)
 @PermitAll
 @Route(value = "apartments", layout = MainLayout.class)
-public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Apartment> {
+public class ApartmentView extends BaseVerticalLayout {
     public static final String PAGE_TITLE = "Apartamentos";
 
     private final Grid<Apartment> grid = new Grid<>();
 
     private final MultiSelectComboBox<String> buildingComboBox = new MultiSelectComboBox<>();
 
+    private final DeleteDialog deleteDialog = new DeleteDialog();
     private final TextField filterText = new TextField();
 
     private final Text queryCountText = new Text(null);
@@ -52,7 +59,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
     private final ApartmentService apartmentService;
     private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
     private final BuildingService buildingService;
-    private final CreateApartmentForm form = new CreateApartmentForm();
+    private final ApartmentForm form = new ApartmentForm();
 
     @Autowired
     public ApartmentView(ApartmentService apartmentService, BuildingService buildingService) {
@@ -109,18 +116,6 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
 
     private void configureGrid() {
         grid.addClassNames("apartments-grid");
-//        grid.setColumnReorderingAllowed(true);
-//
-//        grid.addColumn(apartment -> apartment.apartmentId().buildingId()).setHeader(Labels.Apartment.BUILDING_LABEL).setSortable(true).setKey(Labels.Apartment.BUILDING_LABEL);
-//        grid.addColumn(apartment -> apartment.apartmentId().number()).setHeader(Labels.Apartment.NUMBER_LABEL).setSortable(true).setKey(Labels.Apartment.NUMBER_LABEL);
-//        grid.addColumn(Apartment::name).setHeader(Labels.Apartment.NAME_LABEL).setSortable(true).setKey(Labels.Apartment.NAME_LABEL);
-//        grid.addColumn(Apartment::idDoc).setHeader(Labels.Apartment.ID_DOC_LABEL).setSortable(true).setKey(Labels.Apartment.ID_DOC_LABEL);
-//        grid.addColumn(apartment -> String.join("\n", apartment.emails())).setHeader(Labels.Apartment.EMAILS_LABEL).setKey(Labels.Apartment.EMAILS_LABEL);
-//        // grid.addColumn(Apartment::paymentType).setHeader(Labels.Apartment.PAYMENT_TYPE_LABEL).setKey(Labels.Apartment.PAYMENT_TYPE_LABEL);
-//        grid.addColumn(Apartment::amountToPay).setHeader(Labels.Apartment.ALIQUOT_LABEL).setSortable(true).setKey(Labels.Apartment.ALIQUOT_LABEL);
-//
-//        grid.getColumns().forEach(col -> col.setAutoWidth(true));
-
 
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
@@ -129,8 +124,13 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
 
-        final var contextMenu = new ApartmentView.ApartmentContextMenu(grid, this);
-        add(grid, contextMenu);
+        final var contextMenu = grid.addContextMenu();
+        contextMenu.setDynamicContentHandler(Objects::nonNull);
+
+
+        final var deleteMenu = contextMenu.addItem(Labels.DELETE);
+        deleteMenu.addComponentAsFirst(VaadinIcon.TRASH.create());
+        deleteMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::deleteDialog));
 
         grid.asSingleSelect().addValueChangeListener(event -> editEntity(event.getValue()));
     }
@@ -157,28 +157,21 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         final var amountToPay = Labels.Apartment.ALIQUOT_LABEL + ": %s".formatted(apartment.amountToPay());
         body.add(amountToPay);
 
-        div.add(header);
-        div.add(body);
+        final var buttons = new Div(deleteBtn(new Button(), apartment));
+        buttons.addClassName("buttons");
+
+        div.add(header, body, buttons);
         return div;
     }
 
     private void configureForm() {
         form.setWidth(30, Unit.EM);
         form.setHeightFull();
-        form.addListener(CreateApartmentForm.SaveEvent.class, this::saveEntity);
-        form.addListener(CreateApartmentForm.DeleteEvent.class, this::deleteEntity);
-        form.addListener(CreateApartmentForm.CloseEvent.class, e -> closeEditor());
+        form.addListener(ApartmentForm.SaveEvent.class, this::saveEntity);
+        form.addListener(ApartmentForm.DeleteEvent.class, this::deleteEntity);
+        form.addListener(ApartmentForm.CloseEvent.class, e -> closeEditor());
     }
 
-    @Override
-    public void delete(Apartment obj) {
-
-        apartmentService.delete(obj)
-                .andThen(refreshData())
-                .andThen(updateBuildingCount(obj.apartmentId().buildingId()))
-                .subscribeOn(Schedulers.io())
-                .subscribe(completableObserver());
-    }
 
     private void updateGrid() {
         refreshData()
@@ -280,7 +273,7 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         editEntity(Apartment.builder().build());
     }
 
-    private void saveEntity(CreateApartmentForm.SaveEvent event) {
+    private void saveEntity(ApartmentForm.SaveEvent event) {
         apartmentService.save(ApartmentMapper.to(event.getObj()))
                 .ignoreElement()
                 .andThen(refreshData())
@@ -291,8 +284,32 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
         closeEditor();
     }
 
-    private void deleteEntity(CreateApartmentForm.DeleteEvent event) {
-        delete(ApartmentMapper.to(event.getObj()));
+    private void deleteDialog(Apartment apartment) {
+        deleteDialog.setText(Labels.ASK_CONFIRMATION_DELETE_APT.formatted(apartment.apartmentId().number(), apartment.name()));
+        deleteDialog.setDeleteAction(() -> delete(apartment));
+        deleteDialog.open();
+    }
+
+    public void delete(Apartment obj) {
+
+        apartmentService.delete(obj)
+                .andThen(refreshData())
+                .andThen(updateBuildingCount(obj.apartmentId().buildingId()))
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
+    }
+
+    private Button deleteBtn(Button button, Apartment item) {
+        button.addThemeVariants(ButtonVariant.LUMO_ICON,
+                ButtonVariant.LUMO_ERROR,
+                ButtonVariant.LUMO_TERTIARY);
+        button.addClickListener(e -> this.deleteDialog(item));
+        button.setIcon(new Icon(VaadinIcon.TRASH));
+        return button;
+    }
+
+    private void deleteEntity(ApartmentForm.DeleteEvent event) {
+        deleteDialog(ApartmentMapper.to(event.getObj()));
         closeEditor();
     }
 
@@ -303,10 +320,10 @@ public class ApartmentView extends BaseVerticalLayout implements DeleteEntity<Ap
 
     private static class ApartmentContextMenu extends GridContextMenu<Apartment> {
 
-        public ApartmentContextMenu(Grid<Apartment> target, DeleteEntity<Apartment> deleteApartment) {
+        public ApartmentContextMenu(Grid<Apartment> target, Consumer<Apartment> deleteApartment) {
             super(target);
 
-            addItem("Borrar", e -> e.getItem().ifPresent(deleteApartment::delete));
+            addItem("Borrar", e -> e.getItem().ifPresent(deleteApartment));
 
             //add(new Hr());
         }

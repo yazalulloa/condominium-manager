@@ -15,6 +15,7 @@ public class Labels {
     public static final String NEW_EXPENSE = "Nuevo Gasto";
     public static final String NEW_DEBT = "Nueva Deuda";
     public static final String ASK_CONFIRMATION_DELETE_RATE = "Esta seguro de borrar la tasa de cambio\n %s %s %s?";
+    public static final String ASK_CONFIRMATION_DELETE_APT = "Esta seguro de borrar el apartament \n %s %s?";
     public static final String ASK_CONFIRMATION_DELETE_BUILDING = "Esta seguro de borrar el edificio\n %s?";
     public static final String ASK_CONFIRMATION_DELETE_EMAIL_CONFIG = "Esta seguro de borrar la configuracioon de email\n %s?";
     public static final String COPY = "Copiar";

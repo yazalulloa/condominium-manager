@@ -11,8 +11,8 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import kyo.yaz.condominium.manager.core.config.domain.UserSession;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
 import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
-import kyo.yaz.condominium.manager.ui.views.apartment.ApartmentView;
 import kyo.yaz.condominium.manager.ui.views.RateView;
+import kyo.yaz.condominium.manager.ui.views.apartment.ApartmentView;
 import kyo.yaz.condominium.manager.ui.views.building.BuildingView;
 import kyo.yaz.condominium.manager.ui.views.domain.User;
 import kyo.yaz.condominium.manager.ui.views.email_config.EmailConfigView;
@@ -24,9 +24,10 @@ import java.util.Optional;
 public class MainLayout extends AppLayout {
     private H2 viewTitle;
 
-    private final UserSession userSession = new UserSession();
+    private final UserSession userSession;
 
-    public MainLayout() {
+    public MainLayout(UserSession userSession) {
+        this.userSession = userSession;
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
         addHeaderContent();
@@ -84,7 +85,10 @@ public class MainLayout extends AppLayout {
     }
 
     private String getCurrentPageTitle() {
-        PageTitle title = getContent().getClass().getAnnotation(PageTitle.class);
-        return title == null ? "" : title.value();
+        return Optional.ofNullable(getContent())
+                .map(Object::getClass)
+                .map(clazz -> clazz.getAnnotation(PageTitle.class))
+                .map(PageTitle::value)
+                .orElse("");
     }
 }

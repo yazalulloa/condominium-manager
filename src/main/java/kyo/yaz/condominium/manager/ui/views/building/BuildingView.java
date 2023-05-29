@@ -125,13 +125,16 @@ public class BuildingView extends BaseDiv {
         final var editBtn = new Button(editBuildingIcon);
         editBtn.addClickListener(v -> editEntity(building.id()));
 
-        final var buttonLayout = new Div(deleteBtn, editBtn);
-        buttonLayout.addClassName("buttons");
+
 
         final var card = new Div();
         card.addClassName("card");
         final var buildingInfo = new Div(header, description(building));
         buildingInfo.addClassName("info");
+
+        final var buttonLayout = new Div(deleteBtn, editBtn);
+        buttonLayout.addClassName("buttons");
+
         card.add(buildingInfo, buttonLayout);
 
         return card;

@@ -31,7 +31,9 @@ import java.util.Optional;
 @EnableMongoRepositories()
 @EnableScheduling
 @EnableAsync
-@ComponentScan
+@ComponentScan(basePackages = {
+        "kyo.yaz.condominium.manager"
+})
 @ServletComponentScan
 @Theme(value = "condominium_manager")
 @Push(PushMode.AUTOMATIC)
