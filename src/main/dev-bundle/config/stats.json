@@ -71,7 +71,7 @@
   "print-js": "1.6.0"
  },
  "npmModules": {
-  "@lit/reactive-element": "1.6.1",
+  "@lit/reactive-element": "1.6.2",
   "@polymer/polymer": "3.5.1",
   "@vaadin-component-factory/vcf-nav": "1.0.6",
   "@vaadin-component-factory/vcf-pdf-viewer": "1.4.1",
@@ -135,11 +135,11 @@
   "@vaadin/virtual-list": "24.0.3",
   "construct-style-sheets-polyfill": "3.1.0",
   "date-fns": "2.29.3",
-  "lit-element": "3.3.0",
-  "lit-html": "2.7.0",
+  "lit-element": "3.3.2",
+  "lit-html": "2.7.4",
   "lumo-css-framework": "3.0.11",
   "print-js": "1.6.0",
-  "tslib": "2.5.0"
+  "tslib": "2.5.3"
  },
  "bundleImports": [
   "@vaadin/vaadin-themable-mixin",
@@ -267,7 +267,7 @@
   "condominium_manager": "{\n  \"lumoImports\" : [ \"typography\", \"color\", \"spacing\", \"badge\", \"utility\" ],\n  \"version\": 2\n}"
  },
  "entryScripts": [
-  "VAADIN/build/indexhtml-c2057736.js"
+  "VAADIN/build/indexhtml-f03862dd.js"
  ],
  "webComponents": [],
  "packageJsonHash": "fba7869f136369f8978a24a10bf25d0c518b1056f0cb8e934fb497fc13fdb48f"

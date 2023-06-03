@@ -2,6 +2,7 @@ package kyo.yaz.condominium.manager.core.config.domain;
 
 import kyo.yaz.condominium.manager.ui.views.domain.User;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
@@ -11,6 +12,7 @@ import org.springframework.web.context.annotation.SessionScope;
 import java.io.Serializable;
 
 @Slf4j
+@Scope("prototype")
 @Component
 @SessionScope
 public class UserSession implements Serializable {

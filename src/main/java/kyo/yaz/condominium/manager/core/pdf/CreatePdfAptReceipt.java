@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
@@ -57,7 +59,11 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
         document.add(new Paragraph(new Text(title()).setBold()).setTextAlignment(TextAlignment.CENTER));
         document.add(new Paragraph(building().name()));
         document.add(new Paragraph("RIF: " + building().rif()));
-        document.add(new Paragraph("MES A PAGAR: " + translate(receipt().month().name()) + " " + receipt().year()));
+
+        final var year = receipt().year();
+        final var month = translate(receipt().month().name());
+
+        document.add(new Paragraph("MES A PAGAR: " + month + " " + year));
         document.add(new Paragraph(receipt().date().toString()));
         document.add(new Paragraph("PROPIETARIO: " + apartment().name()));
         document.add(new Paragraph("APT: " + apartment().apartmentId().number()));
@@ -251,17 +257,50 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                     ;
 
 
-            div.add(new Paragraph(new Text("FONDO DE RESERVA").setBold().setUnderline()));
+            div.add(new Paragraph(new Text("MES DE %s/%s".formatted(month, year)).setBold().setUnderline().setTextAlignment(TextAlignment.CENTER)));
+
+            final var debtTableAdded = new AtomicBoolean(false);
+
             receipt().reserveFundTotals().forEach(fund -> {
                 final var newFund = fund.fund().add(fund.amount());
-                div.add(new Paragraph(new Text("FONDO DE RESERVA ANTERIOR: " + ConvertUtil.format(fund.fund(), building().mainCurrency()))));
-                div.add(new Paragraph(new Text("MONTO A PAGAR: " + ConvertUtil.format(fund.amount(), building().mainCurrency()) + " " + fund.percentage() + "%")));
-                div.add(new Paragraph(new Text("FONDO DE RESERVA NUEVO: " + ConvertUtil.format(newFund, building().mainCurrency()))));
-                div.add(new Paragraph(new Text("SALDO/MES: " + ConvertUtil.format(newFund.subtract(receipt().totalDebt()), building().mainCurrency()))));
+                final var previousReserveFund = ConvertUtil.format(fund.fund(), building().mainCurrency());
+                final var amountToPay = ConvertUtil.format(fund.amount(), building().mainCurrency()) + " " + fund.percentage() + "%";
+                final var newReserveFund = ConvertUtil.format(newFund, building().mainCurrency());
+
+
+                final var table = PdfUtil.table(4);
+
+                Consumer<String> addCell = str -> table.addCell(PdfUtil.tableCell().add(new Paragraph(str)));
+
+                table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("PATRIMONIO")));
+                table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("+FACT.MES.ANT")));
+                table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("+FAC.MES.ACT")));
+                table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("SALDO/MES")));
+
+                addCell.accept(fund.name());
+                addCell.accept(previousReserveFund);
+                addCell.accept(amountToPay);
+                addCell.accept(newReserveFund);
+
+
+                if (!debtTableAdded.get()) {
+                    final var debt = ConvertUtil.format(receipt().totalDebt(), building.mainCurrency());
+                    final var fundAfterDebt = ConvertUtil.format(newFund.subtract(receipt().totalDebt()), building().mainCurrency());
+
+                    addCell.accept("P/Cobrar > Recibos  %s".formatted(receipt.debtReceiptsAmount()));
+                    addCell.accept(debt);
+                    addCell.accept("Patrimonio");
+                    addCell.accept(fundAfterDebt);
+
+                    debtTableAdded.set(true);
+                }
+
+
+                div.add(table);
             });
 
-            div.add(new Paragraph("Recibos en deuda: " + receipt().debtReceiptsAmount()));
-            div.add(new Paragraph("Deuda: " + ConvertUtil.format(receipt().totalDebt(), building().debtCurrency())));
+            //div.add(new Paragraph("Recibos en deuda: " + receipt().debtReceiptsAmount()));
+            // div.add(new Paragraph("Deuda: " + ConvertUtil.format(receipt().totalDebt(), building().debtCurrency())));
 
             document.add(div);
         }

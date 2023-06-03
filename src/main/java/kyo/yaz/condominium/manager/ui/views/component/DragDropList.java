@@ -14,6 +14,7 @@ public class DragDropList<S, T extends DragDropDiv<S>> extends Div {
 
     private final List<T> components = new LinkedList<>();
 
+
     public void addComponent(T component) {
         components.add(component);
         setListeners(component);
@@ -89,7 +90,7 @@ public class DragDropList<S, T extends DragDropDiv<S>> extends Div {
         });
     }
 
-    public void change(T source, T target) {
+    private void change(T source, T target) {
         if (source == target) {
             return;
         }

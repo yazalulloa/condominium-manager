@@ -1,6 +1,7 @@
 package kyo.yaz.condominium.manager.core.util;
 
 import com.google.common.base.CharMatcher;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
@@ -11,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Slf4j
 public class PoiUtil {
 
     public static List<String> toList(Row row) {
@@ -65,8 +67,25 @@ public class PoiUtil {
         return str.replaceAll("\\.0", "");
     }
 
+    public static boolean isThereIsANumber(String str) {
+        for (char character : str.toCharArray()) {
+            final var isDigit = Character.isDigit(character);
+            if (isDigit) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static BigDecimal decimal(String str) {
-        return new BigDecimal(toAmount(str));
+
+        try {
+            return new BigDecimal(toAmount(str));
+        } catch (Exception e) {
+            log.error("FAILED TO PARSE {}", str, e);
+            throw new RuntimeException(e);
+        }
     }
 
     public static String toAmount(String str) {

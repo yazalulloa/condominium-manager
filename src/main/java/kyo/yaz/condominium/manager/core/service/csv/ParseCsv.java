@@ -11,7 +11,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,6 +41,18 @@ public class ParseCsv {
         for (final Row row : sheet) {
 
             final var list = PoiUtil.toList(row);
+
+            if (type == Expense.Type.UNCOMMON && list.size() == 0) {
+                break;
+            }
+
+            if (list.size() >= 1) {
+                if (list.get(0).contains("GASTOS NO COMUNES")) {
+                    type = Expense.Type.UNCOMMON;
+                }
+
+            }
+
             if (list.size() >= 2) {
                 final var description = list.get(0).replaceAll("\\s{2,}", " ").trim();
                 final var amount = list.get(1).trim();
@@ -51,9 +62,13 @@ public class ParseCsv {
                     continue;
                 }
 
+                if (!PoiUtil.isThereIsANumber(amount)) {
+                    continue;
+                }
+
                 expenses.add(Expense.builder()
                         .description(description)
-                        .amount(new BigDecimal(amount))
+                        .amount(PoiUtil.decimal(amount))
                         .type(type)
                         .currency(Currency.VED)
                         .build());

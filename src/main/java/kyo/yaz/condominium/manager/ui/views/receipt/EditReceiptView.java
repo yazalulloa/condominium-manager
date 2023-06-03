@@ -30,8 +30,8 @@ import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.ScrollPanel;
-import kyo.yaz.condominium.manager.ui.views.receipt.debts.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.extracharges.ExtraChargesView;
+import kyo.yaz.condominium.manager.ui.views.receipt.debts.DebtViewItem;
 import kyo.yaz.condominium.manager.ui.views.receipt.debts.DebtsView;
 import kyo.yaz.condominium.manager.ui.views.receipt.expenses.ExpenseForm;
 import kyo.yaz.condominium.manager.ui.views.receipt.expenses.ExpensesView;
@@ -41,10 +41,8 @@ import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @PageTitle(ReceiptView.PAGE_TITLE)
@@ -57,6 +55,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
     private final ExtraChargesView extraChargesView = new ExtraChargesView();
 
     private final Span commonExpensesTotal = new Span();
+    private final Span commonExpensesTotalPlusReserveFund = new Span();
     private final Span unCommonExpensesTotal = new Span();
     private final Div reserveFundsDiv = new Div();
     private final ApartmentService apartmentService;
@@ -174,7 +173,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
         extraChargesView.setVisible(false);
         debtsView.setVisible(false);
 
-        add(receiptForm, createButtonsLayout(), new Div(commonExpensesTotal), new Div(unCommonExpensesTotal), reserveFundsDiv, expensesView, new Hr(), debtsView, new Hr(), extraChargesView, new Hr());
+        add(receiptForm, createButtonsLayout(), new Div(commonExpensesTotal), new Div(commonExpensesTotalPlusReserveFund), new Div(unCommonExpensesTotal), reserveFundsDiv, expensesView, new Hr(), debtsView, new Hr(), extraChargesView, new Hr());
     }
 
     private void navigateBack() {
@@ -219,24 +218,33 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
     }
 
     private void loadReserveFunds() {
-        Optional.ofNullable(building)
+        final var fundList = Optional.ofNullable(building)
                 .map(Building::reserveFunds)
-                .filter(CollectionUtils::isNotEmpty)
-                .ifPresent(reserveFunds -> {
-                    reserveFundsDiv.setVisible(true);
-                    reserveFundsDiv.removeAll();
+                .filter(CollectionUtils::isNotEmpty);
 
-                    reserveFunds.forEach(reserveFund -> {
-                        if (reserveFund.active() && DecimalUtil.greaterThanZero(reserveFund.percentage())) {
-                            final var percentageToPay = DecimalUtil.greaterThanZero(expensesView.totalCommon()) ? DecimalUtil.percentageOf(reserveFund.percentage(), expensesView.totalCommon()) : expensesView.totalCommon();
-                            reserveFundsDiv.add(new Paragraph(reserveFund.name() + ": " + reserveFund.fund() + " Porcentaje: " + reserveFund.percentage() + "% Monto a pagar: " + percentageToPay));
-                        }
+        fundList.ifPresent(reserveFunds -> {
+            reserveFundsDiv.setVisible(true);
+            reserveFundsDiv.removeAll();
 
-                    });
+            reserveFunds.forEach(reserveFund -> {
+                if (reserveFund.active() && DecimalUtil.greaterThanZero(reserveFund.percentage())) {
+                    final var percentageToPay = DecimalUtil.greaterThanZero(expensesView.totalCommon()) ? DecimalUtil.percentageOf(reserveFund.percentage(), expensesView.totalCommon()) : expensesView.totalCommon();
+                    reserveFundsDiv.add(new Paragraph(reserveFund.name() + ": " + reserveFund.fund() + " Porcentaje: " + reserveFund.percentage() + "% Monto a pagar: " + percentageToPay));
+                }
 
-                });
+            });
+
+        });
+
+        final var totalFund = fundList.stream()
+                .flatMap(Collection::stream)
+                .filter(reserveFund -> reserveFund.active() && DecimalUtil.greaterThanZero(reserveFund.percentage()))
+                .map(reserveFund -> DecimalUtil.greaterThanZero(expensesView.totalCommon()) ? DecimalUtil.percentageOf(reserveFund.percentage(), expensesView.totalCommon()) : expensesView.totalCommon())
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
 
         commonExpensesTotal.setText("Gastos comunes total: %s".formatted(expensesView.totalCommon()));
+        commonExpensesTotalPlusReserveFund.setText("Gastos comunes total + fondos de reserva: %s".formatted(expensesView.totalCommon().add(totalFund)));
         unCommonExpensesTotal.setText("Gastos no comunes total: %s".formatted(expensesView.totalUnCommon()));
 
     }

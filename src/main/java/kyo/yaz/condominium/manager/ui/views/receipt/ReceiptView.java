@@ -33,6 +33,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.domain.Paging;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
 import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
@@ -42,9 +43,9 @@ import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
+import kyo.yaz.condominium.manager.ui.views.component.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
-import kyo.yaz.condominium.manager.ui.views.component.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.receipt.pdf.ReceipPdfView;
 import kyo.yaz.condominium.manager.ui.views.receipt.service.DownloadReceiptZipService;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
@@ -79,11 +80,12 @@ public class ReceiptView extends BaseVerticalLayout {
     private final CreatePdfReceiptService createPdfReceiptService;
     private final SendEmailReceipts sendEmailReceipts;
     private final DownloadReceiptZipService downloadReceiptZipService;
+    private final TranslationProvider translationProvider;
 
     @Autowired
     public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt,
                        CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts,
-                       DownloadReceiptZipService downloadReceiptZipService) {
+                       DownloadReceiptZipService downloadReceiptZipService, TranslationProvider translationProvider) {
         super();
         this.buildingService = buildingService;
         this.receiptService = receiptService;
@@ -91,6 +93,7 @@ public class ReceiptView extends BaseVerticalLayout {
         this.createPdfReceiptService = createPdfReceiptService;
         this.sendEmailReceipts = sendEmailReceipts;
         this.downloadReceiptZipService = downloadReceiptZipService;
+        this.translationProvider = translationProvider;
 
         downloadReceiptZipService.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
     }
@@ -212,7 +215,7 @@ public class ReceiptView extends BaseVerticalLayout {
 
     private Component cardHeader(Receipt receipt) {
 
-        final var array = Stream.of(receipt.id(), receipt.buildingId(), receipt.year(), receipt.month(), receipt.date())
+        final var array = Stream.of(receipt.id(), receipt.buildingId(), receipt.year(), translationProvider.translate(receipt.month().name()), receipt.date())
                 .map(Objects::toString)
                 .map(Span::new)
                 .toArray(Span[]::new);
@@ -284,7 +287,6 @@ public class ReceiptView extends BaseVerticalLayout {
             progressLayout.progressBar().setIndeterminate(true);
             progressLayout.setVisible(true);
         });
-
 
 
         createPdfReceiptService.createFiles(receipt)

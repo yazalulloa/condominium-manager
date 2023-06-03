@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
 @Scope("prototype")
 public class DebtsView extends BaseDiv {
 
+
+    private final Span totalSpan = new Span();
+    private final Span receiptNumberSpan = new Span();
     private final DragDropList<DebtViewItem, DragDropDiv<DebtViewItem>> debts = new DragDropList<>();
 /*    private List<DebtViewItem> items = Collections.emptyList();
     private final Grid<DebtViewItem> grid = new Grid<>();*/
@@ -49,7 +52,7 @@ public class DebtsView extends BaseDiv {
         addClassName("debts-view");
         //configureGrid();
         configureForm();
-        add(new H3(Labels.DEBTS), getContent());
+        add(new H3(Labels.DEBTS), new Div(totalSpan), new Div(receiptNumberSpan), getContent());
         closeEditor();
     }
 
@@ -63,8 +66,11 @@ public class DebtsView extends BaseDiv {
     }
 
     public void setItems(List<DebtViewItem> debtViewItems) {
+        debts.components().clear();
         debts.removeAll();
+        logger().info("setItems {}", debtViewItems.size());
         debtViewItems.stream().map(this::addDebt).forEach(debts::addComponent);
+        calculateDebtInfo();
     }
 
     private DragDropDiv<DebtViewItem> card(DebtViewItem item) {
@@ -73,8 +79,8 @@ public class DebtsView extends BaseDiv {
         card.addClassName("card");
         final var header = new Div(new Span(item.getAptNumber()), new Span(item.getName()));
         header.addClassName("header");
-        final var body = new Div(new Span("Recibos : %s".formatted(item.getReceipts())),
-                new Span("Monto : %s".formatted(ConvertUtil.format(item.getAmount(), null))));
+        final var body = new Div(new Span("Recibos: %s".formatted(item.getReceipts())),
+                new Span("Monto: %s".formatted(ConvertUtil.format(item.getAmount(), null))));
 
         if (item.getMonths() != null && !item.getMonths().isEmpty()) {
             final var str = item.getMonths().stream().map(Enum::name).map(translationProvider::translate).collect(Collectors.joining(", "));
@@ -99,9 +105,12 @@ public class DebtsView extends BaseDiv {
 
         form.addListener(DebtForm.SaveEvent.class, event -> {
 
+            logger().info("SAVING {}", debts.components().size());
             final var item = event.getObj();
             debts.saveOrUpdate(item, this::addDebt);
             closeEditor();
+            calculateDebtInfo();
+            logger().info("SAVING {}", debts.components().size());
         });
 
         form.addListener(DebtForm.DeleteEvent.class, event -> resetItem(event.getObj()));
@@ -155,9 +164,13 @@ public class DebtsView extends BaseDiv {
         item.setPreviousPaymentAmount(BigDecimal.ZERO);
         item.setPreviousPaymentAmountCurrency(null);
 
+        logger().info("resetItem {}", debts.components().size());
         debts.saveOrUpdate(item, this::addDebt);
 
         closeEditor();
+        calculateDebtInfo();
+
+        logger().info("resetItem {}", debts.components().size());
     }
 
     private void closeEditor() {
@@ -168,5 +181,24 @@ public class DebtsView extends BaseDiv {
 
     public List<DebtViewItem> debts() {
         return debts.components().stream().map(DragDropDiv::item).collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    private void calculateDebtInfo() {
+        logger().info("DEBTS {}", debts.components().size());
+        final var total = debts().stream().map(DebtViewItem::getAmount).reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
+
+        final var receipts = debts().stream().map(DebtViewItem::getReceipts).reduce(Integer::sum)
+                .orElse(0);
+
+        /*var total = BigDecimal.ZERO;
+        var receipts = 0;
+        for (DebtViewItem debt : debts()) {
+            total = total.add(debt.getAmount());
+            receipts += debt.getReceipts();
+        }*/
+
+        totalSpan.setText("Deuda total: %s".formatted(total));
+        receiptNumberSpan.setText("Recibos: %s".formatted(receipts));
     }
 }

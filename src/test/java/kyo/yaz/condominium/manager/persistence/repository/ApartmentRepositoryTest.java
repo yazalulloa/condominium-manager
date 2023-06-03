@@ -71,11 +71,11 @@ class ApartmentRepositoryTest {
 
         });
 
-        repository.saveAll(apartments)
+      /*  repository.saveAll(apartments)
                 .ignoreElements()
                 .then(repository.count())
                 .doOnSuccess(System.out::println)
-                .block();
+                .block();*/
 
 /*        final var json = mapper.writeValueAsString(apartments);
 
