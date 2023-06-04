@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
@@ -37,9 +38,13 @@ public class ReserveFundViewItem {
     @Min(0)
     @NotNull
     @JsonProperty
-    private BigDecimal percentage;
+    private BigDecimal pay;
 
     @Builder.Default
     @JsonProperty
     private boolean active = true;
+
+    @NotNull
+    @JsonProperty
+    private ReserveFund.Type type;
 }

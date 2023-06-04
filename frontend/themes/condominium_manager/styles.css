@@ -6,6 +6,7 @@
 @import url('./views/expenses-view.css');
 @import url('./views/debts-view.css');
 @import url('./views/extra-charges-view.css');
+@import url('./views/reserve-funds-view.css');
 @import url('./main-layout.css');
 
 a[highlight] {

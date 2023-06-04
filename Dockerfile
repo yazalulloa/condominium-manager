@@ -18,6 +18,10 @@ RUN mkdir -p config
 RUN mkdir -p frontend
 COPY --from=build /app/target/*.jar .
 COPY --from=build /app/frontend/* ./frontend/
-COPY application.yml ./config/
-COPY verticles.yml ./config/
+
+COPY config/application.yml ./config/
+COPY config/verticles.yml ./config/
+
+#COPY application.yml ./config/
+#COPY verticles.yml ./config/
 ENTRYPOINT ["java","-jar","yaz-condominium-manager-1.0.0.jar"]

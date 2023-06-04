@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 @Slf4j
 @Component
@@ -22,6 +24,7 @@ public class TranslationProvider implements I18NProvider {
     public List<Locale> getProvidedLocales() {
         return locales;
     }
+
     public String translate(String str) {
         return getTranslation(str, LOCALE_ES);
     }
@@ -33,14 +36,18 @@ public class TranslationProvider implements I18NProvider {
             return "";
         }
 
+        if (key.isEmpty()) {
+            return key;
+        }
+
         final ResourceBundle bundle = ResourceBundle.getBundle(BUNDLE_PREFIX, locale);
 
         String value;
         try {
             value = bundle.getString(key);
-        } catch (final MissingResourceException e) {
-            log.warn("Missing resource", e);
-            return "!" + locale.getLanguage() + ": " + key;
+        } catch (Exception e) {
+            log.warn("Missing resource {}", locale.getLanguage(), e);
+            return key;
         }
         if (params.length > 0) {
             value = MessageFormat.format(value, params);

@@ -4,6 +4,7 @@ import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.BigDecimalField;
 import com.vaadin.flow.component.textfield.TextField;
@@ -11,42 +12,60 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
+import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.domain.ReserveFundViewItem;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
+import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
+import org.springframework.context.annotation.Scope;
 
 import java.math.BigDecimal;
 
+@org.springframework.stereotype.Component
+@Scope("prototype")
 public class ReserveFundForm extends BaseForm {
     @PropertyId("name")
     private final TextField nameField = new TextField(Labels.ReserveFund.NAME_LABEL);
     @PropertyId("fund")
     private final BigDecimalField fundField = new BigDecimalField(Labels.ReserveFund.FUND_LABEL);
-    @PropertyId("percentage")
-    private final BigDecimalField percentageField = new BigDecimalField(Labels.ReserveFund.PERCENTAGE_LABEL);
+    @PropertyId("pay")
+    private final BigDecimalField payField = new BigDecimalField(Labels.ReserveFund.PAY_LABEL);
     @PropertyId("active")
     private final Checkbox activeField = new Checkbox(Labels.ReserveFund.ACTIVE_LABEL);
+    @PropertyId("type")
+    private final ComboBox<ReserveFund.Type> typeComboBox = ViewUtil.reserveFundTypeComboBox(Labels.ReserveFund.TYPE_LABEL);
 
 
     public final Binder<ReserveFundViewItem> binder = new BeanValidationBinder<>(ReserveFundViewItem.class);
 
+    private final TranslationProvider translationProvider;
+
     private ReserveFundViewItem item;
 
-    public ReserveFundForm() {
+    public ReserveFundForm(TranslationProvider translationProvider) {
+        this.translationProvider = translationProvider;
+        init();
+    }
+
+    private void init() {
+
         addClassName("reserve-fund-form");
+
+        typeComboBox.setItemLabelGenerator(m -> translationProvider.translate(m.name()));
 
         add(
 
                 nameField,
                 fundField,
-                percentageField,
+                typeComboBox,
+                payField,
                 activeField,
                 createButtonsLayout());
 
 
         binder.bindInstanceFields(this);
-        reloadItem();
     }
 
 
@@ -85,21 +104,16 @@ public class ReserveFundForm extends BaseForm {
         }
     }
 
-    public void reloadItem() {
-        setItem(defaultItem());
-    }
-
     public void setItem(ReserveFundViewItem item) {
         this.item = item;
         binder.readBean(item);
     }
 
 
-
     public ReserveFundViewItem defaultItem() {
         return ReserveFundViewItem.builder()
                 .fund(BigDecimal.ZERO)
-                .percentage(BigDecimal.ZERO)
+                .pay(BigDecimal.ZERO)
                 .active(true)
                 .build();
     }

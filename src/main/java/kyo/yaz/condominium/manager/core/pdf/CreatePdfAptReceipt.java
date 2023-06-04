@@ -6,6 +6,7 @@ import com.itextpdf.layout.element.Div;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.element.Text;
+import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
@@ -13,6 +14,7 @@ import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
+import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
@@ -25,10 +27,7 @@ import lombok.experimental.Accessors;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -257,14 +256,17 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                     ;
 
 
-            div.add(new Paragraph(new Text("MES DE %s/%s".formatted(month, year)).setBold().setUnderline().setTextAlignment(TextAlignment.CENTER)));
+            div.add(new Paragraph(
+                    new Text("MES DE %s/%s".formatted(month, year)).setBold().setUnderline().setTextAlignment(TextAlignment.CENTER)
+                            .setHorizontalAlignment(HorizontalAlignment.CENTER))
+                    .setHorizontalAlignment(HorizontalAlignment.CENTER));
 
             final var debtTableAdded = new AtomicBoolean(false);
 
             receipt().reserveFundTotals().forEach(fund -> {
                 final var newFund = fund.fund().add(fund.amount());
                 final var previousReserveFund = ConvertUtil.format(fund.fund(), building().mainCurrency());
-                final var amountToPay = ConvertUtil.format(fund.amount(), building().mainCurrency()) + " " + fund.percentage() + "%";
+                final var amountToPay = ConvertUtil.format(fund.amount(), building().mainCurrency()) + " " + fund.pay() + (fund.type() == ReserveFund.Type.FIXED_PAY ? "" : "%") ;
                 final var newReserveFund = ConvertUtil.format(newFund, building().mainCurrency());
 
 
@@ -345,7 +347,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
             table.addHeaderCell(PdfUtil.tableCell().add(new Paragraph("ABONO")));
         }
 
-        debts.forEach(debt -> {
+        debts.stream().sorted(Comparator.comparing(Debt::aptNumber)).forEach(debt -> {
             table.addCell(PdfUtil.tableCell().add(new Paragraph(debt.aptNumber())));
             table.addCell(PdfUtil.tableCell().add(new Paragraph(debt.name())));
             table.addCell(PdfUtil.tableCell().add(new Paragraph(String.valueOf(debt.receipts()))));

@@ -85,6 +85,7 @@ public class ApartmentService {
 
     public Single<List<Apartment>> aptNumbers(String buildingId) {
         final var mono = repository.getAptNumberName(buildingId)
+                .sort(Comparator.comparing(a -> a.apartmentId().number()))
                 .collectList();
         return RxJava3Adapter.monoToSingle(mono);
     }

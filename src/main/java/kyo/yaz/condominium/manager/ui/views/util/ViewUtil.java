@@ -11,6 +11,7 @@ import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.component.upload.receivers.FileBuffer;
 import com.vaadin.flow.server.VaadinSession;
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -151,6 +152,16 @@ public class ViewUtil {
 
     public static ComboBox<Currency> currencyComboBox(String label, Currency defaultValue) {
         return enumComboBox(label, Currency.values, defaultValue);
+    }
+
+    public static ComboBox<ReserveFund.Type> reserveFundTypeComboBox(String label) {
+        return enumComboBox(label, ReserveFund.Type.values, ReserveFund.Type.PERCENTAGE);
+
+    }
+
+    public static ComboBox<ReserveFund.Type> reserveFundTypeComboBox(String label, ReserveFund.Type defaultValue) {
+        return enumComboBox(label, ReserveFund.Type.values, defaultValue);
+
     }
 
     public static <T> ComboBox<T> enumComboBox(String label, T[] values) {

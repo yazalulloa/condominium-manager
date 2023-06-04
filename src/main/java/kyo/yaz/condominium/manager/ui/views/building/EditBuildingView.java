@@ -36,7 +36,7 @@ import java.util.Optional;
 public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver {
 
     private final BuildingForm form = new BuildingForm();
-    private final ReserveFundView reserveFundView = new ReserveFundView();
+    private final ReserveFundView reserveFundView;
     private final ExtraChargesView extraChargesView = new ExtraChargesView();
     private final Button saveBtn = new Button(Labels.SAVE);
     private final Button cancelBtn = new Button(Labels.CANCEL);
@@ -47,8 +47,9 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
     private boolean extraChargesVisible;
 
     @Autowired
-    public EditBuildingView(BuildingService buildingService, ApartmentService apartmentService, EmailConfigService emailConfigService) {
+    public EditBuildingView(ReserveFundView reserveFundView, BuildingService buildingService, ApartmentService apartmentService, EmailConfigService emailConfigService) {
         super();
+        this.reserveFundView = reserveFundView;
         this.buildingService = buildingService;
         this.apartmentService = apartmentService;
         this.emailConfigService = emailConfigService;
@@ -102,7 +103,7 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
 
                         form.setEmailConfigs(emailConfigs);
                         form.setBuilding(BuildingMapper.to(building));
-                        reserveFundView.addItems(ConvertUtil.toList(building.reserveFunds(), ReserveFundMapper::to));
+                        reserveFundView.setItems(ConvertUtil.toList(building.reserveFunds(), ReserveFundMapper::to));
                         extraChargesVisible = !list.isEmpty();
 
                         init();
@@ -127,7 +128,7 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
 
                         final var list = ConvertUtil.toList(extraChargesView.items(), ExtraChargeMapper::to);
 
-                        final var reserveFunds = ConvertUtil.toList(reserveFundView.list(), ReserveFundMapper::to);
+                        final var reserveFunds = ConvertUtil.toList(reserveFundView.items(), ReserveFundMapper::to);
                         logger().info("saving Reserve funds: " + reserveFunds.size());
                         return BuildingMapper.to(event.getBuilding())
                                 .toBuilder()

@@ -8,6 +8,7 @@ import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
+import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -111,8 +112,12 @@ public class Receipt {
         private final BigDecimal fund;
         @JsonProperty
         private final BigDecimal amount;
+
         @JsonProperty
-        private final BigDecimal percentage;
+        private final ReserveFund.Type type;
+
+        @JsonProperty
+        private final BigDecimal pay;
 
     }
 

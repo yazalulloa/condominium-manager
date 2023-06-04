@@ -21,6 +21,6 @@ public interface ReserveFundMapper {
     ReserveFund map(ReserveFundViewItem item);
 
     default ReserveFundViewItem map(ReserveFund item) {
-        return new ReserveFundViewItem(item.name(), item.fund(), item.percentage(), item.active());
+        return new ReserveFundViewItem(item.name(), item.fund(), item.pay(), item.active(), item.type());
     }
 }

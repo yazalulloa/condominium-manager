@@ -57,10 +57,8 @@ public class ExtraChargesView extends BaseDiv {
         form.setHeightFull();
 
         form.addListener(ExtraChargeForm.SaveEvent.class, event -> {
-            final var item = event.getObj();
 
-            extraCharges.saveOrUpdate(item, this::addExtraCharge);
-
+            extraCharges.saveOrUpdate(event.getObj(), this::addItem);
             closeEditor();
         });
 
@@ -68,7 +66,7 @@ public class ExtraChargesView extends BaseDiv {
         form.addListener(ExtraChargeForm.CloseEvent.class, e -> closeEditor());
     }
 
-    private DragDropDiv<ExtraChargeViewItem> addExtraCharge(ExtraChargeViewItem item) {
+    private DragDropDiv<ExtraChargeViewItem> addItem(ExtraChargeViewItem item) {
 
         final var card = card(item);
         card.addClickListener(e -> {
@@ -144,7 +142,7 @@ public class ExtraChargesView extends BaseDiv {
     }
 
 
-    private void    closeEditor() {
+    private void closeEditor() {
         form.setItem(null);
         form.setVisible(false);
         addBtn.setEnabled(true);
@@ -157,7 +155,7 @@ public class ExtraChargesView extends BaseDiv {
 
     public void setItems(Collection<ExtraChargeViewItem> collection) {
         extraCharges.removeAll();
-        collection.stream().map(this::addExtraCharge).forEach(extraCharges::addComponent);
+        collection.stream().map(this::addItem).forEach(extraCharges::addComponent);
     }
 
 }

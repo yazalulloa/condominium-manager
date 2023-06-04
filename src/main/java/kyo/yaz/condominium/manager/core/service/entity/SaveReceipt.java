@@ -7,6 +7,7 @@ import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
+import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.persistence.entity.Sequence;
@@ -72,16 +73,18 @@ public class SaveReceipt {
                     final var reserveFundTotals = Optional.ofNullable(building.reserveFunds())
                             .orElseGet(Collections::emptyList)
                             .stream()
-                            .filter(reserveFund -> reserveFund.active() && DecimalUtil.greaterThanZero(reserveFund.percentage()))
+                            .filter(reserveFund -> reserveFund.active() && DecimalUtil.greaterThanZero(reserveFund.pay()))
                             .map(reserveFund -> {
 
-                                final var amount = DecimalUtil.percentageOf(reserveFund.percentage(), totalCommonExpensesBeforeReserveFund);
+                                final var amount = reserveFund.type() == ReserveFund.Type.FIXED_PAY ? reserveFund.pay() :
+                                        DecimalUtil.percentageOf(reserveFund.pay(), totalCommonExpensesBeforeReserveFund);
 
                                 return Receipt.ReserveFundTotal.builder()
                                         .name(reserveFund.name())
                                         .fund(reserveFund.fund())
                                         .amount(amount)
-                                        .percentage(reserveFund.percentage())
+                                        .type(reserveFund.type())
+                                        .pay(reserveFund.pay())
                                         .build();
                             })
                             .toList();
@@ -92,11 +95,12 @@ public class SaveReceipt {
                             .add(totalCommonExpensesBeforeReserveFund);
 
                     reserveFundTotals.stream().map(fund -> {
+                        final var isFixedPay = fund.type() == ReserveFund.Type.FIXED_PAY;
                         return Expense.builder()
-                                .description(fund.name() + " " + fund.percentage() + "%")
+                                .description(fund.name() + " " + fund.pay() + (isFixedPay ? "" : "%"))
                                 .amount(fund.amount())
                                 .currency(totalCommonExpensePair.getSecond())
-                                .type(Expense.Type.COMMON)
+                                .type(isFixedPay ? Expense.Type.UNCOMMON : Expense.Type.COMMON)
                                 .reserveFund(true)
                                 .build();
                     }).forEach(expenses::add);

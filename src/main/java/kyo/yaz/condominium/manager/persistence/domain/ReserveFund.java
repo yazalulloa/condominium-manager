@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import kyo.yaz.condominium.manager.core.domain.Currency;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,9 +27,21 @@ public class ReserveFund {
     private final String name;
     @JsonProperty
     private final BigDecimal fund;
+
     @JsonProperty
-    private final BigDecimal percentage;
+    private final BigDecimal pay;
+
     @Builder.Default
     @JsonProperty
     private final boolean active = true;
+
+    @JsonProperty
+    private final Type type;
+
+    public enum Type {
+        FIXED_PAY, PERCENTAGE;
+
+
+        public static final Type[] values = values();
+    }
 }

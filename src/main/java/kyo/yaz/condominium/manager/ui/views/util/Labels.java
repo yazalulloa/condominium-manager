@@ -136,8 +136,9 @@ public class Labels {
         public static final String NAME_LABEL = "Nombre";
         public static final String FUND_LABEL = "Fondo";
         public static final String CURRENCY_LABEL = "Moneda";
-        public static final String PERCENTAGE_LABEL = "Porcentaje";
+        public static final String PAY_LABEL = "Monto a pagar";
         public static final String ACTIVE_LABEL = "Activado";
+        public static final String TYPE_LABEL = "Tipo";
     }
 
     public static class EmailConfig {
