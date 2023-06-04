@@ -252,8 +252,9 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
 
         {
             final var div = new Div()
-                    //.setKeepTogether(true)
-                    ;
+                    .setKeepTogether(true)
+                    .setHorizontalAlignment(HorizontalAlignment.CENTER)
+                    .setTextAlignment(TextAlignment.CENTER);
 
 
             div.add(new Paragraph(
@@ -266,7 +267,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
             receipt().reserveFundTotals().forEach(fund -> {
                 final var newFund = fund.fund().add(fund.amount());
                 final var previousReserveFund = ConvertUtil.format(fund.fund(), building().mainCurrency());
-                final var amountToPay = ConvertUtil.format(fund.amount(), building().mainCurrency()) + " " + fund.pay() + (fund.type() == ReserveFund.Type.FIXED_PAY ? "" : "%") ;
+                final var amountToPay = ConvertUtil.format(fund.amount(), building().mainCurrency()) + " " + fund.pay() + (fund.type() == ReserveFund.Type.FIXED_PAY ? "" : "%");
                 final var newReserveFund = ConvertUtil.format(newFund, building().mainCurrency());
 
 
