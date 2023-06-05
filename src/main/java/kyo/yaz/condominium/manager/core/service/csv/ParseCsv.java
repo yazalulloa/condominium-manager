@@ -102,6 +102,7 @@ public class ParseCsv {
                 final var abono = list.size() > 5 ? list.get(5) : null;
 
                 final var previousPaymentAmount = Optional.ofNullable(abono)
+                    .filter(str -> !str.equals("OJO"))
                         .map(PoiUtil::decimal)
                         .orElse(null);
 
