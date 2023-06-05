@@ -175,7 +175,9 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
         extraChargesView.setVisible(false);
         debtsView.setVisible(false);
 
-        add(receiptForm, createButtonsLayout(), new Div(commonExpensesTotal), new Div(unCommonExpensesTotal), new Div(commonExpensesTotalPlusReserveFund), new Div(unCommonExpensesTotalPlusReserveFund), reserveFundsDiv, expensesView, new Hr(), debtsView, new Hr(), extraChargesView, new Hr());
+        add(receiptForm, createButtonsLayout(), new Div(commonExpensesTotal), new Div(unCommonExpensesTotal), new Div(commonExpensesTotalPlusReserveFund),
+                new Div(unCommonExpensesTotalPlusReserveFund), reserveFundsDiv, expensesView, new Hr(), debtsView, new Hr(), extraChargesView, new Hr(),
+                createButtonsLayout());
     }
 
     private void navigateBack() {
@@ -189,6 +191,8 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
         return Single.zip(buildingSingle, listSingle, (building, list) -> {
             return () -> {
                 this.building = building;
+
+                debtsView.setCurrency(building.mainCurrency());
 
                 final var debtList = Optional.ofNullable(receipt)
                         .map(Receipt::debts)
@@ -301,7 +305,6 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                 .flatMapSingle(this::setAptNumbers)
                 .map(runnable -> {
                     return () -> {
-
                         debtsView.setItems(ConvertUtil.toList(receipt.debts(), DebtMapper::to));
                         expensesView.setItems(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
                         extraChargesView.setItems(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));

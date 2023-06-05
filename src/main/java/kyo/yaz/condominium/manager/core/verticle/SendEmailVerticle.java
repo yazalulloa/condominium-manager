@@ -72,6 +72,7 @@ public class SendEmailVerticle extends Rx3Verticle {
         final var gmail = map.get(emailConfig.id());
 
         if (gmail != null) {
+            log.info("Gmail config found for {}", emailConfig.id());
             return Single.just(gmail);
         }
 

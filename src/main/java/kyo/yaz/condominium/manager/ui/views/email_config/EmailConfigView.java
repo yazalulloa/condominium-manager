@@ -29,8 +29,8 @@ import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.entity.EmailConfig;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
-import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.component.DeleteDialog;
+import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -180,7 +180,9 @@ public class EmailConfigView extends BaseVerticalLayout {
         deleteBtn.addClickListener(v -> deleteDialog(emailConfig));
 
         final var checkBtn = new Button(new Icon(VaadinIcon.CHECK));
-        checkBtn.addClickListener(v -> service.check(emailConfig).andThen(refreshData()).subscribe(completableObserver()));
+        checkBtn.addClickListener(v -> service.clear()
+                .andThen(service.check(emailConfig))
+                .andThen(refreshData()).subscribe(completableObserver()));
 
         btnLayout.add(deleteBtn, checkBtn);
 

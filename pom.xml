@@ -17,7 +17,7 @@
         <!--<vaadin.version>23.3.2</vaadin.version>-->
         <vertx.version>4.4.2</vertx.version>
         <mapstruct.version>1.5.3.Final</mapstruct.version>
-        <lombok.version>1.18.26</lombok.version>
+        <lombok.version>1.18.28</lombok.version>
         <poi.version>5.2.3</poi.version>
         <version.light-4j>2.1.18</version.light-4j>
     </properties>
@@ -192,7 +192,7 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
-            <version>3.5.4</version>
+            <version>3.5.6</version>
             <scope>test</scope>
         </dependency>
 
@@ -239,7 +239,7 @@
         <dependency>
             <groupId>io.projectreactor.addons</groupId>
             <artifactId>reactor-adapter</artifactId>
-            <version>3.5.0</version>
+            <version>3.5.1</version>
         </dependency>
 
 
@@ -373,12 +373,12 @@
         <dependency>
             <groupId>org.xerial.snappy</groupId>
             <artifactId>snappy-java</artifactId>
-            <version>1.1.9.1</version>
+            <version>1.1.10.0</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.9.2</version>
+            <version>5.10.0-M1</version>
             <scope>compile</scope>
         </dependency>
 

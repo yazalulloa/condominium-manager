@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
 import kyo.yaz.condominium.manager.ui.views.component.DragDropDiv;
@@ -37,6 +38,7 @@ public class DebtsView extends BaseDiv {
 
     private final TranslationProvider translationProvider;
     private final DebtForm form;
+    private Currency currency;
 
 
     @Autowired
@@ -46,6 +48,9 @@ public class DebtsView extends BaseDiv {
         this.form = form;
     }
 
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
+    }
 
     public void init() {
 
@@ -80,7 +85,7 @@ public class DebtsView extends BaseDiv {
         final var header = new Div(new Span(item.getAptNumber()), new Span(item.getName()));
         header.addClassName("header");
         final var body = new Div(new Span("Recibos: %s".formatted(item.getReceipts())),
-                new Span("Monto: %s".formatted(ConvertUtil.format(item.getAmount(), null))));
+                new Span("Monto: %s".formatted(ConvertUtil.format(item.getAmount(), currency))));
 
         if (item.getMonths() != null && !item.getMonths().isEmpty()) {
             final var str = item.getMonths().stream().map(Enum::name).map(translationProvider::translate).collect(Collectors.joining(", "));

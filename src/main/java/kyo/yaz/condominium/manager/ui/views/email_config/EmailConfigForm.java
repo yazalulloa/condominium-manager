@@ -85,7 +85,6 @@ public class EmailConfigForm extends BaseForm {
         // configField.setVisible(false);
         configField.setReadOnly(true);
         storedCredentialField.setReadOnly(true);
-        storedCredentialField.setReadOnly(true);
         binder.bindInstanceFields(this);
     }
 

@@ -88,6 +88,7 @@ public class EmailConfigService {
                             && Objects.equals(entity.active(), config.active())
                     ) {
 
+                        log.info("NOT UPDATING");
                         return Single.just(false);
                     }
                     return saveSingle;
