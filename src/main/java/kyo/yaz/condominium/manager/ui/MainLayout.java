@@ -1,12 +1,16 @@
 package kyo.yaz.condominium.manager.ui;
 
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import kyo.yaz.condominium.manager.core.config.domain.UserSession;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
@@ -19,15 +23,22 @@ import kyo.yaz.condominium.manager.ui.views.email_config.EmailConfigView;
 import kyo.yaz.condominium.manager.ui.views.receipt.ReceiptView;
 
 import java.util.Optional;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 
 public class MainLayout extends AppLayout {
-    private H2 viewTitle;
+    private static final String LOGOUT_SUCCESS_URL = "/";
+    private final H2 viewTitle = new H2();
 
     private final UserSession userSession;
 
     public MainLayout(UserSession userSession) {
         this.userSession = userSession;
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
         setPrimarySection(Section.DRAWER);
         addDrawerContent();
         addHeaderContent();
@@ -37,7 +48,7 @@ public class MainLayout extends AppLayout {
         DrawerToggle toggle = new DrawerToggle();
         toggle.getElement().setAttribute("aria-label", "Menu toggle");
 
-        viewTitle = new H2();
+
         viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
 
         addToNavbar(true, toggle, viewTitle);
@@ -50,7 +61,7 @@ public class MainLayout extends AppLayout {
 
         Scroller scroller = new Scroller(createNavigation());
 
-        addToDrawer(header, scroller);
+        addToDrawer(header, scroller, createFooter());
     }
 
     private AppNav createNavigation() {
@@ -65,10 +76,19 @@ public class MainLayout extends AppLayout {
     }
 
     private Footer createFooter() {
-        Footer layout = new Footer();
+        final var layout = new Footer();
 
-        Anchor loginLink = new Anchor("login", "Sign in");
-        layout.add(loginLink);
+        final var logoutButton = new Button("Cerrar sesion", click -> {
+            UI.getCurrent().getPage().setLocation(LOGOUT_SUCCESS_URL);
+            final var logoutHandler = new SecurityContextLogoutHandler();
+            logoutHandler.logout(
+                VaadinServletRequest.getCurrent().getHttpServletRequest(), null,
+                null);
+        });
+
+        layout.add(logoutButton);
+       /* Anchor loginLink = new Anchor("logout", "Cerrar sesion");
+        layout.add(loginLink);*/
 
         return layout;
     }

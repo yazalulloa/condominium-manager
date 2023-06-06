@@ -1,5 +1,7 @@
 package kyo.yaz.condominium.manager.ui.views.util;
 
+import com.vaadin.flow.component.Component;
+
 public class Labels {
 
     public static final String NEXT_PAGE = "Siguiente Página";
@@ -139,6 +141,8 @@ public class Labels {
         public static final String PAY_LABEL = "Monto a pagar";
         public static final String ACTIVE_LABEL = "Activado";
         public static final String TYPE_LABEL = "Tipo";
+        public static final String EXPENSE_TYPE_LABEL = "Tipo de gasto";
+        public static final String ADD_TO_EXPENSES_LABEL = "Añadir a gastos";
     }
 
     public static class EmailConfig {

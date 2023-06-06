@@ -97,6 +97,7 @@ public class CreateBuildingPdfReceipt extends CreatePdfReceipt {
 
                     table.addCell(amountCell);
                 });
+
             } else {
                 if (building().mainCurrency() == Currency.VED) {
                     final var amountCell = PdfUtil.tableCell()
@@ -106,7 +107,7 @@ public class CreateBuildingPdfReceipt extends CreatePdfReceipt {
 
                     table.addCell(amountCell);
                 } else {
-                    final var usdReceiptValue = aptTotal.amount().divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
+                    final var usdReceiptValue = aptTotal.amount();//.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
                     final var amountCell = PdfUtil.tableCell()
                             .setTextRenderingMode(PdfCanvasConstants.TextRenderingMode.FILL)
                             .setTextAlignment(TextAlignment.CENTER)

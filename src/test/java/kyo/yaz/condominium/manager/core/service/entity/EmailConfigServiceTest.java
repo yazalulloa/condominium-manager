@@ -22,7 +22,6 @@ class EmailConfigServiceTest {
     @Test
     void listForComboBox() throws InterruptedException {
 
-        TestSubscriber<List<EmailConfig>> subscriber = new TestSubscriber<>();
         final var single = service.listForComboBox();
 
         final var testObserver = single.map(Json::encode)

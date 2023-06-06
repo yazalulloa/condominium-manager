@@ -143,7 +143,7 @@ public class ParseCsv {
                         .map(l -> l.get(3))
                         .map(String::trim)
                         .map(Currency::valueOf)
-                        .orElse(null);
+                        .orElse(Currency.VED);
 
                 final var extraCharge = ExtraCharge.builder()
                         .aptNumber(apt)

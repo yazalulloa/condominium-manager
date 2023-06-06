@@ -90,7 +90,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                         }
                         case USD -> {
 
-                            final var decimal = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
+                            final var decimal = payment;//.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
 
                             final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
                             document.add(paragraph);

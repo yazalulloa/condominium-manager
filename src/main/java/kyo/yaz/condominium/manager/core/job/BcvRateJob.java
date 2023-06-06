@@ -35,19 +35,19 @@ public class BcvRateJob {
     @Async
     @Scheduled(cron = "${app.bcv_job_cron_expression}")
     public void scheduleFixedRateTaskAsync() {
-        log.info("CRON_BCV_JOB");
+        //log.info("CRON_BCV_JOB");
 
         final var cronExpression = CronExpression.parse(expression);
         var result = cronExpression.next(LocalDateTime.now());
-        log.info("NEXT {}", result);
-        log.info("EXPRESSION {}", expression);
-        log.info("CRON_EXPRESSION {}", cronExpression);
+       // log.info("NEXT {}", result);
+       // log.info("EXPRESSION {}", expression);
+        //log.info("CRON_EXPRESSION {}", cronExpression);
 
         saveNewBcvRate();
     }
 
     private void saveNewBcvRate() {
-        log.info("RUN_JOB");
+        //log.info("RUN_JOB");
         saveNewBcvRate.saveNewRate()
                 .subscribeOn(Schedulers.io())
                 .doOnError(throwable -> log.error("ERROR", throwable))

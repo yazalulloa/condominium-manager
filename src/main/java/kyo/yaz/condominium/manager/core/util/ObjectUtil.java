@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import org.checkerframework.checker.nullness.Opt;
 
 public class ObjectUtil {
 
@@ -56,7 +57,7 @@ public class ObjectUtil {
 
 
         if (!extraCharges.isEmpty()) {
-            final var vesExtraCharge = extraCharges.stream().filter(c -> c.currency() == Currency.VED).map(ExtraCharge::amount)
+            final var vesExtraCharge = extraCharges.stream().filter(c -> Optional.ofNullable(c.currency()).orElse(Currency.VED) == Currency.VED).map(ExtraCharge::amount)
                     .reduce(BigDecimal::add)
                     .orElse(BigDecimal.ZERO);
 

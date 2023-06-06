@@ -52,15 +52,15 @@ public class BuildingView extends BaseDiv {
     public BuildingView(BuildingService service) {
         super();
         this.service = service;
-        addClassName("building-view");
-        setSizeFull();
-        configureGrid();
     }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
 
+        addClassName("building-view");
+        setSizeFull();
+        configureGrid();
 
         refreshListData()
                 .doOnSuccess(r -> uiAsyncAction(this::init, r))
