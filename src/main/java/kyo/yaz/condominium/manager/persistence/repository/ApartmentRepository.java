@@ -5,5 +5,6 @@ import kyo.yaz.condominium.manager.persistence.repository.base.ApartmentCustomRe
 import kyo.yaz.condominium.manager.persistence.repository.base.ReactiveRepository;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 
-public interface ApartmentRepository extends ReactiveMongoRepository<Apartment, Apartment.ApartmentId>, ReactiveRepository<Apartment>, ApartmentCustomRepository {
+public interface ApartmentRepository extends ReactiveMongoRepository<Apartment, Apartment.ApartmentId>, ReactiveRepository<Apartment>,
+    ApartmentCustomRepository {
 }

@@ -5,6 +5,5 @@ import reactor.core.publisher.Flux;
 
 public interface ReactiveRepository<T> {
 
-
     Flux<T> findAllBy(Pageable pageable);
 }

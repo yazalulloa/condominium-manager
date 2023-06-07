@@ -7,6 +7,7 @@
 @import url('./views/debts-view.css');
 @import url('./views/extra-charges-view.css');
 @import url('./views/reserve-funds-view.css');
+@import url('./views/users-view.css');
 @import url('./main-layout.css');
 
 a[highlight] {

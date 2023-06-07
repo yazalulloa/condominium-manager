@@ -48,7 +48,7 @@ public class SaveReceipt {
 
   public Single<Receipt> calculate(Receipt receipt) {
     final var nextSequence = Maybe.fromOptional(Optional.ofNullable(receipt.id()))
-        .switchIfEmpty(sequenceService.rxNextSequence(Sequence.Type.RECEIPT));
+        .switchIfEmpty(sequenceService.nextSequence(Sequence.Type.RECEIPT));
 
     final var apartmentsByBuilding = apartmentService.rxApartmentsByBuilding(receipt.buildingId());
 

@@ -92,31 +92,7 @@ public class RateView extends BaseVerticalLayout {
     private void configureGrid() {
         grid.addClassNames("rates-grid");
 
-
         grid.addComponentColumn(this::card);
-
-      /*  grid.setColumnReorderingAllowed(true);
-        //grid.addColumn(Rate::id).setHeader(Labels.Rate.ID_LABEL).setSortable(true).setKey(Labels.Rate.ID_LABEL);
-        grid.addColumn(Rate::rate).setHeader(Labels.Rate.RATE_LABEL).setSortable(true).setKey(Labels.Rate.RATE_LABEL);
-        grid.addColumn(Rate::dateOfRate).setHeader(Labels.Rate.DATE_OF_RATE_LABEL).setSortable(true).setKey(Labels.Rate.DATE_OF_RATE_LABEL);
-        grid.addColumn(Rate::source).setHeader(Labels.Rate.SOURCE_LABEL).setSortable(true).setKey(Labels.Rate.SOURCE_LABEL);
-        grid.addColumn(rate -> String.format("%s -> %s", rate.fromCurrency().name(), rate.toCurrency().name())).setHeader(Labels.Rate.CURRENCIES_LABEL);
-        grid.addColumn(rate -> DateUtil.formatVe(rate.createdAt())).setHeader(Labels.Rate.CREATED_AT_LABEL).setSortable(true).setKey(Labels.Rate.CREATED_AT_LABEL);
-
-        grid.addColumn(
-                        new ComponentRenderer<>(Button::new, (button, item) -> {
-                            button.addThemeVariants(ButtonVariant.LUMO_ICON,
-                                    ButtonVariant.LUMO_ERROR,
-                                    ButtonVariant.LUMO_TERTIARY);
-                            button.addClickListener(e -> deleteDialog(item));
-                            button.setIcon(new Icon(VaadinIcon.TRASH));
-                        }))
-                .setHeader(Labels.DELETE)
-                .setTextAlign(ColumnTextAlign.END)
-                .setFlexGrow(0);
-
-        grid.getColumns().forEach(col -> col.setAutoWidth(true));*/
-
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
     }

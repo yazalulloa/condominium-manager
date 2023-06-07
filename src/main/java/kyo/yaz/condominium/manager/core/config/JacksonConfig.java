@@ -10,9 +10,11 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class JacksonConfig {
 
-    @Bean
-    @Primary
-    public ObjectMapper objectMapper() {
-        return JacksonUtil.defaultConfig(DatabindCodec.mapper());
-    }
+  @Bean
+  @Primary
+  public ObjectMapper objectMapper() {
+    final var mapper = JacksonUtil.defaultConfig(DatabindCodec.mapper());
+    JacksonUtil.defaultConfig(DatabindCodec.prettyMapper());
+    return mapper;
+  }
 }

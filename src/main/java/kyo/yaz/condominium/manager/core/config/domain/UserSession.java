@@ -2,8 +2,10 @@ package kyo.yaz.condominium.manager.core.config.domain;
 
 import java.io.Serializable;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.Optional;
-import kyo.yaz.condominium.manager.ui.views.domain.User;
+import kyo.yaz.condominium.manager.core.util.DateUtil;
+import kyo.yaz.condominium.manager.persistence.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
@@ -22,15 +24,15 @@ public class UserSession implements Serializable {
     return SecurityContextHolder.getContext().getAuthentication();
   }
 
-  public User getUser() {
+  public DefaultOidcUser principal() {
+
     final var authentication = authentication();
 
     final var principal = (DefaultOidcUser) authentication.getPrincipal();
-    log.info("PRINCIPAL {}", principal);
+    /*log.info("PRINCIPAL {}", principal);
 
     final var idToken = principal.getIdToken();
     log.info("idToken {}", idToken);
-
 
     log.info("idToken claims {}", idToken.getClaims());
     log.info("idToken subject {}", idToken.getSubject());
@@ -44,11 +46,32 @@ public class UserSession implements Serializable {
         .or(() -> Optional.ofNullable(idToken.getAuthenticatedAt()))
         .map(instant -> instant.atZone(ZoneOffset.UTC))
         .orElse(null));
-    log.info("Claims {}", principal.getClaims());
+    log.info("Claims {}", principal.getClaims());*/
+    return principal;
+  }
 
-    return new User(principal.getAttribute("given_name"), principal.getAttribute("family_name"),
-        principal.getAttribute("email"),
-        principal.getAttribute("picture"));
+  public User getUser() {
+
+    final var principal = principal();
+
+    return User.builder()
+        .id(principal.getSubject())
+        .givenName(principal.getAttribute("given_name"))
+        .name(principal.getAttribute("name"))
+        .email(principal.getAttribute("email"))
+        .picture(principal.getAttribute("picture"))
+        .nonce(principal.getNonce())
+        .authorizedParty(principal.getAuthorizedParty())
+        .userInfoStr(principal.toString())
+        .claimsStr(Optional.ofNullable(principal.getClaims()).map(Objects::toString).orElse(null))
+        .authoritiesStr(Optional.ofNullable(principal.getAuthorities()).map(Objects::toString).orElse(null))
+        .lastAccessTokenHash(principal.getAccessTokenHash())
+        .lastAccessTokenHashDate(DateUtil.nowZonedWithUTC())
+        .issuedAt(principal.getIssuedAt().atZone(ZoneOffset.UTC))
+        .expirationAt(principal.getExpiresAt().atZone(ZoneOffset.UTC))
+
+        .createdAt(DateUtil.nowZonedWithUTC())
+        .build();
   }
 
   public boolean isLoggedIn() {

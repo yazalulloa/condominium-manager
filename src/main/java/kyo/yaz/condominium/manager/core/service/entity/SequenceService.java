@@ -10,27 +10,24 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class SequenceService {
-    private final SequenceRepository repository;
 
-    @Autowired
-    public SequenceService(SequenceRepository repository) {
-        this.repository = repository;
-    }
+  private final SequenceRepository repository;
 
-    public Single<Long> rxNextSequence(Sequence.Type type) {
-        return nextSequence(type);
-    }
+  @Autowired
+  public SequenceService(SequenceRepository repository) {
+    this.repository = repository;
+  }
 
-    public Single<Long> nextSequence(Sequence.Type type) {
+  public Single<Long> nextSequence(Sequence.Type type) {
 
-        final var mono = repository.findById(type)
-                .map(sequence -> sequence.toBuilder()
-                        .count(sequence.count() + 1)
-                        .build())
-                .flatMap(repository::save)
-                .switchIfEmpty(Mono.defer(() -> repository.save(new Sequence(type, 1L))))
-                .map(Sequence::count);
+    final var mono = repository.findById(type)
+        .map(sequence -> sequence.toBuilder()
+            .count(sequence.count() + 1)
+            .build())
+        .flatMap(repository::save)
+        .switchIfEmpty(Mono.defer(() -> repository.save(new Sequence(type, 1L))))
+        .map(Sequence::count);
 
-        return RxJava3Adapter.monoToSingle(mono);
-    }
+    return RxJava3Adapter.monoToSingle(mono);
+  }
 }
