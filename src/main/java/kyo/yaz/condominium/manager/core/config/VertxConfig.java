@@ -11,9 +11,11 @@ import io.vertx.core.spi.VerticleFactory;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import kyo.yaz.condominium.manager.core.verticle.HttpClientVerticle;
 import kyo.yaz.condominium.manager.core.verticle.ProcessLoggedUserVerticle;
 import kyo.yaz.condominium.manager.core.verticle.SendEmailVerticle;
+import kyo.yaz.condominium.manager.core.verticle.TelegramVerticle;
 import kyo.yaz.condominium.manager.core.vertx.VerticleConfigDeployer;
 import kyo.yaz.condominium.manager.core.vertx.VertxHandlerImpl;
 import kyo.yaz.condominium.manager.core.vertx.codecs.DefaultJacksonMessageCodec;
@@ -53,8 +55,10 @@ public class VertxConfig {
         .addStore(fileStore)
         .setScanPeriod(5000);
 
-    vertx.deployVerticle(verticleFactory.prefix() + ":" + ProcessLoggedUserVerticle.class.getName(),
-        new DeploymentOptions().setInstances(loopPoolSize));
+    Stream.of(ProcessLoggedUserVerticle.class, TelegramVerticle.class)
+        .map(Class::getName)
+        .map(name -> verticleFactory.prefix() + ":" + name)
+        .forEach(verticle -> vertx.deployVerticle(verticle, new DeploymentOptions().setInstances(loopPoolSize)));
 
     final var verticleRecords = Set.of(
         new VerticleRecord("http_client_options", verticleFactory.prefix() + ":" + HttpClientVerticle.class.getName()),

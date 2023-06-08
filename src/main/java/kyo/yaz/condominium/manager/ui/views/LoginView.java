@@ -66,10 +66,10 @@ public class LoginView extends BaseVerticalLayout implements BeforeEnterObserver
   @Override
   public void beforeLeave(BeforeLeaveEvent event) {
     logger().info("BEFORE_LEAVE");
-    if (hasLoggedIn()) {
+    /*if (hasLoggedIn()) {
       final var user = userSession.getUser();
       logger().info("BEFORE_LEAVE {}", user.toString());
-    }
+    }*/
   }
 
   @Override

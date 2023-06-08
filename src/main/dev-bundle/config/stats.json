@@ -235,9 +235,11 @@
   "Frontend/generated/jar-resources/vaadin-big-decimal-field.js",
   "Frontend/generated/jar-resources/vaadin-grid-flow-selection-column.js",
   "Frontend/generated/jar-resources/vaadin-time-picker/timepickerConnector.js",
-  "Frontend/generated/jar-resources/virtualListConnector.js"
+  "Frontend/generated/jar-resources/virtualListConnector.js",
+  "Frontend/icons/my-icons-icons.js"
  ],
  "frontendHashes": {
+  "icons/my-icons-icons.js": "a0ae48a902ba9e94b1ddbf8e0ce67361ccefa2ac628f4016ae084bf3388c7d60",
   "styles/toolbar-button.css": "7b285d043fe8e1991814254962e53370aaebe703bbc53c69f9b9c2b4bf93fe0e",
   "org/vaadin/firitin/layouts/appframework.css": "1117add98f9806b91eaa6658fccbf6ada8e8df79c05b52b2f4739a1c1879957b",
   "org/vaadin/firitin/components/tree.css": "5068debaa0055b0cdda8d1553c46c04eab861532ddb56868f202d0b732d9f720",
@@ -267,7 +269,7 @@
   "condominium_manager": "{\n  \"lumoImports\" : [ \"typography\", \"color\", \"spacing\", \"badge\", \"utility\" ],\n  \"version\": 2\n}"
  },
  "entryScripts": [
-  "VAADIN/build/indexhtml-f03862dd.js"
+  "VAADIN/build/indexhtml-2c6eee88.js"
  ],
  "webComponents": [],
  "packageJsonHash": "fba7869f136369f8978a24a10bf25d0c518b1056f0cb8e934fb497fc13fdb48f"

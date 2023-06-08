@@ -9,7 +9,6 @@ import com.vaadin.flow.component.html.Footer;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Header;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.router.PageTitle;
@@ -18,10 +17,12 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import java.util.Optional;
 import kyo.yaz.condominium.manager.core.config.domain.UserSession;
 import kyo.yaz.condominium.manager.core.service.ProcessLoggedUser;
+import kyo.yaz.condominium.manager.core.util.MyIconsIcons;
 import kyo.yaz.condominium.manager.persistence.entity.User;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
 import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
 import kyo.yaz.condominium.manager.ui.views.RateView;
+import kyo.yaz.condominium.manager.ui.views.TelegramChatView;
 import kyo.yaz.condominium.manager.ui.views.UserView;
 import kyo.yaz.condominium.manager.ui.views.apartment.ApartmentView;
 import kyo.yaz.condominium.manager.ui.views.building.BuildingView;
@@ -77,12 +78,14 @@ public class MainLayout extends AppLayout {
   private AppNav createNavigation() {
 
     return new AppNav()
-        .addItem(new AppNavItem(BuildingView.PAGE_TITLE, BuildingView.class, new Icon(VaadinIcon.BUILDING)))
-        .addItem(new AppNavItem(RateView.PAGE_TITLE, RateView.class, new Icon(VaadinIcon.COIN_PILES)))
-        .addItem(new AppNavItem(ApartmentView.PAGE_TITLE, ApartmentView.class, new Icon(VaadinIcon.USER)))
-        .addItem(new AppNavItem(ReceiptView.PAGE_TITLE, ReceiptView.class, new Icon(VaadinIcon.FILE_TEXT)))
-        .addItem(new AppNavItem(EmailConfigView.PAGE_TITLE, EmailConfigView.class, new Icon(VaadinIcon.ENVELOPE)))
-        .addItem(new AppNavItem(UserView.PAGE_TITLE, UserView.class, new Icon(VaadinIcon.USERS)))
+        .addItem(new AppNavItem(BuildingView.PAGE_TITLE, BuildingView.class, VaadinIcon.BUILDING.create()))
+        .addItem(new AppNavItem(RateView.PAGE_TITLE, RateView.class, VaadinIcon.COIN_PILES.create()))
+        .addItem(new AppNavItem(ApartmentView.PAGE_TITLE, ApartmentView.class, VaadinIcon.USER.create()))
+        .addItem(new AppNavItem(ReceiptView.PAGE_TITLE, ReceiptView.class, VaadinIcon.FILE_TEXT.create()))
+        .addItem(new AppNavItem(EmailConfigView.PAGE_TITLE, EmailConfigView.class, VaadinIcon.ENVELOPE.create()))
+        .addItem(new AppNavItem(UserView.PAGE_TITLE, UserView.class, VaadinIcon.USERS.create()))
+        .addItem(
+            new AppNavItem(TelegramChatView.PAGE_TITLE, TelegramChatView.class, MyIconsIcons.ICONS8_TELEGRAM.create()))
         ;
 
   }

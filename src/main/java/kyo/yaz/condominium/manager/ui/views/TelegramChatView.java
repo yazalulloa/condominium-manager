@@ -3,7 +3,6 @@ package kyo.yaz.condominium.manager.ui.views;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
-import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -15,40 +14,51 @@ import com.vaadin.flow.router.Route;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.vertx.core.json.Json;
 import jakarta.annotation.security.PermitAll;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import kyo.yaz.condominium.manager.core.config.domain.UserSession;
 import kyo.yaz.condominium.manager.core.domain.Paging;
-import kyo.yaz.condominium.manager.core.service.entity.UserService;
+import kyo.yaz.condominium.manager.core.service.entity.TelegramChatService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
-import kyo.yaz.condominium.manager.persistence.entity.User;
+import kyo.yaz.condominium.manager.persistence.entity.TelegramChat;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
+import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
-@PageTitle(UserView.PAGE_TITLE)
+@PageTitle(TelegramChatView.PAGE_TITLE)
 @PermitAll
-@Route(value = "users", layout = MainLayout.class)
-public class UserView extends BaseVerticalLayout {
+@Route(value = "telegram_chats", layout = MainLayout.class)
+public class TelegramChatView extends BaseVerticalLayout {
 
-  public static final String PAGE_TITLE = "Usuarios";
+  public static final String PAGE_TITLE = "Chats de Telegram";
 
-  private final Grid<User> grid = new Grid<>();
+  private final Grid<TelegramChat> grid = new Grid<>();
 
   private final Text queryCountText = new Text(null);
   private final Text totalCountText = new Text(null);
+  private final ProgressLayout progressLayout = new ProgressLayout();
   private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
   private final DeleteDialog deleteDialog = new DeleteDialog();
-  private final UserService userService;
+  private final TelegramChatService chatService;
+  private final UserSession userSession;
+
+  private final String telegramStartUrl;
 
   @Autowired
-  public UserView(UserService userService) {
-    this.userService = userService;
+  public TelegramChatView(TelegramChatService chatService, UserSession userSession,
+      @Value("${app.telegram_config.start_url}") String telegramStartUrl) {
+    this.chatService = chatService;
+    this.userSession = userSession;
+    this.telegramStartUrl = telegramStartUrl;
   }
 
   @Override
@@ -58,12 +68,12 @@ public class UserView extends BaseVerticalLayout {
   }
 
   private void init() {
-    addClassName("users-view");
+    addClassName("telegram-chats-view");
     setSizeFull();
     configureGrid();
     gridPaginator.init();
 
-    add(getToolbar(), grid, footer());
+    add(getToolbar(), progressLayout, grid, footer());
   }
 
   private void initData() {
@@ -86,7 +96,7 @@ public class UserView extends BaseVerticalLayout {
   }
 
   private void configureGrid() {
-    grid.addClassNames("users-grid");
+    grid.addClassNames("telegram-chats-grid");
 
     grid.addComponentColumn(this::card);
     grid.setItemDetailsRenderer(itemDetailsRenderer());
@@ -94,47 +104,43 @@ public class UserView extends BaseVerticalLayout {
     grid.setSizeFull();
   }
 
-  private Renderer<User> itemDetailsRenderer() {
-    return new ComponentRenderer<>(Div::new, (div, user) -> {
+  private Renderer<TelegramChat> itemDetailsRenderer() {
+    return new ComponentRenderer<>(Div::new, (div, chat) -> {
 
-      div.add(new Span(user.userInfoStr()));
+      div.add(new Span(Json.encodePrettily(chat.update())));
     });
   }
 
-  private void deleteDialog(User item) {
+  private void deleteDialog(TelegramChat item) {
     deleteDialog.setText(
-        Labels.ASK_CONFIRMATION_DELETE_USERS.formatted(item.email(), item.name()));
+        Labels.ASK_CONFIRMATION_DELETE_TELEGRAM_CHAT.formatted(item.chatId(), item.username()));
     deleteDialog.setDeleteAction(() -> delete(item));
     deleteDialog.open();
   }
 
-  private Component card(User user) {
+  private Component card(TelegramChat chat) {
 
-    final var set = Stream.of(user.givenName(), user.name())
+    final var set = Stream.of(chat.username(), chat.firstName(), chat.lastName())
         .filter(Objects::nonNull)
         .map(String::trim)
         .collect(Collectors.toSet());
 
     final var names = String.join(", ", set);
 
-    final var avatar = new Avatar(names);
-    avatar.setImage(user.picture());
+   /* final var avatar = new Avatar(names);
+    avatar.setImage(chat.picture());*/
 
     final var body = new Div(
-        avatar,
-        new Span("ID: " + user.id()),
+        //avatar,
+        new Span("ID: " + chat.chatId()),
         new Span(names),
-        new Span(user.email()),
-        new Span("Access Token: " + user.lastAccessTokenHash()),
-        new Span("Access Token Date: " + DateUtil.formatVe(user.lastAccessTokenHashDate())),
-        new Span("Issue At: " + DateUtil.formatVe(user.issuedAt())),
-        new Span("Expiration At: " + DateUtil.formatVe(user.expirationAt()))
+        new Span("Creado: " + DateUtil.formatVe(chat.createdAt()))
     );
 
     body.addClassName("body");
 
     final var deleteBtn = new Button(IconUtil.trash());
-    deleteBtn.addClickListener(v -> deleteDialog(user));
+    deleteBtn.addClickListener(v -> deleteDialog(chat));
 
     final var buttons = new Div(deleteBtn);
     buttons.addClassName("buttons");
@@ -144,8 +150,8 @@ public class UserView extends BaseVerticalLayout {
     return div;
   }
 
-  public void delete(User rate) {
-    userService.delete(rate)
+  public void delete(TelegramChat rate) {
+    chatService.delete(rate)
         .andThen(refreshData())
         .subscribeOn(Schedulers.io())
         .subscribe(completableObserver());
@@ -153,30 +159,45 @@ public class UserView extends BaseVerticalLayout {
 
   private Component getToolbar() {
 
-    final var toolbar = new Div(queryCountText);
+    final var link = telegramStartUrl + userSession.getUser().id();
+
+    final var btn = new Button("Enlazar cuenta");
+    btn.addClickListener(event -> ui(ui -> ui.getPage().open(link, "_blank")));
+
+    final var toolbar = new Div(btn, queryCountText);
     toolbar.addClassName("toolbar");
     return toolbar;
   }
 
-  private Single<Paging<User>> paging() {
-    return userService.paging(null, gridPaginator.currentPage(), gridPaginator.itemsPerPage());
+  private Single<Paging<TelegramChat>> paging() {
+    return chatService.paging(null, gridPaginator.currentPage(), gridPaginator.itemsPerPage());
   }
 
   private void setCountText(long queryCount, long totalCount) {
-    queryCountText.setText(String.format("Usuarios: %d", queryCount));
+    queryCountText.setText(String.format("Chats: %d", queryCount));
     gridPaginator.set(queryCount);
-    totalCountText.setText(String.format("Usuarios Totales: %d", totalCount));
+    totalCountText.setText(String.format("Chats  Totales: %d", totalCount));
   }
 
   private Completable refreshData() {
 
     return paging()
-        .map(paging -> (Runnable) () -> setItems(paging))
+        .doOnSubscribe(d -> {
+          uiAsyncAction(() -> {
+            progressLayout.progressBar().setIndeterminate(true);
+            progressLayout.setProgressText("Buscando chats");
+            progressLayout.setVisible(true);
+          });
+        })
+        .map(paging -> (Runnable) () -> {
+          setItems(paging);
+          progressLayout.setVisible(false);
+        })
         .doOnSuccess(this::uiAsyncAction)
         .ignoreElement();
   }
 
-  private void setItems(Paging<User> paging) {
+  private void setItems(Paging<TelegramChat> paging) {
     grid.setPageSize(gridPaginator.itemsPerPage());
     grid.setItems(paging.results());
 

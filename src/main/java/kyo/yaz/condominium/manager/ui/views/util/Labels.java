@@ -16,6 +16,7 @@ public class Labels {
     public static final String DEBTS = "Deudas";
     public static final String NEW_EXPENSE = "Nuevo Gasto";
     public static final String NEW_DEBT = "Nueva Deuda";
+  public static final String ASK_CONFIRMATION_DELETE_TELEGRAM_CHAT = "Esta seguro de borrar el chat\n %s %s?";
     public static final String ASK_CONFIRMATION_DELETE_USERS = "Esta seguro de borrar el usuarios\n %s %s?";
     public static final String ASK_CONFIRMATION_DELETE_RATE = "Esta seguro de borrar la tasa de cambio\n %s %s %s?";
     public static final String ASK_CONFIRMATION_DELETE_APT = "Esta seguro de borrar el apartament \n %s %s?";
@@ -32,7 +33,7 @@ public class Labels {
     public static final String RESERVE_FUNDS_TITLE = "Fondos de reserva";
     public static final String VIEW_PDFS = "Ver PDFs";
 
-    public static class Apartment {
+  public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";
         public static final String NUMBER_LABEL = "Nro de apt";
         public static final String NAME_LABEL = "Propietario";

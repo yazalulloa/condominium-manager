@@ -116,6 +116,7 @@ config
 test-config
 !package-lock.json
 
+!frontend/icons
 !src/main/resources/
 !src/main/resources/i18n/*
 !src/main/dev-bundle/*
