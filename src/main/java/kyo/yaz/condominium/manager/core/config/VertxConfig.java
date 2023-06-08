@@ -12,11 +12,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import kyo.yaz.condominium.manager.core.service.HttpServiceImpl;
 import kyo.yaz.condominium.manager.core.verticle.HttpClientVerticle;
 import kyo.yaz.condominium.manager.core.verticle.ProcessLoggedUserVerticle;
 import kyo.yaz.condominium.manager.core.verticle.SendEmailVerticle;
 import kyo.yaz.condominium.manager.core.verticle.TelegramVerticle;
 import kyo.yaz.condominium.manager.core.vertx.VerticleConfigDeployer;
+import kyo.yaz.condominium.manager.core.vertx.VertxHandler;
 import kyo.yaz.condominium.manager.core.vertx.VertxHandlerImpl;
 import kyo.yaz.condominium.manager.core.vertx.codecs.DefaultJacksonMessageCodec;
 import kyo.yaz.condominium.manager.core.vertx.domain.VerticleRecord;
@@ -87,5 +89,10 @@ public class VertxConfig {
   @Bean
   public VertxHandlerImpl vertxHandler(Vertx vertx) {
     return new VertxHandlerImpl(vertx);
+  }
+
+  @Bean
+  public HttpServiceImpl httpService(VertxHandler vertxHandler) {
+    return new HttpServiceImpl(vertxHandler);
   }
 }

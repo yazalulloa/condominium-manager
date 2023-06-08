@@ -31,7 +31,7 @@ public class ProcessLoggedUserVerticle extends AbstractVerticle {
     vertx.eventBus().<User>consumer(ADDRESS, message -> {
 
       final var user = message.body();
-      userService.find(user.id())
+      userService.maybe(user.id())
           .map(old -> {
 
             if (!Objects.equals(old.lastAccessTokenHash(), user.lastAccessTokenHash())) {

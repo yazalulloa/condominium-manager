@@ -5,7 +5,7 @@ import kyo.yaz.condominium.manager.persistence.repository.base.ReactiveRepositor
 import kyo.yaz.condominium.manager.persistence.repository.custom.TelegramChatCustomRepository;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 
-public interface TelegramChatRepository extends ReactiveMongoRepository<TelegramChat, String>, ReactiveRepository<TelegramChat>
+public interface TelegramChatRepository extends ReactiveMongoRepository<TelegramChat, TelegramChat.ID>, ReactiveRepository<TelegramChat>
     , TelegramChatCustomRepository {
 
 }

@@ -30,7 +30,7 @@ public class GetBcvUsdRate {
         this.bcvUsdRateParser = bcvUsdRateParser;
     }
 
-    private Single<Document> docuument() {
+    private Single<Document> document() {
         final HttpClientRequest httpClientRequest = HttpClientRequest.get(url)
                 .toBuilder()
                 .trustAll(true)
@@ -57,6 +57,6 @@ public class GetBcvUsdRate {
     }
 
     public Single<Rate> newRate() {
-        return docuument().flatMap(bcvUsdRateParser::parse);
+        return document().flatMap(bcvUsdRateParser::parse);
     }
 }

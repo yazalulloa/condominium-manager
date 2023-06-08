@@ -4,6 +4,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.TelegramChatQueryRequest;
@@ -27,9 +28,14 @@ public class TelegramChatService {
     this.repository = repository;
   }
 
-  public Maybe<TelegramChat> find(String id) {
-    final var mono = repository.findById(id);
+  public Maybe<TelegramChat> maybe(String userId, long chatId) {
+    final var mono = repository.findById(new TelegramChat.ID(chatId, userId));
     return RxJava3Adapter.monoToMaybe(mono);
+  }
+
+  public Single<Optional<TelegramChat>> find(String userId, long chatId) {
+    return maybe(userId, chatId).map(Optional::of)
+        .defaultIfEmpty(Optional.empty());
   }
 
   public Completable delete(TelegramChat entity) {
@@ -59,5 +65,9 @@ public class TelegramChatService {
 
     return Mono.zip(totalCountMono, queryCountMono, listMono)
         .map(tuple -> new Paging<>(tuple.getT1(), tuple.getT2(), tuple.getT3()));
+  }
+
+  public Single<TelegramChat> save(TelegramChat entity) {
+    return RxJava3Adapter.monoToSingle(repository.save(entity));
   }
 }

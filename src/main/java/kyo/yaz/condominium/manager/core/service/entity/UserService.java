@@ -4,6 +4,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.UserQueryRequest;
@@ -27,9 +28,14 @@ public class UserService {
     this.repository = repository;
   }
 
-  public Maybe<User> find(String id) {
+  public Maybe<User> maybe(String id) {
     final var mono = repository.findById(id);
     return RxJava3Adapter.monoToMaybe(mono);
+  }
+
+  public Single<Optional<User>> find(String id) {
+    return maybe(id).map(Optional::of)
+        .defaultIfEmpty(Optional.empty());
   }
 
   public Completable delete(User entity) {
