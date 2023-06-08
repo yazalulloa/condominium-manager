@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,7 +28,7 @@ public class TelegramChat {
 
   @Id
   @JsonProperty
-  private final ID id;
+  private final TelegramChatId id;
 
   @JsonProperty
   private final long chatId;
@@ -58,7 +59,7 @@ public class TelegramChat {
   @AllArgsConstructor
   @JsonIgnoreProperties(ignoreUnknown = true)
   @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-  public static class ID {
+  public static class TelegramChatId implements Serializable {
 
     @JsonProperty
     private final long chatId;

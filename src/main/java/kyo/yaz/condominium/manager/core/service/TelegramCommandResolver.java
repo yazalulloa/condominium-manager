@@ -13,7 +13,7 @@ import kyo.yaz.condominium.manager.core.service.entity.TelegramChatService;
 import kyo.yaz.condominium.manager.core.service.entity.UserService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat;
-import kyo.yaz.condominium.manager.persistence.entity.TelegramChat.ID;
+import kyo.yaz.condominium.manager.persistence.entity.TelegramChat.TelegramChatId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -71,7 +71,7 @@ public class TelegramCommandResolver {
       }
 
       final var telegramChat = TelegramChat.builder()
-          .id(new ID(chatId, userId))
+          .id(new TelegramChatId(chatId, userId))
           .firstName(from.firstName())
           .lastName(from.lastName())
           .username(from.username())

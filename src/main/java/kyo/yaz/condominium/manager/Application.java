@@ -6,6 +6,7 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
+import kyo.yaz.condominium.manager.core.util.EnvUtil;
 import kyo.yaz.condominium.manager.core.util.NetworkUtil;
 import kyo.yaz.condominium.manager.ui.views.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -18,13 +19,10 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.Optional;
-
 /**
  * The entry point of the Spring Boot application.
  * <p>
- * Use the @PWA annotation make the application installable on phones, tablets
- * and some desktop browsers.
+ * Use the @PWA annotation make the application installable on phones, tablets and some desktop browsers.
  */
 
 @SpringBootApplication
@@ -32,7 +30,7 @@ import java.util.Optional;
 @EnableScheduling
 @EnableAsync
 @ComponentScan(basePackages = {
-        "kyo.yaz.condominium.manager"
+    "kyo.yaz.condominium.manager"
 })
 @ServletComponentScan
 @Theme(value = "condominium_manager")
@@ -44,22 +42,18 @@ import java.util.Optional;
 @Slf4j
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
 
-    public static void main(String[] args) {
-        NetworkUtil.showPublicIp();
+  public static void main(String[] args) {
+    NetworkUtil.showPublicIp();
 
-        FileUtil.writeEnvToFile("APPLICATION_FILE", "application.yml");
-        FileUtil.writeEnvToFile("VERTICLES_FILE", "verticles.yml");
+    FileUtil.writeEnvToFile("APPLICATION_FILE", "application.yml");
+    FileUtil.writeEnvToFile("VERTICLES_FILE", "verticles.yml");
 
-
-        final var isShowDir = Optional.ofNullable(System.getenv("SHOW_DIR"))
-                .map(Boolean::parseBoolean)
-                .orElse(false);
-
-        if (isShowDir)
-            FileUtil.showDir();
-
-        SpringApplication.run(Application.class, args);
+    if (EnvUtil.isShowDir()) {
+      FileUtil.showDir();
     }
+
+    SpringApplication.run(Application.class, args);
+  }
 
 
 

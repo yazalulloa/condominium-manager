@@ -37,6 +37,8 @@ public class VertxConfig {
     final var options = new VertxOptions();
     final var loopPoolSize = options.getEventLoopPoolSize();
 
+    log.info("CORES {}", loopPoolSize);
+
     final var vertx = Vertx.vertx(options);
 
     vertx.registerVerticleFactory(verticleFactory);
@@ -57,12 +59,13 @@ public class VertxConfig {
         .addStore(fileStore)
         .setScanPeriod(5000);
 
-    Stream.of(ProcessLoggedUserVerticle.class, TelegramVerticle.class)
+    Stream.of(ProcessLoggedUserVerticle.class)
         .map(Class::getName)
         .map(name -> verticleFactory.prefix() + ":" + name)
         .forEach(verticle -> vertx.deployVerticle(verticle, new DeploymentOptions().setInstances(loopPoolSize)));
 
     final var verticleRecords = Set.of(
+        new VerticleRecord("telegram_config", verticleFactory.prefix() + ":" + TelegramVerticle.class.getName()),
         new VerticleRecord("http_client_options", verticleFactory.prefix() + ":" + HttpClientVerticle.class.getName()),
         new VerticleRecord("send_email_config", verticleFactory.prefix() + ":" + SendEmailVerticle.class.getName())
     );

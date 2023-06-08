@@ -10,6 +10,7 @@ import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.TelegramChatQueryRequest;
 import kyo.yaz.condominium.manager.persistence.domain.request.TelegramChatQueryRequest.SortField;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat;
+import kyo.yaz.condominium.manager.persistence.entity.TelegramChat.TelegramChatId;
 import kyo.yaz.condominium.manager.persistence.repository.TelegramChatRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +30,7 @@ public class TelegramChatService {
   }
 
   public Maybe<TelegramChat> maybe(String userId, long chatId) {
-    final var mono = repository.findById(new TelegramChat.ID(chatId, userId));
+    final var mono = repository.findById(new TelegramChatId(chatId, userId));
     return RxJava3Adapter.monoToMaybe(mono);
   }
 
