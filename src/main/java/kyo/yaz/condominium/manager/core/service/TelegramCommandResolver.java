@@ -72,6 +72,7 @@ public class TelegramCommandResolver {
 
       final var telegramChat = TelegramChat.builder()
           .id(new TelegramChatId(chatId, userId))
+          .chatId(chatId)
           .firstName(from.firstName())
           .lastName(from.lastName())
           .username(from.username())
@@ -84,6 +85,8 @@ public class TelegramCommandResolver {
           .build();
 
       return chatService.save(telegramChat)
+          .ignoreElement()
+          .andThen(telegramRestApi.sendMessage(chatId, "Chat guardado"))
           .ignoreElement();
     }).flatMapCompletable(c -> c);
 

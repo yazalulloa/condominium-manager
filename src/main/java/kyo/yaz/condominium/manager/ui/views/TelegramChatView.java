@@ -14,7 +14,7 @@ import com.vaadin.flow.router.Route;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import jakarta.annotation.security.PermitAll;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -107,7 +107,7 @@ public class TelegramChatView extends BaseVerticalLayout {
   private Renderer<TelegramChat> itemDetailsRenderer() {
     return new ComponentRenderer<>(Div::new, (div, chat) -> {
 
-      div.add(new Span(Json.encodePrettily(chat.update())));
+      div.add(new Span(new JsonObject(chat.update()).encodePrettily()));
     });
   }
 
