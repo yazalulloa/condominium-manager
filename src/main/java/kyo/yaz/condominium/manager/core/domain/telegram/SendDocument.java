@@ -22,7 +22,7 @@ import lombok.extern.jackson.Jacksonized;
 public class SendDocument {
 
   @JsonProperty
-  private final Long chatId;
+  private final long chatId;
 
   @JsonProperty
   private final MultipartForm multipartForm;

@@ -92,16 +92,23 @@ public class TelegramVerticle extends BaseVerticle {
 
   private Single<HttpClientResponse> sendDocument(SendDocument sendDocument) {
 
+    final var multipartForm = sendDocument.multipartForm();
+
+    Optional.ofNullable(sendDocument.caption())
+        .ifPresent(value -> multipartForm.attribute("caption", value));
+
+    Optional.ofNullable(sendDocument.parseMode())
+        .map(Enum::name)
+        .ifPresent(value -> multipartForm.attribute("parse_mode", value));
+
     final var request = HttpClientRequest.builder()
         .url("sendDocument")
         .httpMethod(HttpMethod.POST)
-        .multipartForm(sendDocument.multipartForm()
-            .attribute("chat_id", sendDocument.chatId().toString())
-            .attribute("caption", sendDocument.caption())
-            .attribute("parse_mode", Optional.ofNullable(sendDocument.parseMode()).map(Enum::name).orElse(null))
+        .multipartForm(multipartForm
+            .attribute("chat_id", String.valueOf(sendDocument.chatId()))
         )
         .build();
-    
+
     return httpService.send(request);
   }
 
