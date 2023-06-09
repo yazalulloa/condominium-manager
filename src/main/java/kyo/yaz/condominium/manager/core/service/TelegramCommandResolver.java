@@ -6,15 +6,21 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+import io.vertx.ext.web.multipart.MultipartForm;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import kyo.yaz.condominium.manager.core.domain.telegram.Chat;
 import kyo.yaz.condominium.manager.core.domain.telegram.TelegramUpdate;
 import kyo.yaz.condominium.manager.core.domain.telegram.TelegramUser;
 import kyo.yaz.condominium.manager.core.service.entity.TelegramChatService;
 import kyo.yaz.condominium.manager.core.service.entity.UserService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
+import kyo.yaz.condominium.manager.core.util.ZipUtility;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat.TelegramChatId;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,11 +42,25 @@ public class TelegramCommandResolver {
         final var from = message.from();
         final var chat = message.chat();
 
-        if (text != null && text.startsWith("/start") && text.length() > 8 && from != null && !from.isBot()
-            && chat != null) {
-          final var userId = text.substring(7).trim();
+        if (text != null && from != null) {
 
-          return addAccount(userId, from, chat);
+          if (text.startsWith("/start") && text.length() > 8 && !from.isBot() && chat != null) {
+            final var userId = text.substring(7).trim();
+
+            return addAccount(userId, from, chat);
+          }
+
+          if (text.startsWith("/log")) {
+            final var dest = "logs.zip";
+            ZipUtility.zipDirectory(new File("log"), dest);
+            return telegramRestApi.sendDocument(from.id(), "logs", MultipartForm.create()
+                    .binaryFileUpload("document",
+                        dest,
+                        dest,
+                        MediaType.MULTIPART_FORM_DATA_VALUE))
+                .ignoreElement()
+                .doOnComplete(() -> Files.delete(Paths.get(dest)));
+          }
         }
       }
 

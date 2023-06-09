@@ -5,7 +5,6 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import java.util.Optional;
 import kyo.yaz.condominium.manager.core.domain.HttpClientRequest;
 import kyo.yaz.condominium.manager.core.domain.HttpClientResponse;
 import kyo.yaz.condominium.manager.core.domain.telegram.EditMessageText;
@@ -92,17 +91,17 @@ public class TelegramVerticle extends BaseVerticle {
 
   private Single<HttpClientResponse> sendDocument(SendDocument sendDocument) {
 
-    final var request = HttpClientRequest.builder()
+    HttpClientRequest.builder()
         .url("sendDocument")
         .httpMethod(HttpMethod.POST)
         .multipartForm(sendDocument.multipartForm()
             .attribute("chat_id", sendDocument.chatId().toString())
-            .attribute("caption", sendDocument.caption())
-            .attribute("parse_mode", Optional.ofNullable(sendDocument.parseMode()).map(Enum::name).orElse(null))
-        )
+            .attribute("caption", sendDocument.caption()))
+        .attribute("caption", sendDocument.caption()))  
         .build();
-    
-    return httpService.send(request);
+
+    final var body = new JsonObject(Json.encode(sendDocument));
+    return httpService.send(HttpMethod.POST, url("sendDocument"), body);
   }
 
   private Single<HttpClientResponse> getWebhookInfo() {

@@ -142,6 +142,10 @@ public class HttpClientVerticle extends AbstractVerticle {
 
         } else {
 
+            if (clientRequest.multipartForm() != null) {
+                return httpRequest.sendMultipartForm(clientRequest.multipartForm());
+            }
+
             if (HttpLogging.isJson(clientRequest.mediaType())) {
                 if (body instanceof String) {
 
@@ -183,6 +187,8 @@ public class HttpClientVerticle extends AbstractVerticle {
                             return map;
                         })
                         .orElseGet(MultiMap::caseInsensitiveMultiMap);
+
+
 
                 return httpRequest.sendForm(multiMap);
             }

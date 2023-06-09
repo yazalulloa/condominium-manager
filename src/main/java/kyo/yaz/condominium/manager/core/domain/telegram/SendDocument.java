@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import io.vertx.ext.web.multipart.MultipartForm;
 import java.io.FileInputStream;
 import lombok.Getter;
 import lombok.ToString;
@@ -24,10 +25,7 @@ public class SendDocument {
   private final Long chatId;
 
   @JsonProperty
-  private final FileInputStream document;
-
-  @JsonProperty
-  private final String thumb;
+  private final MultipartForm multipartForm;
 
   @JsonProperty
   private final String caption;

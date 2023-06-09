@@ -2,8 +2,7 @@ package kyo.yaz.condominium.manager.core.component;
 
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
-import java.util.concurrent.TimeUnit;
-import kyo.yaz.condominium.manager.core.service.TelegramRestApi;
+import kyo.yaz.condominium.manager.core.service.NotificationService;
 import kyo.yaz.condominium.manager.core.util.EnvUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ServletContextListenerImpl implements ServletContextListener {
 
-  private final TelegramRestApi telegramRestApi;
+  private final NotificationService notificationService;
 
   @Override
   public void contextDestroyed(ServletContextEvent event) {
@@ -30,9 +29,7 @@ public class ServletContextListenerImpl implements ServletContextListener {
 
   private void sendMsg(String msg) {
     if (EnvUtil.sendNotifications()) {
-      telegramRestApi.sendMessage(475635800, msg)
-          .ignoreElement()
-          .blockingAwait(10, TimeUnit.SECONDS);
+      notificationService.sendBlocking(msg);
     }
   }
 

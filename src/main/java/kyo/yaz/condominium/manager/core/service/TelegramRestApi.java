@@ -1,10 +1,12 @@
 package kyo.yaz.condominium.manager.core.service;
 
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.ext.web.multipart.MultipartForm;
 import java.util.Objects;
 import kyo.yaz.condominium.manager.core.domain.HttpClientResponse;
 import kyo.yaz.condominium.manager.core.domain.telegram.EditMessageText;
 import kyo.yaz.condominium.manager.core.domain.telegram.ParseMode;
+import kyo.yaz.condominium.manager.core.domain.telegram.SendDocument;
 import kyo.yaz.condominium.manager.core.domain.telegram.SendMessage;
 import kyo.yaz.condominium.manager.core.verticle.TelegramVerticle;
 import kyo.yaz.condominium.manager.core.vertx.VertxHandler;
@@ -58,6 +60,21 @@ public class TelegramRestApi {
 
   public Single<HttpClientResponse> setDefaultWebhook() {
     return vertxHandler.get(TelegramVerticle.SET_DEFAULT_WEBHOOK);
+  }
+
+  public Single<HttpClientResponse> sendDocument(long chatId, String caption, MultipartForm multipartForm) {
+    final var sendDocument = SendDocument.builder()
+        .chatId(chatId)
+        .caption(caption)
+        .multipartForm(multipartForm)
+        .build();
+
+    return sendDocument(sendDocument);
+  }
+
+  public Single<HttpClientResponse> sendDocument(SendDocument sendDocument) {
+    return vertxHandler.get(TelegramVerticle.SEND_DOCUMENT, sendDocument);
+
   }
 
 

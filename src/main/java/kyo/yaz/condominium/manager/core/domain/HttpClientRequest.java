@@ -1,8 +1,12 @@
 package kyo.yaz.condominium.manager.core.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.multipart.MultipartForm;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -20,37 +24,42 @@ import java.util.concurrent.TimeUnit;
 @Accessors(fluent = true)
 @ToString
 @Getter
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class HttpClientRequest {
 
-    @JsonProperty("http_method")
+    @JsonProperty
     private final HttpMethod httpMethod;
-    @JsonProperty("url")
+    @JsonProperty
     private final String url;
 
     @Builder.Default
-    @JsonProperty("headers")
+    @JsonProperty
     private final Map<String, String> headers = new HashMap<>();
 
-    @JsonProperty("body")
+    @JsonProperty
     private final Object body;
 
-    @JsonProperty("media_type")
+    @JsonProperty
     private final MediaType mediaType;
 
-    @JsonProperty("request_log_config")
+    @JsonProperty
     private final HttpLogConfig requestLogConfig;
 
-    @JsonProperty("response_log_config")
+    @JsonProperty
     private final HttpLogConfig responseLogConfig;
 
-    @JsonProperty("trust_all")
+    @JsonProperty
     private final boolean trustAll;
 
-    @JsonProperty("timeout_time")
+    @JsonProperty
     private final long timeoutTime;
 
-    @JsonProperty("timeout_time_unit")
+    @JsonProperty
     private final TimeUnit timeoutTimeUnit;
+
+    @JsonProperty
+    private final MultipartForm multipartForm;
 
     public static HttpClientRequest of(HttpMethod httpMethod, String url, Object body) {
         return HttpClientRequest.builder().httpMethod(httpMethod).url(url).body(body).build();
