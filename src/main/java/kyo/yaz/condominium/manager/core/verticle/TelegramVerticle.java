@@ -102,7 +102,7 @@ public class TelegramVerticle extends BaseVerticle {
         .ifPresent(value -> multipartForm.attribute("parse_mode", value));
 
     final var request = HttpClientRequest.builder()
-        .url("sendDocument")
+        .url(url("sendDocument"))
         .httpMethod(HttpMethod.POST)
         .multipartForm(multipartForm
             .attribute("chat_id", String.valueOf(sendDocument.chatId()))
