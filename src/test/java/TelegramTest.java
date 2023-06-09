@@ -68,15 +68,21 @@ public class TelegramTest {
     final var chatId = jsonNode("config/application.yml").get("app")
         .get("notification_chat_id")
         .asText();
+    final var dest = "logs.zip";
 
     MultipartForm form = MultipartForm.create()
         .attribute("chat_id", chatId)
         .attribute("caption", "test")
+        .binaryFileUpload("document",
+            dest,
+            dest,
+            MediaType.TEXT_PLAIN_VALUE)
         .binaryFileUpload(
             "document",
             "pom.xml",
             "pom.xml",
-            MediaType.APPLICATION_XML_VALUE);
+            MediaType.APPLICATION_XML_VALUE)
+        ;
 
     final HttpClientRequest request = HttpClientRequest.builder()
         .url(url + "sendDocument")

@@ -19,7 +19,7 @@ public class ServletContextListenerImpl implements ServletContextListener {
 
   @Override
   public void contextDestroyed(ServletContextEvent event) {
-    sendMsg("Shutting down");
+    checkIfSend(() -> notificationService.sendLogsBlocking("Shutting down"));
   }
 
   @Override
@@ -27,20 +27,21 @@ public class ServletContextListenerImpl implements ServletContextListener {
     log.info("contextInitialized");
   }
 
-  private void sendMsg(String msg) {
+  private void checkIfSend(Runnable runnable) {
     if (EnvUtil.sendNotifications()) {
-      notificationService.sendBlocking(msg);
+      runnable.run();
     }
   }
 
-  public void addHook() {
+  /*public void addHook() {
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       sendMsg("Shutting down");
     }));
-  }
+  }*/
 
   @EventListener(ApplicationReadyEvent.class)
   public void doSomethingAfterStartup() {
-    sendMsg("App Started Up");
+    checkIfSend(() -> notificationService.sendBlocking("App Started Up"));
+
   }
 }

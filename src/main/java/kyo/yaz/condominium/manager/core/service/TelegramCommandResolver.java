@@ -6,21 +6,15 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
-import io.vertx.ext.web.multipart.MultipartForm;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import kyo.yaz.condominium.manager.core.domain.telegram.Chat;
 import kyo.yaz.condominium.manager.core.domain.telegram.TelegramUpdate;
 import kyo.yaz.condominium.manager.core.domain.telegram.TelegramUser;
 import kyo.yaz.condominium.manager.core.service.entity.TelegramChatService;
 import kyo.yaz.condominium.manager.core.service.entity.UserService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
-import kyo.yaz.condominium.manager.core.util.ZipUtility;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat.TelegramChatId;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -29,6 +23,7 @@ public class TelegramCommandResolver {
 
   private final TelegramChatService chatService;
   private final UserService userService;
+  private final SendLogs sendLogs;
   private final TelegramRestApi telegramRestApi;
 
   public Completable resolve(JsonNode json) {
@@ -51,15 +46,7 @@ public class TelegramCommandResolver {
           }
 
           if (text.startsWith("/log")) {
-            final var dest = "logs.zip";
-            ZipUtility.zipDirectory(new File("log"), dest);
-            return telegramRestApi.sendDocument(from.id(), "logs", MultipartForm.create()
-                    .binaryFileUpload("document",
-                        dest,
-                        dest,
-                        MediaType.MULTIPART_FORM_DATA_VALUE))
-                .ignoreElement()
-                .doOnComplete(() -> Files.delete(Paths.get(dest)));
+            return sendLogs.sendLogs(from.id(), "logs");
           }
         }
       }

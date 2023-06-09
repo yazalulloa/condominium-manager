@@ -13,20 +13,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 class CreatePdfAptReceiptTest {
 
-    @Autowired
-    private BuildingService buildingService;
-    @Autowired
-    private ReceiptService receiptService;
-    @Autowired
-    private ApartmentService apartmentService;
+  @Autowired
+  private BuildingService buildingService;
+  @Autowired
+  private ReceiptService receiptService;
+  @Autowired
+  private ApartmentService apartmentService;
 
-    @Test
-    void test() {
+  @Test
+  void test() {
 
-
-
-
-
-
-    }
+  }
 }

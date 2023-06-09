@@ -77,7 +77,11 @@ public class HttpLogging {
 
           clientRequest.multipartForm().forEach(formDataPart -> {
 
-            final var str = Stream.of(formDataPart.name(), formDataPart.pathname(), formDataPart.value(),
+            final var type = Objects.requireNonNullElse(formDataPart.isText(), false) ? "[text]"
+                : formDataPart.isAttribute() ? "[attr]"
+                    : formDataPart.isFileUpload() ? "[file-upload]" : null;
+
+            final var str = Stream.of(type, formDataPart.name(), formDataPart.pathname(), formDataPart.value(),
                     formDataPart.filename(), formDataPart.mediaType())
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining(", "));
