@@ -164,7 +164,7 @@ public class UserView extends BaseVerticalLayout {
 
   private void setCountText(long queryCount, long totalCount) {
     queryCountText.setText(String.format("Usuarios: %d", queryCount));
-    gridPaginator.set(queryCount);
+    gridPaginator.set(queryCount, totalCount);
     totalCountText.setText(String.format("Usuarios Totales: %d", totalCount));
   }
 

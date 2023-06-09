@@ -460,7 +460,7 @@ public class ReceiptView extends BaseVerticalLayout {
 
     private void setCountText(long queryCount, long totalCount) {
         countText.setText(String.format(Labels.Receipt.AMOUNT_OF_LABEL, queryCount));
-        gridPaginator.set(queryCount);
+        gridPaginator.set(queryCount, totalCount);
         // totalCountText.setText(String.format("Total de Apartamentos: %d", totalCount));
     }
 

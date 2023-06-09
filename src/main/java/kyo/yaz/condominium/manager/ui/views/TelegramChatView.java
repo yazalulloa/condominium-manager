@@ -132,9 +132,10 @@ public class TelegramChatView extends BaseVerticalLayout {
 
     final var body = new Div(
         //avatar,
-        new Span("ID: " + chat.chatId()),
+        new Span("Chat id: " + chat.chatId()),
         new Span(names),
-        new Span("Creado: " + DateUtil.formatVe(chat.createdAt()))
+        new Span("Creado: " + DateUtil.formatVe(chat.createdAt())),
+        new Span("Usuario: " + chat.user().email())
     );
 
     body.addClassName("body");
@@ -175,7 +176,7 @@ public class TelegramChatView extends BaseVerticalLayout {
 
   private void setCountText(long queryCount, long totalCount) {
     queryCountText.setText(String.format("Chats: %d", queryCount));
-    gridPaginator.set(queryCount);
+    gridPaginator.set(queryCount, totalCount);
     totalCountText.setText(String.format("Chats  Totales: %d", totalCount));
   }
 

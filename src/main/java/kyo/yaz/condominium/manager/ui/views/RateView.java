@@ -164,7 +164,7 @@ public class RateView extends BaseVerticalLayout {
 
     private void setCountText(long queryCount, long totalCount) {
         queryCountText.setText(String.format("Tasas de cambio: %d", queryCount));
-        gridPaginator.set(queryCount);
+        gridPaginator.set(queryCount, totalCount);
         totalCountText.setText(String.format("Total de Tasas de cambio: %d", totalCount));
     }
 

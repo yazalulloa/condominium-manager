@@ -198,7 +198,7 @@ public class ApartmentView extends BaseVerticalLayout {
 
     private void setCountText(long queryCount, long totalCount) {
         queryCountText.setText(String.format("Apartamentos: %d", queryCount));
-        gridPaginator.set(queryCount);
+        gridPaginator.set(queryCount, totalCount);
         totalCountText.setText(String.format("Total de Apartamentos: %d", totalCount));
     }
 

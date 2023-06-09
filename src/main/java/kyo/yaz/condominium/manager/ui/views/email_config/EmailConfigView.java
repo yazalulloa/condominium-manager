@@ -201,7 +201,7 @@ public class EmailConfigView extends BaseVerticalLayout {
 
     private void setCountText(long queryCount, long totalCount) {
         queryCountText.setText(String.format("Configuraciones: %d", queryCount));
-        gridPaginator.set(queryCount);
+        gridPaginator.set(queryCount, totalCount);
         totalCountText.setText(String.format("Total: %d", totalCount));
     }
 
