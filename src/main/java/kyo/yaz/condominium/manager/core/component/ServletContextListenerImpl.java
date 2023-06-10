@@ -33,11 +33,11 @@ public class ServletContextListenerImpl implements ServletContextListener {
     }
   }
 
-  /*public void addHook() {
+  public void addHook() {
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      sendMsg("Shutting down");
+     log.info("ShutdownHook");
     }));
-  }*/
+  }
 
   @EventListener(ApplicationReadyEvent.class)
   public void doSomethingAfterStartup() {

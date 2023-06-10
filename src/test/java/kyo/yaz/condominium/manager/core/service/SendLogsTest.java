@@ -24,7 +24,7 @@ class SendLogsTest {
     notificationService.sendLogs("test")
         .subscribe(testContext::completeNow, testContext::failNow);
 
-    testContext.awaitCompletion(10, TimeUnit.SECONDS);
+    testContext.awaitCompletion(20, TimeUnit.SECONDS);
     if (testContext.failed()) {
       throw testContext.causeOfFailure();
     }

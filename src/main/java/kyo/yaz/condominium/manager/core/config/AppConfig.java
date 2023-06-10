@@ -36,7 +36,7 @@ public class AppConfig {
     ServletListenerRegistrationBean<ServletContextListener> srb
         = new ServletListenerRegistrationBean<>();
     srb.setListener(servletContextListener);
-    //servletContextListener.addHook();
+    servletContextListener.addHook();
     return srb;
   }
 }

@@ -6,9 +6,11 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.domain.telegram.Chat;
 import kyo.yaz.condominium.manager.core.domain.telegram.TelegramUpdate;
 import kyo.yaz.condominium.manager.core.domain.telegram.TelegramUser;
+import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.core.service.entity.TelegramChatService;
 import kyo.yaz.condominium.manager.core.service.entity.UserService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
@@ -25,6 +27,7 @@ public class TelegramCommandResolver {
   private final UserService userService;
   private final SendLogs sendLogs;
   private final TelegramRestApi telegramRestApi;
+  private final RateService rateService;
 
   public Completable resolve(JsonNode json) {
     return Completable.defer(() -> {
@@ -38,6 +41,7 @@ public class TelegramCommandResolver {
         final var chat = message.chat();
 
         if (text != null && from != null) {
+          final var chatId = from.id();
 
           if (text.startsWith("/start") && text.length() > 8 && !from.isBot() && chat != null) {
             final var userId = text.substring(7).trim();
@@ -46,7 +50,16 @@ public class TelegramCommandResolver {
           }
 
           if (text.startsWith("/log")) {
-            return sendLogs.sendLogs(from.id(), "logs");
+            return sendLogs.sendLogs(chatId, "logs");
+          }
+
+          if (text.startsWith("/tasa")) {
+
+            return rateService.last(Currency.USD, Currency.VED)
+                .toSingle()
+                .map(rate -> "%s - %s - %s - %s".formatted(rate.rate(), rate.dateOfRate(), rate.createdAt(), rate.id()))
+                .flatMap(msg -> telegramRestApi.sendMessage(chatId, msg))
+                .ignoreElement();
           }
         }
       }

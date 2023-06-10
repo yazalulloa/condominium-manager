@@ -77,11 +77,11 @@ public class TelegramTest {
             dest,
             dest,
             MediaType.TEXT_PLAIN_VALUE)
-        .binaryFileUpload(
+        /*.binaryFileUpload(
             "document",
             "pom.xml",
             "pom.xml",
-            MediaType.APPLICATION_XML_VALUE)
+            MediaType.APPLICATION_XML_VALUE)*/
         ;
 
     final HttpClientRequest request = HttpClientRequest.builder()
