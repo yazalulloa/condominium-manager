@@ -46,6 +46,7 @@ public class ReserveFundViewItem {
   @JsonProperty
   private BigDecimal pay;
 
+  @Builder.Default
   @JsonProperty
   private Boolean active = true;
 
@@ -58,6 +59,7 @@ public class ReserveFundViewItem {
   private Expense.Type expenseType;
 
   @NotNull
+  @Builder.Default
   @JsonProperty
   private Boolean addToExpenses = true;
 

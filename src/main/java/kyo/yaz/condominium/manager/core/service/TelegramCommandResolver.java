@@ -57,7 +57,7 @@ public class TelegramCommandResolver {
 
             return rateService.last(Currency.USD, Currency.VED)
                 .toSingle()
-                .map(rate -> "%s - %s - %s - %s".formatted(rate.rate(), rate.dateOfRate(), rate.createdAt(), rate.id()))
+                .map(rate -> "%s - %s - %s - %s".formatted(rate.rate(), rate.dateOfRate(), DateUtil.formatVe(rate.createdAt()), rate.id()))
                 .flatMap(msg -> telegramRestApi.sendMessage(chatId, msg))
                 .ignoreElement();
           }

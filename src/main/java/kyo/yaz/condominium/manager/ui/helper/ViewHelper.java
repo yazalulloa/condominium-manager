@@ -17,7 +17,6 @@ public class ViewHelper {
     private final Component component;
     private final Logger logger;
 
-
     public void showError(Throwable throwable) {
         showError(throwable, "");
     }

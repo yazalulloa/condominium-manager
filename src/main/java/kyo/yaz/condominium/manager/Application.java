@@ -28,7 +28,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableMongoRepositories()
 @EnableScheduling
-@EnableAsync
 @ComponentScan(basePackages = {
     "kyo.yaz.condominium.manager"
 })

@@ -2,7 +2,6 @@ package kyo.yaz.condominium.manager.core.verticle;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.AbstractVerticle;
 import java.util.Objects;
 import kyo.yaz.condominium.manager.core.service.entity.UserService;
 import kyo.yaz.condominium.manager.persistence.entity.User;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope("prototype")
 @Slf4j
-public class ProcessLoggedUserVerticle extends AbstractVerticle {
+public class ProcessLoggedUserVerticle extends BaseVerticle {
 
   public static final String ADDRESS = "process-user";
 
@@ -31,7 +30,7 @@ public class ProcessLoggedUserVerticle extends AbstractVerticle {
     vertx.eventBus().<User>consumer(ADDRESS, message -> {
 
       final var user = message.body();
-      userService.maybe(user.id())
+      final var completable = userService.maybe(user.id())
           .map(old -> {
 
             if (!Objects.equals(old.lastAccessTokenHash(), user.lastAccessTokenHash())) {
@@ -50,9 +49,9 @@ public class ProcessLoggedUserVerticle extends AbstractVerticle {
           })
           .switchIfEmpty(Single.fromCallable(() -> userService.save(user)
               .ignoreElement().doOnComplete(() -> log.info("USER_SAVED"))))
-          .flatMapCompletable(c -> c)
-          .subscribe(() -> {
-          }, throwable -> log.error("ERROR", throwable));
+          .flatMapCompletable(c -> c);
+
+      subscribe(completable);
     });
   }
 }

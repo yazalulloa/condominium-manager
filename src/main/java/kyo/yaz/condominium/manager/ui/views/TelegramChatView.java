@@ -72,7 +72,7 @@ public class TelegramChatView extends BaseVerticalLayout {
     setSizeFull();
     configureGrid();
     gridPaginator.init();
-
+    progressLayout.setVisible(false);
     add(getToolbar(), progressLayout, grid, footer());
   }
 

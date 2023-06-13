@@ -9,11 +9,15 @@
   <version>1.0.0</version>
 
   <properties>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <!--<maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>-->
+    <java.version>20</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <vaadin.version>24.0.5</vaadin.version>
+    <vaadin.version>24.0.6</vaadin.version>
     <!--<vaadin.version>23.3.2</vaadin.version>-->
     <vertx.version>4.4.3</vertx.version>
     <mapstruct.version>1.5.3.Final</mapstruct.version>
@@ -404,6 +408,10 @@
         <configuration>
           <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
+          <release>${maven.compiler.release}</release>
+          <compilerArgs>
+            <arg>--enable-preview</arg>
+          </compilerArgs>
           <annotationProcessorPaths>
             <path>
               <groupId>org.mapstruct</groupId>

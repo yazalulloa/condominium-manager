@@ -47,7 +47,7 @@ public class BcvRateJob {
     }
 
     private void saveNewBcvRate() {
-        //log.info("RUN_JOB");
+        //log.info("RUN_JOB {}", Thread.currentThread());
         saveNewBcvRate.saveNewRate()
                 .subscribeOn(Schedulers.io())
                 .doOnError(throwable -> log.error("ERROR", throwable))
