@@ -6,7 +6,8 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
-import java.util.Arrays;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import kyo.yaz.condominium.manager.core.util.EnvUtil;
 import kyo.yaz.condominium.manager.core.util.NetworkUtil;
 import kyo.yaz.condominium.manager.ui.views.util.FileUtil;
@@ -42,7 +43,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
 
   public static void main(String[] args) {
-    log.info(Arrays.toString(args));
     NetworkUtil.showPublicIp();
 
     FileUtil.writeEnvToFile("APPLICATION_FILE", "application.yml");
@@ -55,17 +55,11 @@ public class Application extends SpringBootServletInitializer implements AppShel
     SpringApplication.run(Application.class, args);
   }
 
+  @Override
+  public void onStartup(ServletContext servletContext) throws ServletException {
+    super.onStartup(servletContext);
 
-
-   /* public void onStartup(ServletContext container) throws ServletException {
-        AnnotationConfigWebApplicationContext ctx
-                = new AnnotationConfigWebApplicationContext();
-        ctx.register(WebMvcConfigure.class);
-        ctx.setServletContext(container);
-
-        ServletRegistration.Dynamic servlet = container.addServlet(
-                "dispatcherExample", new DispatcherServlet(ctx));
-        servlet.setLoadOnStartup(1);
-        servlet.addMapping("/");
-    }*/
+    servletContext.setInitParameter("org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads","-1");
+    servletContext.setInitParameter("org.atmosphere.cpr.broadcaster.shareableThreadPool","true");
+  }
 }

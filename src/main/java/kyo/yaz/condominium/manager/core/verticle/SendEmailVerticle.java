@@ -79,7 +79,7 @@ public class SendEmailVerticle extends BaseVerticle {
 
     final var fileCreation = vertx.fileSystem().mkdirs(dir)
         .flatMap(v -> {
-          if (emailConfig.storedCredential() == null) {
+          if (emailConfig.storedCredential() == null || !emailConfig.isAvailable()) {
             return Future.succeededFuture();
           }
 

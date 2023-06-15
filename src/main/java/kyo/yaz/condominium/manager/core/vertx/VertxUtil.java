@@ -62,7 +62,6 @@ public class VertxUtil {
         return Completable.create(source);
     }
 
-
     public static Completable completable(Future<Void> future) {
         return completable(future::onComplete);
     }
