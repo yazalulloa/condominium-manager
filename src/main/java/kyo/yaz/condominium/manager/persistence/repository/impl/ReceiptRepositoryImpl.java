@@ -1,5 +1,9 @@
 package kyo.yaz.condominium.manager.persistence.repository.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import kyo.yaz.condominium.manager.core.util.MongoDBUtil;
 import kyo.yaz.condominium.manager.persistence.domain.request.ReceiptQueryRequest;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.persistence.repository.base.ReceiptCustomRepository;
@@ -12,54 +16,56 @@ import org.springframework.data.mongodb.core.query.Query;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 @Slf4j
 public class ReceiptRepositoryImpl implements ReceiptCustomRepository {
-    @Autowired
-    ReactiveMongoTemplate template;
 
-    @Override
-    public Mono<List<Receipt>> list(ReceiptQueryRequest request) {
+  @Autowired
+  ReactiveMongoTemplate template;
 
-        return find(request)
-                .collectList()
-                .doOnSuccess(list -> {
-                    log.info("LIST: " + list.size());
-                });
+  @Override
+  public Mono<List<Receipt>> list(ReceiptQueryRequest request) {
+
+    return find(request)
+        .collectList()
+        .doOnSuccess(list -> {
+          log.info("LIST: " + list.size());
+        });
+  }
+
+  @Override
+  public Flux<Receipt> find(ReceiptQueryRequest request) {
+    final var query = query(request);
+
+    log.info("QUERY: " + query);
+    return template.find(query, Receipt.class);
+  }
+
+  @Override
+  public Mono<Long> count(ReceiptQueryRequest request) {
+    final var query = query(request);
+
+    return template.count(query, Receipt.class);
+  }
+
+  public Query query(ReceiptQueryRequest request) {
+    final var query = new Query();
+
+    Optional.ofNullable(request.page())
+        .ifPresent(query::with);
+
+    QueryUtil.addSortings(query, request.sortings());
+
+    final List<Criteria> criteriaList = new ArrayList<>();
+
+    Optional.ofNullable(request.buildingId())
+        .filter(s -> !s.isEmpty())
+        .flatMap(str -> MongoDBUtil.stringCriteria("building_id", str))
+        .ifPresent(criteriaList::add);
+
+    if (!criteriaList.isEmpty()) {
+      query.addCriteria(new Criteria().andOperator(criteriaList));
     }
 
-    @Override
-    public Flux<Receipt> find(ReceiptQueryRequest request) {
-        final var query = query(request);
-
-        log.info("QUERY: " + query);
-        return template.find(query, Receipt.class);
-    }
-
-    @Override
-    public Mono<Long> count(ReceiptQueryRequest request) {
-        final var query = query(request);
-
-        return template.count(query, Receipt.class);
-    }
-
-    public Query query(ReceiptQueryRequest request) {
-        final var query = new Query();
-
-        Optional.ofNullable(request.page())
-                .ifPresent(query::with);
-
-        QueryUtil.addSortings(query, request.sortings());
-
-        final List<Criteria> criteriaList = new ArrayList<>();
-
-        if (!criteriaList.isEmpty()) {
-            query.addCriteria(new Criteria().andOperator(criteriaList));
-        }
-
-        return query;
-    }
+    return query;
+  }
 }

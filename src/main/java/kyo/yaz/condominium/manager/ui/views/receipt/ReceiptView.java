@@ -105,6 +105,8 @@ public class ReceiptView extends BaseVerticalLayout {
   @Override
   protected void onAttach(AttachEvent attachEvent) {
     super.onAttach(attachEvent);
+
+    init();
     initData();
   }
 
@@ -112,13 +114,10 @@ public class ReceiptView extends BaseVerticalLayout {
     addClassName("receipt-view");
     setSizeFull();
 
-    gridPaginator.init();
     configureGrid();
     VaadinSession.getCurrent().setAttribute("receipt", null);
 
     progressLayout.setWidth(90, Unit.PERCENTAGE);
-    progressLayout.progressBar().setIndeterminate(true);
-    progressLayout.setVisible(true);
 
     add(getToolbar(), progressLayout, grid, gridPaginator);
   }
@@ -342,7 +341,8 @@ public class ReceiptView extends BaseVerticalLayout {
               buildingIds.addAll(set);
               buildingComboBox.setItems(buildingIds);
               setItems(paging);
-              init();
+              progressLayout.setVisible(false);
+              gridPaginator.init();
             })
         .doOnSuccess(this::uiAsyncAction)
         .ignoreElement()
@@ -475,20 +475,8 @@ public class ReceiptView extends BaseVerticalLayout {
 
   private Completable refreshData() {
 
-    final var updateGrid = paging()
-        .doOnSubscribe(d -> {
-          uiAsyncAction(() -> {
-            progressLayout.progressBar().setIndeterminate(true);
-            progressLayout.setProgressText("Buscando recibos");
-            progressLayout.setVisible(true);
-          });
-        })
-        .map(paging -> (Runnable) () -> setItems(paging));
-
-    final var hideProgressBar = Single.fromCallable(() -> (Runnable) () -> progressLayout.setVisible(false));
-
-    return Single.mergeArray(updateGrid, hideProgressBar)
-        .toList()
+    return paging()
+        .map(paging -> (Runnable) () -> setItems(paging))
         .doOnSuccess(this::uiAsyncAction)
         .ignoreElement();
   }
@@ -504,7 +492,15 @@ public class ReceiptView extends BaseVerticalLayout {
 
   private Single<Paging<Receipt>> paging() {
     return receiptService.paging(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(),
-        gridPaginator.itemsPerPage());
+            gridPaginator.itemsPerPage())
+        .doOnSubscribe(d -> {
+          uiAsyncAction(() -> {
+            progressLayout.setProgressText("Buscando recibos");
+            progressLayout.setVisible(true);
+            progressLayout.progressBar().setIndeterminate(true);
+          });
+        })
+        .doOnTerminate(() -> uiAsyncAction(() -> progressLayout.setVisible(false)));
   }
 
   private void editEntity(Receipt receipt) {

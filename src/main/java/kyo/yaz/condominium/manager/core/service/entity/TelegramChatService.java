@@ -4,8 +4,10 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Optional;
 import kyo.yaz.condominium.manager.core.domain.Paging;
+import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.TelegramChatQueryRequest;
 import kyo.yaz.condominium.manager.persistence.domain.request.TelegramChatQueryRequest.SortField;
@@ -70,5 +72,22 @@ public class TelegramChatService {
 
   public Single<TelegramChat> save(TelegramChat entity) {
     return RxJava3Adapter.monoToSingle(repository.save(entity));
+  }
+
+  public Single<Boolean> saveOrUpdate(TelegramChat chat) {
+
+    final var saveSingle = save(chat.updatedAt(DateUtil.nowZonedWithUTC()))
+        .ignoreElement()
+        .toSingleDefault(true);
+
+    return maybe(chat.id().userId(), chat.id().chatId())
+        .flatMapSingle(old -> {
+          if (Objects.equals(old.notificationEvents(), chat.notificationEvents())) {
+            return Single.just(false);
+          }
+          return saveSingle;
+
+        })
+        .switchIfEmpty(saveSingle);
   }
 }

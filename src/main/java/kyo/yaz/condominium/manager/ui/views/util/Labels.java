@@ -158,4 +158,9 @@ public class Labels {
         public static final String UPDATED_AT_LABEL = "Actualizado en";
         public static final String LAST_CHECK_AT_LABEL = "Ultimo chequeo";
     }
+
+    public static class TelegramChat {
+
+      public static final String NOTIFICATION_LABEL = "Notificaciones";
+    }
 }

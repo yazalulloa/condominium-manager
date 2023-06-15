@@ -146,6 +146,7 @@ public class GridPaginator extends Div {
 
       if (o.getValue() != null) {
 
+
         log.info("runnable {}", o.getValue());
         runnable.run();
       }

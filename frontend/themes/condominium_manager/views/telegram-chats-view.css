@@ -54,8 +54,14 @@
   }
 
 
-  .buttons {
-
-  }
+   .buttons {
+             display: flex;
+             flex-wrap: wrap;
+             flex-direction: row;
+             flex-basis: auto;
+             align-items: start;
+             justify-content: start;
+             gap: 16px;
+        }
 
 }

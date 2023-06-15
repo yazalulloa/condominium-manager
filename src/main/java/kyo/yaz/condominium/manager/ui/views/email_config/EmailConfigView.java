@@ -21,6 +21,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
+import java.util.Optional;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.mapper.EmailConfigMapper;
 import kyo.yaz.condominium.manager.core.service.entity.EmailConfigService;
@@ -35,254 +36,250 @@ import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Optional;
-
 @PageTitle(EmailConfigView.PAGE_TITLE)
 @PermitAll
 @Route(value = "email_configs", layout = MainLayout.class)
 public class EmailConfigView extends BaseVerticalLayout {
-    public static final String PAGE_TITLE = "Configuración de email";
 
-    private final DeleteDialog deleteDialog = new DeleteDialog();
-    private final TextField filterText = new TextField();
+  public static final String PAGE_TITLE = "Configuración de email";
 
-    private final Text queryCountText = new Text(null);
-    private final Text totalCountText = new Text(null);
-    private final Button addBtn = new Button(Labels.ADD);
-    private final Grid<EmailConfig> grid = new Grid<>();
+  private final DeleteDialog deleteDialog = new DeleteDialog();
+  private final TextField filterText = new TextField();
 
-    private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
+  private final Text queryCountText = new Text(null);
+  private final Text totalCountText = new Text(null);
+  private final Button addBtn = new Button(Labels.ADD);
+  private final Grid<EmailConfig> grid = new Grid<>();
 
-    private final EmailConfigForm form = new EmailConfigForm();
+  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
 
-    private final EmailConfigService service;
+  private final EmailConfigForm form = new EmailConfigForm();
 
-    @Autowired
-    public EmailConfigView(EmailConfigService service) {
-        this.service = service;
-    }
+  private final EmailConfigService service;
 
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        super.onAttach(attachEvent);
-        refreshData()
-                .andThen(Single.fromCallable(() -> (Runnable) this::init))
-                .doOnSuccess(this::uiAsyncAction)
-                .ignoreElement()
-                .subscribeOn(Schedulers.io())
-                .subscribe(completableObserver());
-    }
+  @Autowired
+  public EmailConfigView(EmailConfigService service) {
+    this.service = service;
+  }
 
-    private void init() {
-        addClassName("email-config-view");
+  @Override
+  protected void onAttach(AttachEvent attachEvent) {
+    super.onAttach(attachEvent);
+    refreshData()
+        .andThen(Single.fromCallable(() -> (Runnable) this::init))
+        .doOnSuccess(this::uiAsyncAction)
+        .ignoreElement()
+        .subscribeOn(Schedulers.io())
+        .subscribe(completableObserver());
+  }
 
-        setSizeFull();
+  private void init() {
+    addClassName("email-config-view");
 
-        gridPaginator.init();
-        configureGrid();
-        configureForm();
+    setSizeFull();
 
-        add(getToolbar(), getContent(), footer());
-        closeEditor();
-    }
+    gridPaginator.init();
+    configureGrid();
+    configureForm();
 
-    private void configureGrid() {
-        grid.addClassNames("emails-form-grid");
+    add(getToolbar(), getContent(), footer());
+    closeEditor();
+  }
 
-        grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
-        grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
-        grid.addComponentColumn(this::card);
+  private void configureGrid() {
+    grid.addClassNames("emails-form-grid");
 
-        grid.setPageSize(gridPaginator.itemsPerPage());
-        grid.setSizeFull();
+    grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
+    grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
+    grid.addComponentColumn(this::card);
+
+    grid.setPageSize(gridPaginator.itemsPerPage());
+    grid.setSizeFull();
 
        /* final var contextMenu = new EmailConfigView.EmailConfigContextMenu(grid, this);
         add(grid, contextMenu);*/
 
-        grid.asSingleSelect().addValueChangeListener(event -> editEntity(event.getValue()));
+    grid.asSingleSelect().addValueChangeListener(event -> editEntity(event.getValue()));
+  }
+
+  private Component getToolbar() {
+    filterText.setPlaceholder("Buscar");
+    filterText.setClearButtonVisible(true);
+    filterText.setValueChangeMode(ValueChangeMode.LAZY);
+    filterText.addValueChangeListener(e -> {
+      if (!gridPaginator.goToFirstPage()) {
+        updateGrid();
+      }
+    });
+    addBtn.setDisableOnClick(true);
+    addBtn.addClickListener(click -> addEntity());
+
+    final var toolbar = new Div(filterText, addBtn, queryCountText);
+    toolbar.addClassName("toolbar");
+    return toolbar;
+  }
+
+  private Component getContent() {
+    final var content = new HorizontalLayout(grid, form);
+    content.setFlexGrow(2, grid);
+    content.setFlexGrow(1, form);
+    content.addClassNames("content");
+    content.setSizeFull();
+    return content;
+  }
+
+  private Component footer() {
+
+    final var footer = new Div(gridPaginator, totalCountText);
+    footer.addClassName("footer");
+    return footer;
+  }
+
+  private void configureForm() {
+    form.setWidth(30, Unit.EM);
+    form.setHeightFull();
+    form.addListener(EmailConfigForm.SaveEvent.class, this::saveEntity);
+    form.addListener(EmailConfigForm.DeleteEvent.class, this::deleteEntity);
+    form.addListener(EmailConfigForm.CloseEvent.class, e -> closeEditor());
+  }
+
+  private Component card(EmailConfig emailConfig) {
+    final var div = new Div();
+    div.addClassName("info");
+
+    div.add(new Span(emailConfig.id()), new Span(Labels.EmailConfig.FROM_LABEL + ": " + emailConfig.from()));
+    final var activeIcon = IconUtil.checkMarkOrCross(ObjectUtil.aBoolean(emailConfig.active()));
+    div.add(new Span(new Span(Labels.EmailConfig.ACTIVE_LABEL + ": "), activeIcon));
+
+    final var isAvailableIcon = IconUtil.checkMarkOrCross(ObjectUtil.aBoolean(emailConfig.isAvailable()));
+    div.add(new Span(new Span(Labels.EmailConfig.IS_AVAILABLE_LABEL + ": "), isAvailableIcon));
+
+    if (emailConfig.error() != null) {
+      isAvailableIcon.setTooltipText(emailConfig.error());
     }
 
-    private Component getToolbar() {
-        filterText.setPlaceholder("Buscar");
-        filterText.setClearButtonVisible(true);
-        filterText.setValueChangeMode(ValueChangeMode.LAZY);
-        filterText.addValueChangeListener(e -> {
-            if (!gridPaginator.goToFirstPage()) {
-                updateGrid();
-            }
-        });
-        addBtn.setDisableOnClick(true);
-        addBtn.addClickListener(click -> addEntity());
-
-
-        final var toolbar = new Div(filterText, addBtn, queryCountText);
-        toolbar.addClassName("toolbar");
-        return toolbar;
+    if (emailConfig.createdAt() != null) {
+      div.add(new Span(Labels.EmailConfig.CREATED_AT_LABEL + ": " + DateUtil.formatVe(emailConfig.createdAt())));
     }
 
-    private Component getContent() {
-        final var content = new HorizontalLayout(grid, form);
-        content.setFlexGrow(2, grid);
-        content.setFlexGrow(1, form);
-        content.addClassNames("content");
-        content.setSizeFull();
-        return content;
+    if (emailConfig.updatedAt() != null) {
+      div.add(new Span(Labels.EmailConfig.UPDATED_AT_LABEL + ": " + DateUtil.formatVe(emailConfig.updatedAt())));
+    }
+    if (emailConfig.lastCheckAt() != null) {
+      div.add(new Span(Labels.EmailConfig.LAST_CHECK_AT_LABEL + ": " + DateUtil.formatVe(emailConfig.lastCheckAt())));
     }
 
-    private Component footer() {
+    final var card = new HorizontalLayout();
+    card.addClassName("card");
+    final var btnLayout = new Div();
+    btnLayout.addClassName("buttons");
 
-        final var footer = new Div(gridPaginator, totalCountText);
-        footer.addClassName("footer");
-        return footer;
+    final var deleteBtn = new Button(IconUtil.trash());
+    deleteBtn.addClickListener(v -> deleteDialog(emailConfig));
+
+    final var checkBtn = new Button(new Icon(VaadinIcon.CHECK));
+    checkBtn.addClickListener(v -> service.clear()
+        .andThen(service.check(emailConfig))
+        .andThen(refreshData()).subscribe(completableObserver()));
+
+    btnLayout.add(deleteBtn, checkBtn);
+
+    card.add(div, btnLayout);
+
+    return card;
+  }
+
+  public void delete(EmailConfig obj) {
+
+    service.delete(obj)
+        .andThen(refreshData())
+        .subscribeOn(Schedulers.io())
+        .subscribe(completableObserver());
+  }
+
+  private void setCountText(long queryCount, long totalCount) {
+    queryCountText.setText(String.format("Configuraciones: %d", queryCount));
+    gridPaginator.set(queryCount, totalCount);
+    totalCountText.setText(String.format("Total: %d", totalCount));
+  }
+
+  private void updateGrid() {
+    logger().info("updateGrid");
+    refreshData()
+        .subscribeOn(Schedulers.io())
+        .subscribe(completableObserver());
+  }
+
+  private Completable refreshData() {
+    logger().info("refreshData");
+
+    return pagingMono()
+        .map(paging -> (Runnable) () -> {
+
+          grid.setPageSize(gridPaginator.itemsPerPage());
+          grid.setItems(paging.results());
+
+          setCountText(paging.queryCount(), paging.totalCount());
+
+          grid.getDataProvider().refreshAll();
+        })
+        .doOnSuccess(this::uiAsyncAction)
+        .ignoreElement();
+  }
+
+  private Single<Paging<EmailConfig>> pagingMono() {
+    return service.paging(filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
+  }
+
+  public void editEntity(EmailConfig item) {
+    if (item == null) {
+      closeEditor();
+    } else {
+      form.setItem(EmailConfigMapper.to(item));
+      form.setVisible(true);
+      addClassName("editing");
     }
+  }
 
-    private void configureForm() {
-        form.setWidth(30, Unit.EM);
-        form.setHeightFull();
-        form.addListener(EmailConfigForm.SaveEvent.class, this::saveEntity);
-        form.addListener(EmailConfigForm.DeleteEvent.class, this::deleteEntity);
-        form.addListener(EmailConfigForm.CloseEvent.class, e -> closeEditor());
-    }
+  private void closeEditor() {
+    form.setItem(null);
+    form.setVisible(false);
+    addBtn.setEnabled(true);
+    removeClassName("editing");
+  }
 
-    private Component card(EmailConfig emailConfig) {
-        final var div = new Div();
-        div.addClassName("info");
+  private void addEntity() {
+    grid.asSingleSelect().clear();
+    editEntity(EmailConfig.builder().build());
+  }
 
-        div.add(new Span(emailConfig.id()), new Span(Labels.EmailConfig.FROM_LABEL + ": " + emailConfig.from()));
-        final var activeIcon = IconUtil.checkMarkOrCross(ObjectUtil.aBoolean(emailConfig.active()));
-        div.add(new Span(new Span(Labels.EmailConfig.ACTIVE_LABEL + ": "), activeIcon));
+  private void saveEntity(EmailConfigForm.SaveEvent event) {
+    final var item = event.getObj();
 
+    final var config = EmailConfigMapper.to(item)
+        .toBuilder()
+        .createdAt(Optional.ofNullable(item.getCreatedAt()).orElseGet(DateUtil::nowZonedWithUTC))
+        .updatedAt(item.getCreatedAt() != null ? DateUtil.nowZonedWithUTC() : null)
+        .build();
 
-        final var isAvailableIcon = IconUtil.checkMarkOrCross(ObjectUtil.aBoolean(emailConfig.isAvailable()));
-        div.add(new Span(new Span(Labels.EmailConfig.IS_AVAILABLE_LABEL + ": "), isAvailableIcon));
+    service.save(config)
+        .flatMapCompletable(b -> b ? refreshData() : Completable.complete())
+        .andThen(service.clear())
+        .andThen(service.check(config))
+        .subscribeOn(Schedulers.io())
+        .subscribe(completableObserver());
 
-        if (emailConfig.error() != null) {
-            isAvailableIcon.setTooltipText(emailConfig.error());
-        }
+    closeEditor();
+  }
 
-        if (emailConfig.createdAt() != null) {
-            div.add(new Span(Labels.EmailConfig.CREATED_AT_LABEL + ": " + DateUtil.formatVe(emailConfig.createdAt())));
-        }
+  private void deleteDialog(EmailConfig emailConfig) {
+    deleteDialog.setText(Labels.ASK_CONFIRMATION_DELETE_EMAIL_CONFIG.formatted(emailConfig.id()));
+    deleteDialog.setDeleteAction(() -> delete(emailConfig));
+    deleteDialog.open();
+  }
 
-        if (emailConfig.updatedAt() != null) {
-            div.add(new Span(Labels.EmailConfig.UPDATED_AT_LABEL + ": " + DateUtil.formatVe(emailConfig.updatedAt())));
-        }
-        if (emailConfig.lastCheckAt() != null) {
-            div.add(new Span(Labels.EmailConfig.LAST_CHECK_AT_LABEL + ": " + DateUtil.formatVe(emailConfig.lastCheckAt())));
-        }
-
-        final var card = new HorizontalLayout();
-        card.addClassName("card");
-        final var btnLayout = new Div();
-        btnLayout.addClassName("buttons");
-
-        final var deleteBtn = new Button(IconUtil.trash());
-        deleteBtn.addClickListener(v -> deleteDialog(emailConfig));
-
-        final var checkBtn = new Button(new Icon(VaadinIcon.CHECK));
-        checkBtn.addClickListener(v -> service.clear()
-                .andThen(service.check(emailConfig))
-                .andThen(refreshData()).subscribe(completableObserver()));
-
-        btnLayout.add(deleteBtn, checkBtn);
-
-        card.add(div, btnLayout);
-
-        return card;
-    }
-
-    public void delete(EmailConfig obj) {
-
-        service.delete(obj)
-                .andThen(refreshData())
-                .subscribeOn(Schedulers.io())
-                .subscribe(completableObserver());
-    }
-
-    private void setCountText(long queryCount, long totalCount) {
-        queryCountText.setText(String.format("Configuraciones: %d", queryCount));
-        gridPaginator.set(queryCount, totalCount);
-        totalCountText.setText(String.format("Total: %d", totalCount));
-    }
-
-    private void updateGrid() {
-        logger().info("updateGrid");
-        refreshData()
-                .subscribeOn(Schedulers.io())
-                .subscribe(completableObserver());
-    }
-
-    private Completable refreshData() {
-        logger().info("refreshData");
-
-        return pagingMono()
-                .map(paging -> (Runnable) () -> {
-
-                    grid.setPageSize(gridPaginator.itemsPerPage());
-                    grid.setItems(paging.results());
-
-                    setCountText(paging.queryCount(), paging.totalCount());
-
-                    grid.getDataProvider().refreshAll();
-                })
-                .doOnSuccess(this::uiAsyncAction)
-                .ignoreElement();
-    }
-
-    private Single<Paging<EmailConfig>> pagingMono() {
-        return service.paging(filterText.getValue(), gridPaginator.currentPage(), gridPaginator.itemsPerPage());
-    }
-
-    public void editEntity(EmailConfig EmailConfig) {
-        if (EmailConfig == null) {
-            closeEditor();
-        } else {
-            form.setItem(EmailConfigMapper.to(EmailConfig));
-            form.setVisible(true);
-            addClassName("editing");
-        }
-    }
-
-    private void closeEditor() {
-        form.setItem(null);
-        form.setVisible(false);
-        addBtn.setEnabled(true);
-        removeClassName("editing");
-    }
-
-    private void addEntity() {
-        grid.asSingleSelect().clear();
-        editEntity(EmailConfig.builder().build());
-    }
-
-    private void saveEntity(EmailConfigForm.SaveEvent event) {
-        final var item = event.getObj();
-
-
-        final var config = EmailConfigMapper.to(item)
-                .toBuilder()
-                .createdAt(Optional.ofNullable(item.getCreatedAt()).orElseGet(DateUtil::nowZonedWithUTC))
-                .updatedAt(item.getCreatedAt() != null ? DateUtil.nowZonedWithUTC() : null)
-                .build();
-
-        service.save(config)
-                .flatMapCompletable(b -> b ? refreshData() : Completable.complete())
-                .andThen(service.clear())
-                .andThen(service.check(config))
-                .subscribeOn(Schedulers.io())
-                .subscribe(completableObserver());
-
-        closeEditor();
-    }
-
-    private void deleteDialog(EmailConfig emailConfig) {
-        deleteDialog.setText(Labels.ASK_CONFIRMATION_DELETE_EMAIL_CONFIG.formatted(emailConfig.id()));
-        deleteDialog.setDeleteAction(() -> delete(emailConfig));
-        deleteDialog.open();
-    }
-
-    private void deleteEntity(EmailConfigForm.DeleteEvent event) {
-        deleteDialog(EmailConfigMapper.to(event.getObj()));
-        closeEditor();
-    }
+  private void deleteEntity(EmailConfigForm.DeleteEvent event) {
+    deleteDialog(EmailConfigMapper.to(event.getObj()));
+    closeEditor();
+  }
 }

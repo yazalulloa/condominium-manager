@@ -11,8 +11,8 @@ COPY src ./src
 COPY frontend ./frontend
 COPY package-lock.json .
 COPY tsconfig.json .
-RUN mvn package -Pproduction
-
+RUN mvn package -Pproduction -Pnative -Dvaadin.force.production.build=true
+# native:compile
 # FROM eclipse-temurin:17-jdk-alpine
 FROM eclipse-temurin:20.0.1_9-jre-alpine
 # FROM openjdk:17-alpine
@@ -22,9 +22,9 @@ RUN mkdir -p frontend
 COPY --from=build /app/target/*.jar .
 COPY --from=build /app/frontend/* ./frontend/
 
-#COPY config/application.yml ./config/
-#COPY config/verticles.yml ./config/
+COPY config/application.yml ./config/
+COPY config/verticles.yml ./config/
 
-COPY application.yml ./config/
-COPY verticles.yml ./config/
+#COPY application.yml ./config/
+#COPY verticles.yml ./config/
 ENTRYPOINT ["java", "--enable-preview" ,"-jar","yaz-condominium-manager-1.0.0.jar"]

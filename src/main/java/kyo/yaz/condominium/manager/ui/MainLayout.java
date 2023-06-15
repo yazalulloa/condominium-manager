@@ -22,7 +22,7 @@ import kyo.yaz.condominium.manager.persistence.entity.User;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
 import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
 import kyo.yaz.condominium.manager.ui.views.RateView;
-import kyo.yaz.condominium.manager.ui.views.TelegramChatView;
+import kyo.yaz.condominium.manager.ui.views.telegram_chat.TelegramChatView;
 import kyo.yaz.condominium.manager.ui.views.UserView;
 import kyo.yaz.condominium.manager.ui.views.apartment.ApartmentView;
 import kyo.yaz.condominium.manager.ui.views.building.BuildingView;

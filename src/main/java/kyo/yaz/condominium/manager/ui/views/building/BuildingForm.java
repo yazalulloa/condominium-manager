@@ -51,7 +51,6 @@ public class BuildingForm extends BaseForm {
     private final ComboBox<EmailConfig> emailConfigComboBox = new ComboBox<>(Labels.Building.RECEIPT_EMAIL_FROM_LABEL);
 
 
-
     public final Binder<BuildingViewItem> binder = new BeanValidationBinder<>(BuildingViewItem.class);
     BuildingViewItem building = BuildingViewItem.builder().build();
 
