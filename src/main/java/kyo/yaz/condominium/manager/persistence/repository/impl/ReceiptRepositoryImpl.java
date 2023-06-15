@@ -1,6 +1,7 @@
 package kyo.yaz.condominium.manager.persistence.repository.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import kyo.yaz.condominium.manager.core.util.MongoDBUtil;
@@ -57,10 +58,32 @@ public class ReceiptRepositoryImpl implements ReceiptCustomRepository {
 
     final List<Criteria> criteriaList = new ArrayList<>();
 
-    Optional.ofNullable(request.buildingId())
+    final var months = Optional.ofNullable(request.months())
         .filter(s -> !s.isEmpty())
-        .flatMap(str -> MongoDBUtil.stringCriteria("building_id", str))
-        .ifPresent(criteriaList::add);
+        .stream()
+        .flatMap(Collection::stream)
+        .map(Enum::name)
+        .map(str -> MongoDBUtil.stringCriteria("month", str))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .toList();
+
+    if (!months.isEmpty()) {
+      criteriaList.add(new Criteria().orOperator(months));
+    }
+
+    final var buildings = Optional.ofNullable(request.buildings())
+        .filter(s -> !s.isEmpty())
+        .stream()
+        .flatMap(Collection::stream)
+        .map(str -> MongoDBUtil.stringCriteria("building_id", str))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .toList();
+
+    if (!buildings.isEmpty()) {
+      criteriaList.add(new Criteria().orOperator(buildings));
+    }
 
     if (!criteriaList.isEmpty()) {
       query.addCriteria(new Criteria().andOperator(criteriaList));

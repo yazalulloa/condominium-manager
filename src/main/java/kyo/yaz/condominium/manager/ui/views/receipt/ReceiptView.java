@@ -7,6 +7,7 @@ import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -32,6 +33,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
+import java.time.Month;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -58,6 +60,7 @@ import kyo.yaz.condominium.manager.ui.views.receipt.service.DownloadReceiptZipSe
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
+import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @PageTitle(ReceiptView.PAGE_TITLE)
@@ -67,7 +70,9 @@ public class ReceiptView extends BaseVerticalLayout {
 
   public static final String PAGE_TITLE = Labels.Receipt.VIEW_PAGE_TITLE;
   private final Grid<Receipt> grid = new Grid<>();
-  private final ComboBox<String> buildingComboBox = new ComboBox<>();
+
+  private final MultiSelectComboBox<Month> monthsPicker = ViewUtil.monthMultiComboBox();
+  private final MultiSelectComboBox<String> buildingComboBox = new MultiSelectComboBox<>();
 
   private final Set<String> buildingIds = new LinkedHashSet<>();
 
@@ -444,6 +449,7 @@ public class ReceiptView extends BaseVerticalLayout {
 
     buildingComboBox.setPlaceholder(Labels.Apartment.BUILDING_LABEL);
     buildingComboBox.setClearButtonVisible(true);
+    buildingComboBox.setAllowCustomValue(false);
     buildingComboBox.setAutoOpen(true);
     buildingComboBox.addValueChangeListener(o -> {
       if (!gridPaginator.goToFirstPage()) {
@@ -451,7 +457,19 @@ public class ReceiptView extends BaseVerticalLayout {
       }
     });
 
-    final var toolbar = new HorizontalLayout(filterText, buildingComboBox, addEntityButton, upload(), countText);
+
+    monthsPicker.setPlaceholder(Labels.Receipt.MONTH_LABEL);
+    monthsPicker.setClearButtonVisible(true);
+    monthsPicker.setAllowCustomValue(false);
+    monthsPicker.setAutoOpen(true);
+    monthsPicker.setItemLabelGenerator(m -> this.translationProvider.translate(m.name()));
+    monthsPicker.addValueChangeListener(o -> {
+      if (!gridPaginator.goToFirstPage()) {
+        updateGrid();
+      }
+    });
+
+    final var toolbar = new HorizontalLayout(filterText, buildingComboBox, monthsPicker, addEntityButton, upload(), countText);
     toolbar.addClassName("toolbar");
     toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
     return toolbar;
@@ -491,7 +509,7 @@ public class ReceiptView extends BaseVerticalLayout {
   }
 
   private Single<Paging<Receipt>> paging() {
-    return receiptService.paging(buildingComboBox.getValue(), filterText.getValue(), gridPaginator.currentPage(),
+    return receiptService.paging(buildingComboBox.getValue(), monthsPicker.getValue(), filterText.getValue(), gridPaginator.currentPage(),
             gridPaginator.itemsPerPage())
         .doOnSubscribe(d -> {
           uiAsyncAction(() -> {

@@ -2,7 +2,9 @@ package kyo.yaz.condominium.manager.core.service.entity;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,6 +43,21 @@ public class TelegramChatService {
   public Single<Optional<TelegramChat>> find(String userId, long chatId) {
     return maybe(userId, chatId).map(Optional::of)
         .defaultIfEmpty(Optional.empty());
+  }
+
+  public Single<Set<Long>> chatsByEvents(Set<NotificationEvent> events) {
+    if (events.isEmpty()) {
+      throw new IllegalArgumentException("Notifications must be not empty");
+    }
+
+    final var request = TelegramChatQueryRequest.builder()
+        .notificationEvents(events)
+        .build();
+
+    return RxJava3Adapter.monoToSingle(repository.list(request))
+        .flatMapObservable(Observable::fromIterable)
+        .map(TelegramChat::chatId)
+        .toList(HashSet::new);
   }
 
   public Completable delete(TelegramChat entity) {

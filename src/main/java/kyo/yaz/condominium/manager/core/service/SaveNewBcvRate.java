@@ -31,8 +31,8 @@ public class SaveNewBcvRate {
                   .createdAt(DateUtil.nowZonedWithUTC())
                   .build())
               .flatMap(rateService::save)
-              .flatMapCompletable(
-                  r -> notificationService.send("Nueva tasa añadida %s %s".formatted(r.rate(), r.dateOfRate())))
+              .map(r -> "Nueva tasa añadida %s %s".formatted(r.rate(), r.dateOfRate()))
+              .flatMapCompletable(notificationService::sendNewRate)
               .toSingleDefault(true);
 
           return rateService.last(rate.fromCurrency(), rate.toCurrency())

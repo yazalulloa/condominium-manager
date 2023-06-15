@@ -1,7 +1,13 @@
 package kyo.yaz.condominium.manager.core.service;
 
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Observable;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
+import kyo.yaz.condominium.manager.core.service.entity.TelegramChatService;
+import kyo.yaz.condominium.manager.persistence.domain.NotificationEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -13,22 +19,41 @@ public class NotificationService {
 
   private final TelegramRestApi restApi;
   private final SendLogs sendLogs;
+  private final TelegramChatService chatService;
+  private final TranslationProvider translationProvider;
 
   @Autowired
   public NotificationService(@Value("${app.notification_chat_id}") long chatId, TelegramRestApi restApi,
-      SendLogs sendLogs) {
+      SendLogs sendLogs, TelegramChatService chatService, TranslationProvider translationProvider) {
     this.chatId = chatId;
     this.restApi = restApi;
     this.sendLogs = sendLogs;
+    this.chatService = chatService;
+    this.translationProvider = translationProvider;
   }
 
-  public boolean sendBlocking(String msg) {
-    return blocking(send(msg));
+  public boolean sendAppStartup() {
+    final var event = NotificationEvent.APP_STARTUP;
+    final var msg = translationProvider.translate(event.name());
+    return blocking(send(msg, event));
   }
 
-  public Completable send(String msg) {
-    return restApi.sendMessage(chatId, msg)
-        .ignoreElement();
+  private Completable sendNotification(Set<NotificationEvent> set, Function<Long, Completable> function) {
+    return chatService.chatsByEvents(set)
+        .filter(s -> !s.isEmpty())
+        .flatMapObservable(Observable::fromIterable)
+        .map(function::apply)
+        .toList()
+        .toFlowable()
+        .flatMapCompletable(Completable::merge);
+  }
+
+  public Completable sendNewRate(String msg) {
+    return send(msg, NotificationEvent.NEW_RATE);
+  }
+
+  public Completable send(String msg, NotificationEvent event) {
+    return sendNotification(Set.of(event), chat -> restApi.sendMessage(chat, msg).ignoreElement());
   }
 
   private boolean blocking(Completable completable) {
@@ -36,11 +61,13 @@ public class NotificationService {
         .blockingAwait(10, TimeUnit.SECONDS);
   }
 
-  public Completable sendLogs(String caption) {
+  public Completable sendLogs(long chatId, String caption) {
     return sendLogs.sendLogs(chatId, caption);
   }
 
-  public boolean sendLogsBlocking(String caption) {
-    return blocking(sendLogs(caption));
+  public boolean sendShuttingDownApp() {
+    final var event = NotificationEvent.APP_SHUTTING_DOWN;
+    final var caption = translationProvider.translate(event.name());
+    return blocking(sendNotification(Set.of(event), chat -> sendLogs(chat, caption)));
   }
 }

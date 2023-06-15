@@ -19,7 +19,7 @@ public class ServletContextListenerImpl implements ServletContextListener {
 
   @Override
   public void contextDestroyed(ServletContextEvent event) {
-    checkIfSend(() -> notificationService.sendLogsBlocking("Shutting down"));
+    checkIfSend(notificationService::sendShuttingDownApp);
   }
 
   @Override
@@ -35,13 +35,13 @@ public class ServletContextListenerImpl implements ServletContextListener {
 
   public void addHook() {
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-     log.info("ShutdownHook");
+      log.info("ShutdownHook");
     }));
   }
 
   @EventListener(ApplicationReadyEvent.class)
   public void doSomethingAfterStartup() {
-    checkIfSend(() -> notificationService.sendBlocking("App Started Up"));
+    checkIfSend(notificationService::sendAppStartup);
 
   }
 }

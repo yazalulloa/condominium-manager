@@ -21,7 +21,7 @@ class SendLogsTest {
   @Test
   void test(VertxTestContext testContext) throws Throwable {
 
-    notificationService.sendLogs("test")
+    notificationService.sendLogs(123456789, "test")
         .subscribe(testContext::completeNow, testContext::failNow);
 
     testContext.awaitCompletion(20, TimeUnit.SECONDS);

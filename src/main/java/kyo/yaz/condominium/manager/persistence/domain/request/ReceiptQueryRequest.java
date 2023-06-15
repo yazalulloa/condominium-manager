@@ -1,5 +1,6 @@
 package kyo.yaz.condominium.manager.persistence.domain.request;
 
+import java.time.Month;
 import kyo.yaz.condominium.manager.persistence.domain.MongoSortField;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,8 @@ import java.util.Set;
 @AllArgsConstructor
 public class ReceiptQueryRequest {
 
-    private final String buildingId;
+    private final Set<String> buildings;
+    private final Set<Month> months;
     private final LocalDate date;
     private final String expense;
     private final Pageable page;
