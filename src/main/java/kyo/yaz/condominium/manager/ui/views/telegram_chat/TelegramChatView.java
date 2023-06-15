@@ -5,6 +5,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -29,6 +30,7 @@ import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.service.entity.TelegramChatService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
+import kyo.yaz.condominium.manager.persistence.domain.NotificationEvent;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
@@ -37,6 +39,7 @@ import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
+import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -49,6 +52,8 @@ public class TelegramChatView extends BaseVerticalLayout {
 
   private final Grid<TelegramChat> grid = new Grid<>();
 
+  private final MultiSelectComboBox<NotificationEvent> notificationEventsComboBox = ViewUtil.enumMultiComboBox(null,
+      NotificationEvent.values);
   private final Text queryCountText = new Text(null);
   private final Text totalCountText = new Text(null);
   private final ProgressLayout progressLayout = new ProgressLayout();
@@ -84,6 +89,16 @@ public class TelegramChatView extends BaseVerticalLayout {
     setSizeFull();
     configureGrid();
     configureForm();
+
+    notificationEventsComboBox.setPlaceholder(Labels.TelegramChat.NOTIFICATION_LABEL);
+    notificationEventsComboBox.setClearButtonVisible(true);
+    notificationEventsComboBox.setAutoOpen(true);
+    notificationEventsComboBox.setItemLabelGenerator(e -> translationProvider.translate(e.name()));
+    notificationEventsComboBox.addSelectionListener(o -> {
+      if (!gridPaginator.goToFirstPage()) {
+        updateGrid();
+      }
+    });
     progressLayout.setVisible(false);
     add(getToolbar(), progressLayout, getContent(), footer());
     closeEditor();
@@ -209,7 +224,6 @@ public class TelegramChatView extends BaseVerticalLayout {
     final var deleteBtn = new Button(IconUtil.trash());
     deleteBtn.addClickListener(v -> deleteDialog(chat));
 
-
     final var editBuildingIcon = VaadinIcon.EDIT.create();
     editBuildingIcon.setColor("#13b931");
     final var editBtn = new Button(editBuildingIcon);
@@ -237,13 +251,14 @@ public class TelegramChatView extends BaseVerticalLayout {
     final var btn = new Button("Enlazar cuenta");
     btn.addClickListener(event -> ui(ui -> ui.getPage().open(link, "_blank")));
 
-    final var toolbar = new Div(btn, queryCountText);
+    final var toolbar = new Div(btn, notificationEventsComboBox, queryCountText);
     toolbar.addClassName("toolbar");
     return toolbar;
   }
 
   private Single<Paging<TelegramChat>> paging() {
-    return chatService.paging(null, gridPaginator.currentPage(), gridPaginator.itemsPerPage());
+    return chatService.paging(null, notificationEventsComboBox.getValue(), gridPaginator.currentPage(),
+        gridPaginator.itemsPerPage());
   }
 
   private void setCountText(long queryCount, long totalCount) {

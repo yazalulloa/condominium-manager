@@ -6,8 +6,10 @@ import io.reactivex.rxjava3.core.Single;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
+import kyo.yaz.condominium.manager.persistence.domain.NotificationEvent;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.TelegramChatQueryRequest;
 import kyo.yaz.condominium.manager.persistence.domain.request.TelegramChatQueryRequest.SortField;
@@ -45,7 +47,7 @@ public class TelegramChatService {
     return RxJava3Adapter.monoToCompletable(repository.delete(entity));
   }
 
-  public Single<Paging<TelegramChat>> paging(String filter, int page, int pageSize) {
+  public Single<Paging<TelegramChat>> paging(String filter, Set<NotificationEvent> value, int page, int pageSize) {
 
     final var sortings = new LinkedHashSet<Sorting<SortField>>();
 
@@ -54,6 +56,7 @@ public class TelegramChatService {
     final var request = TelegramChatQueryRequest.builder()
         .user(filter)
         .chat(filter)
+        .notificationEvents(value)
         .page(PageRequest.of(page, pageSize))
         .sortings(sortings)
         .build();

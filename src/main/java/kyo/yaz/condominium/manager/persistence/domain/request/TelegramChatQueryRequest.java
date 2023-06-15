@@ -3,6 +3,7 @@ package kyo.yaz.condominium.manager.persistence.domain.request;
 import java.util.Collections;
 import java.util.Set;
 import kyo.yaz.condominium.manager.persistence.domain.MongoSortField;
+import kyo.yaz.condominium.manager.persistence.domain.NotificationEvent;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +23,7 @@ public class TelegramChatQueryRequest {
   private final String user;
 
   private final String chat;
+  private final Set<NotificationEvent> notificationEvents;
 
   private final Pageable page;
 

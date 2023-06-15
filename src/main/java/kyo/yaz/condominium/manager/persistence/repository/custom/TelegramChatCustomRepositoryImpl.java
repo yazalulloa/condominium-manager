@@ -1,6 +1,7 @@
 package kyo.yaz.condominium.manager.persistence.repository.custom;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import kyo.yaz.condominium.manager.core.util.MongoDBUtil;
@@ -26,6 +27,20 @@ public class TelegramChatCustomRepositoryImpl implements TelegramChatCustomRepos
     QueryUtil.addSortings(query, request.sortings());
 
     final List<Criteria> criteriaList = new ArrayList<>();
+
+    final var notificationEvents = Optional.ofNullable(request.notificationEvents())
+        .filter(s -> !s.isEmpty())
+        .stream()
+        .flatMap(Collection::stream)
+        .map(Enum::name)
+        .map(str -> MongoDBUtil.stringCriteria("notification_events", str))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .toList();
+
+    if (!notificationEvents.isEmpty()) {
+      criteriaList.add(new Criteria().orOperator(notificationEvents));
+    }
 
     MongoDBUtil.regexCriteria(request.user(), "user.name", "user.given_name", "user.id", "user.email")
         .ifPresent(criteriaList::add);
