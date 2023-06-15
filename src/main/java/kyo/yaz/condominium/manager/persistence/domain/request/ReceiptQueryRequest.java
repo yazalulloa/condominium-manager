@@ -25,7 +25,7 @@ public class ReceiptQueryRequest {
     private final Set<String> buildings;
     private final Set<Month> months;
     private final LocalDate date;
-    private final String expense;
+    private final String filter;
     private final Pageable page;
     @Builder.Default
     private final Set<Sorting<SortField>> sortings = Collections.emptySet();

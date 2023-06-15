@@ -16,6 +16,7 @@ import kyo.yaz.condominium.manager.core.service.entity.UserService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat.TelegramChatId;
+import kyo.yaz.condominium.manager.ui.views.telegram_chat.TelegramChatLinkHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,7 @@ public class TelegramCommandResolver {
   private final SendLogs sendLogs;
   private final TelegramRestApi telegramRestApi;
   private final RateService rateService;
+  private final TelegramChatLinkHandler linkHandler;
 
   public Completable resolve(JsonNode json) {
     return Completable.defer(() -> {
@@ -57,7 +59,8 @@ public class TelegramCommandResolver {
 
             return rateService.last(Currency.USD, Currency.VED)
                 .toSingle()
-                .map(rate -> "%s - %s - %s - %s".formatted(rate.rate(), rate.dateOfRate(), DateUtil.formatVe(rate.createdAt()), rate.id()))
+                .map(rate -> "%s - %s - %s - %s".formatted(rate.rate(), rate.dateOfRate(),
+                    DateUtil.formatVe(rate.createdAt()), rate.id()))
                 .flatMap(msg -> telegramRestApi.sendMessage(chatId, msg))
                 .ignoreElement();
           }
@@ -106,6 +109,7 @@ public class TelegramCommandResolver {
 
       return chatService.save(telegramChat)
           .ignoreElement()
+          .doOnComplete(linkHandler::fire)
           .andThen(telegramRestApi.sendMessage(chatId, "Chat guardado"))
           .ignoreElement();
     }).flatMapCompletable(c -> c);

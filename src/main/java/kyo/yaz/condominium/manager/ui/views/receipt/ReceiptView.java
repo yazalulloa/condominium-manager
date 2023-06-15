@@ -457,7 +457,6 @@ public class ReceiptView extends BaseVerticalLayout {
       }
     });
 
-
     monthsPicker.setPlaceholder(Labels.Receipt.MONTH_LABEL);
     monthsPicker.setClearButtonVisible(true);
     monthsPicker.setAllowCustomValue(false);
@@ -469,7 +468,8 @@ public class ReceiptView extends BaseVerticalLayout {
       }
     });
 
-    final var toolbar = new HorizontalLayout(filterText, buildingComboBox, monthsPicker, addEntityButton, upload(), countText);
+    final var toolbar = new HorizontalLayout(filterText, buildingComboBox, monthsPicker, addEntityButton, upload(),
+        countText);
     toolbar.addClassName("toolbar");
     toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
     return toolbar;
@@ -509,7 +509,8 @@ public class ReceiptView extends BaseVerticalLayout {
   }
 
   private Single<Paging<Receipt>> paging() {
-    return receiptService.paging(buildingComboBox.getValue(), monthsPicker.getValue(), filterText.getValue(), gridPaginator.currentPage(),
+    return receiptService.paging(buildingComboBox.getValue(), monthsPicker.getValue(), filterText.getValue(),
+            gridPaginator.currentPage(),
             gridPaginator.itemsPerPage())
         .doOnSubscribe(d -> {
           uiAsyncAction(() -> {

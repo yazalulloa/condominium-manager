@@ -4,7 +4,7 @@ services:
     container_name: cmy
     image: cmy:latest
     restart: always
-    command: java  -jar yaz-condominium-manager-1.0.0.jar
+    # command: java  -jar yaz-condominium-manager-1.0.0.jar
     ports:
       - "8090:8090"
     environment:

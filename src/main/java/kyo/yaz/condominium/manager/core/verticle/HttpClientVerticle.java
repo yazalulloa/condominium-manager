@@ -23,11 +23,12 @@ import kyo.yaz.condominium.manager.core.service.HttpLogging;
 import kyo.yaz.condominium.manager.core.vertx.VertxUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
 @Slf4j
 public class HttpClientVerticle extends AbstractVerticle {

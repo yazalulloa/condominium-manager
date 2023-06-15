@@ -2,6 +2,7 @@ package kyo.yaz.condominium.manager.ui.views.telegram_chat;
 
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
@@ -46,7 +47,7 @@ import org.springframework.beans.factory.annotation.Value;
 @PageTitle(TelegramChatView.PAGE_TITLE)
 @PermitAll
 @Route(value = "telegram_chats", layout = MainLayout.class)
-public class TelegramChatView extends BaseVerticalLayout {
+public class TelegramChatView extends BaseVerticalLayout implements TelegramChatLinkHandler.Listener {
 
   public static final String PAGE_TITLE = "Chats de Telegram";
 
@@ -65,16 +66,19 @@ public class TelegramChatView extends BaseVerticalLayout {
   private final TelegramChatForm form;
 
   private final String telegramStartUrl;
+  private final TelegramChatLinkHandler linkHandler;
 
   @Autowired
   public TelegramChatView(TelegramChatService chatService, TranslationProvider translationProvider,
       UserSession userSession,
-      TelegramChatForm form, @Value("${app.telegram_config.start_url}") String telegramStartUrl) {
+      TelegramChatForm form, @Value("${app.telegram_config.start_url}") String telegramStartUrl,
+      TelegramChatLinkHandler linkHandler) {
     this.chatService = chatService;
     this.translationProvider = translationProvider;
     this.userSession = userSession;
     this.form = form;
     this.telegramStartUrl = telegramStartUrl;
+    this.linkHandler = linkHandler;
   }
 
   @Override
@@ -82,6 +86,13 @@ public class TelegramChatView extends BaseVerticalLayout {
     super.onAttach(attachEvent);
     init();
     initData();
+    linkHandler.addListener(this);
+  }
+
+  @Override
+  protected void onDetach(DetachEvent detachEvent) {
+    super.onDetach(detachEvent);
+    linkHandler.removeListener(this);
   }
 
   private void init() {
@@ -142,11 +153,13 @@ public class TelegramChatView extends BaseVerticalLayout {
   }
 
   private void deleteDialog(TelegramChat item) {
+    closeEditor();
     deleteDialog.setText(
         Labels.ASK_CONFIRMATION_DELETE_TELEGRAM_CHAT.formatted(item.chatId(), item.username()));
     deleteDialog.setDeleteAction(() -> delete(item));
     deleteDialog.open();
   }
+
 
   private Component getContent() {
     final var content = new HorizontalLayout(grid, form);
@@ -301,4 +314,8 @@ public class TelegramChatView extends BaseVerticalLayout {
         .subscribe(completableObserver());
   }
 
+  @Override
+  public void chatLinked() {
+    updateGrid();
+  }
 }

@@ -58,6 +58,9 @@ public class ReceiptRepositoryImpl implements ReceiptCustomRepository {
 
     final List<Criteria> criteriaList = new ArrayList<>();
 
+    MongoDBUtil.regexCriteria(request.filter(), "expenses.description", "extra_charges.description")
+        .ifPresent(criteriaList::add);
+
     final var months = Optional.ofNullable(request.months())
         .filter(s -> !s.isEmpty())
         .stream()

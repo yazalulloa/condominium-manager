@@ -40,7 +40,7 @@ public class ReceiptService {
     final var request = ReceiptQueryRequest.builder()
         .buildings(buildings)
         .months(months)
-        .expense(filter)
+        .filter(filter)
         .page(PageRequest.of(page, pageSize))
         .sortings(sortings)
         .build();

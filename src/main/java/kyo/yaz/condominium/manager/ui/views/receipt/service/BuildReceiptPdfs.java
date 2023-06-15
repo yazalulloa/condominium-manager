@@ -12,6 +12,7 @@ import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +25,7 @@ import java.util.function.Consumer;
 
 @Component
 @Slf4j
-@Scope("prototype")
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class BuildReceiptPdfs implements GetPdfItems {
 
     private final CreatePdfReceiptService createPdfReceiptService;

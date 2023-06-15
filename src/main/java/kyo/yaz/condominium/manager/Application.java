@@ -6,6 +6,7 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
+import java.util.Arrays;
 import kyo.yaz.condominium.manager.core.util.EnvUtil;
 import kyo.yaz.condominium.manager.core.util.NetworkUtil;
 import kyo.yaz.condominium.manager.ui.views.util.FileUtil;
@@ -16,7 +17,6 @@ import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -42,6 +42,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
 
   public static void main(String[] args) {
+    log.info(Arrays.toString(args));
     NetworkUtil.showPublicIp();
 
     FileUtil.writeEnvToFile("APPLICATION_FILE", "application.yml");
