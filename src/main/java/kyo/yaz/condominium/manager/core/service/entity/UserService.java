@@ -1,32 +1,35 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
+import kyo.yaz.condominium.manager.core.domain.FileResponse;
 import kyo.yaz.condominium.manager.core.domain.Paging;
+import kyo.yaz.condominium.manager.core.service.paging.MongoServicePagingProcessorImpl;
+import kyo.yaz.condominium.manager.core.service.paging.PagingJsonFile;
+import kyo.yaz.condominium.manager.core.service.paging.WriteEntityToFile;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.UserQueryRequest;
 import kyo.yaz.condominium.manager.persistence.domain.request.UserQueryRequest.SortField;
 import kyo.yaz.condominium.manager.persistence.entity.User;
 import kyo.yaz.condominium.manager.persistence.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
-@Service
-public class UserService {
+@Service("USERS")
+@RequiredArgsConstructor
+public class UserService implements MongoService<User> {
 
+  private final ObjectMapper objectMapper;
   private final UserRepository repository;
-
-  @Autowired
-  public UserService(UserRepository repository) {
-    this.repository = repository;
-  }
 
   public Maybe<User> maybe(String id) {
     final var mono = repository.findById(id);
@@ -70,4 +73,31 @@ public class UserService {
         .map(tuple -> new Paging<>(tuple.getT1(), tuple.getT2(), tuple.getT3()));
   }
 
+  public Single<List<User>> list(int page, int pageSize) {
+    final var mono = repository.findAllBy(PageRequest.of(page, pageSize))
+        .collectList();
+
+    return RxJava3Adapter.monoToSingle(mono);
+  }
+
+  public Single<FileResponse> download() {
+
+    final var writeEntityToFile = new WriteEntityToFile<>(objectMapper,
+        new MongoServicePagingProcessorImpl<>(this, 20));
+
+    return writeEntityToFile.downloadFile("users.json.gz");
+
+  }
+
+  public Single<List<User>> save(Iterable<User> entities) {
+
+    final var mono = repository.saveAll(entities)
+        .collectList();
+
+    return RxJava3Adapter.monoToSingle(mono);
+  }
+
+  public Completable upload(String fileName) {
+    return PagingJsonFile.pagingJsonFile(30, fileName, objectMapper, User.class, c -> save(c).ignoreElement());
+  }
 }

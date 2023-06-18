@@ -8,9 +8,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -182,5 +188,90 @@ public class ZipUtility {
       }
     }
   }
+
+  public static void createTarFile(String sourceDir) {
+    TarArchiveOutputStream tarOs = null;
+    try {
+      File source = new File(sourceDir);
+      // Using input name to create output name
+      FileOutputStream fos = new FileOutputStream(source.getAbsolutePath().concat(".tar.gz"));
+      GZIPOutputStream gos = new GZIPOutputStream(new BufferedOutputStream(fos));
+      tarOs = new TarArchiveOutputStream(gos);
+      addFilesToTarGZ(sourceDir, "", tarOs);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } finally {
+      try {
+        tarOs.close();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+  }
+
+  public static void addFilesToTarGZ(String filePath, String parent, TarArchiveOutputStream tarArchive)
+      throws IOException {
+    File file = new File(filePath);
+    // Create entry name relative to parent file path
+    String entryName = parent + file.getName();
+    // add tar ArchiveEntry
+    tarArchive.putArchiveEntry(new TarArchiveEntry(file, entryName));
+    if (file.isFile()) {
+      FileInputStream fis = new FileInputStream(file);
+      BufferedInputStream bis = new BufferedInputStream(fis);
+      // Write file content to archive
+      IOUtils.copy(bis, tarArchive);
+      tarArchive.closeArchiveEntry();
+      bis.close();
+    } else if (file.isDirectory()) {
+      // no need to copy any content since it is
+      // a directory, just close the outputstream
+      tarArchive.closeArchiveEntry();
+      // for files in the directories
+      for (File f : file.listFiles()) {
+        // recursively call the method for all the subdirectories
+        addFilesToTarGZ(f.getAbsolutePath(), entryName + File.separator, tarArchive);
+      }
+    }
+  }
+
+  public static void createTarGzipFiles(String output, Collection<String> paths) throws IOException {
+    createTarGzipFiles(Paths.get(output), paths.stream().map(Paths::get).toList());
+  }
+
+  public static void createTarGzipFiles(Path output, Collection<Path> paths) throws IOException {
+
+    try (OutputStream fOut = Files.newOutputStream(output);
+        BufferedOutputStream buffOut = new BufferedOutputStream(fOut);
+        GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(buffOut);
+        TarArchiveOutputStream tOut = new TarArchiveOutputStream(gzOut)) {
+
+      for (Path path : paths) {
+
+        if (!Files.isRegularFile(path)) {
+          throw new IOException("Support only file!");
+        }
+
+        TarArchiveEntry tarEntry = new TarArchiveEntry(
+            path.toFile(),
+            path.getFileName().toString());
+
+        tOut.putArchiveEntry(tarEntry);
+
+        // copy file to TarArchiveOutputStream
+        Files.copy(path, tOut);
+
+        tOut.closeArchiveEntry();
+
+      }
+
+      tOut.finish();
+
+    }
+
+  }
+
 }
 

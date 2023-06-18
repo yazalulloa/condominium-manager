@@ -58,8 +58,5 @@ public class Application extends SpringBootServletInitializer implements AppShel
   @Override
   public void onStartup(ServletContext servletContext) throws ServletException {
     super.onStartup(servletContext);
-
-    servletContext.setInitParameter("org.atmosphere.cpr.broadcaster.maxAsyncWriteThreads","-1");
-    servletContext.setInitParameter("org.atmosphere.cpr.broadcaster.shareableThreadPool","true");
   }
 }

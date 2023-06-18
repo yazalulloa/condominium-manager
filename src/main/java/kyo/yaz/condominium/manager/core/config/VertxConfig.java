@@ -85,6 +85,11 @@ public class VertxConfig {
   }
 
   @Bean
+  public io.vertx.rxjava3.core.Vertx vertxRx(Vertx vertx) {
+    return io.vertx.rxjava3.core.Vertx.newInstance(vertx);
+  }
+
+  @Bean
   public EventBus eventBus(Vertx vertx) {
     return vertx.eventBus();
   }

@@ -5,6 +5,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import kyo.yaz.condominium.manager.core.service.telegram.TelegramRestApi;
 import kyo.yaz.condominium.manager.core.util.ZipUtility;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

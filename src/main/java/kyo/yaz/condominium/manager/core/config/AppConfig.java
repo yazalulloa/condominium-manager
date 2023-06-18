@@ -3,11 +3,14 @@ package kyo.yaz.condominium.manager.core.config;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.ServletContextListener;
 import java.util.List;
+import java.util.Map;
 import kyo.yaz.condominium.manager.core.component.ServletContextListenerImpl;
+import kyo.yaz.condominium.manager.core.service.entity.EntityDownloader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -38,5 +41,10 @@ public class AppConfig {
     srb.setListener(servletContextListener);
     servletContextListener.addHook();
     return srb;
+  }
+
+  @Bean
+  public Map<String, EntityDownloader> downloadersMap(ApplicationContext context) {
+    return context.getBeansOfType(EntityDownloader.class);
   }
 }

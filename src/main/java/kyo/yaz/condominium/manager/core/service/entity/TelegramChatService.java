@@ -1,15 +1,21 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import kyo.yaz.condominium.manager.core.domain.FileResponse;
 import kyo.yaz.condominium.manager.core.domain.Paging;
+import kyo.yaz.condominium.manager.core.service.paging.MongoServicePagingProcessorImpl;
+import kyo.yaz.condominium.manager.core.service.paging.PagingJsonFile;
+import kyo.yaz.condominium.manager.core.service.paging.WriteEntityToFile;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.domain.NotificationEvent;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
@@ -18,22 +24,20 @@ import kyo.yaz.condominium.manager.persistence.domain.request.TelegramChatQueryR
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat.TelegramChatId;
 import kyo.yaz.condominium.manager.persistence.repository.TelegramChatRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
-@Service
-public class TelegramChatService {
+@Service("TELEGRAM_CHATS")
+@RequiredArgsConstructor
+public class TelegramChatService implements MongoService<TelegramChat> {
 
+  private final ObjectMapper objectMapper;
   private final TelegramChatRepository repository;
 
-  @Autowired
-  public TelegramChatService(TelegramChatRepository repository) {
-    this.repository = repository;
-  }
 
   public Maybe<TelegramChat> maybe(String userId, long chatId) {
     final var mono = repository.findById(new TelegramChatId(chatId, userId));
@@ -109,5 +113,33 @@ public class TelegramChatService {
 
         })
         .switchIfEmpty(saveSingle);
+  }
+
+  public Single<List<TelegramChat>> list(int page, int pageSize) {
+    final var mono = repository.findAllBy(PageRequest.of(page, pageSize))
+        .collectList();
+
+    return RxJava3Adapter.monoToSingle(mono);
+  }
+
+  public Single<FileResponse> download() {
+
+    final var writeEntityToFile = new WriteEntityToFile<>(objectMapper,
+        new MongoServicePagingProcessorImpl<>(this, 20));
+
+    return writeEntityToFile.downloadFile("telegram_chats.json.gz");
+
+  }
+
+  public Single<List<TelegramChat>> save(Iterable<TelegramChat> entities) {
+
+    final var mono = repository.saveAll(entities)
+        .collectList();
+
+    return RxJava3Adapter.monoToSingle(mono);
+  }
+
+  public Completable upload(String fileName) {
+    return PagingJsonFile.pagingJsonFile(30, fileName, objectMapper, TelegramChat.class, c -> save(c).ignoreElement());
   }
 }

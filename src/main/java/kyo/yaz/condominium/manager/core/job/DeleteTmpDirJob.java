@@ -23,6 +23,6 @@ public class DeleteTmpDirJob {
     @Async
     @Scheduled(initialDelay = 5, fixedRate = 86400, timeUnit = TimeUnit.SECONDS)
     public void runAsStart() {
-        deleteDirAfterDelay.deleteTmp();
+        deleteDirAfterDelay.deleteTmpNow();
     }
 }

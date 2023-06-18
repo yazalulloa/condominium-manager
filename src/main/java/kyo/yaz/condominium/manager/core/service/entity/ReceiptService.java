@@ -1,35 +1,38 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.time.Month;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import kyo.yaz.condominium.manager.core.domain.FileResponse;
 import kyo.yaz.condominium.manager.core.domain.Paging;
+import kyo.yaz.condominium.manager.core.service.paging.MongoServicePagingProcessorImpl;
+import kyo.yaz.condominium.manager.core.service.paging.PagingJsonFile;
+import kyo.yaz.condominium.manager.core.service.paging.WriteEntityToFile;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.ReceiptQueryRequest;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.persistence.repository.ReceiptRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
-@Service
+@Service("RECEIPTS")
 @Slf4j
-public class ReceiptService {
+@RequiredArgsConstructor
+public class ReceiptService implements MongoService<Receipt> {
 
+  private final ObjectMapper objectMapper;
   private final ReceiptRepository repository;
-
-  @Autowired
-  public ReceiptService(ReceiptRepository repository) {
-    this.repository = repository;
-  }
 
   public Single<Paging<Receipt>> paging(Set<String> buildings, Set<Month> months, String filter, int page,
       int pageSize) {
@@ -91,5 +94,33 @@ public class ReceiptService {
         .build();
 
     return save(build).ignoreElement();
+  }
+
+  public Single<List<Receipt>> list(int page, int pageSize) {
+    final var mono = repository.findAllBy(PageRequest.of(page, pageSize))
+        .collectList();
+
+    return RxJava3Adapter.monoToSingle(mono);
+  }
+
+  public Single<FileResponse> download() {
+
+    final var writeEntityToFile = new WriteEntityToFile<>(objectMapper,
+        new MongoServicePagingProcessorImpl<>(this, 20));
+
+    return writeEntityToFile.downloadFile("receipts.json.gz");
+
+  }
+
+  public Single<List<Receipt>> save(Iterable<Receipt> entities) {
+
+    final var mono = repository.saveAll(entities)
+        .collectList();
+
+    return RxJava3Adapter.monoToSingle(mono);
+  }
+
+  public Completable upload(String fileName) {
+    return PagingJsonFile.pagingJsonFile(30, fileName, objectMapper, Receipt.class, c -> save(c).ignoreElement());
   }
 }

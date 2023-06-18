@@ -1,4 +1,4 @@
-package kyo.yaz.condominium.manager.core.service;
+package kyo.yaz.condominium.manager.core.service.telegram;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.reactivex.rxjava3.core.Completable;
@@ -10,6 +10,7 @@ import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.domain.telegram.Chat;
 import kyo.yaz.condominium.manager.core.domain.telegram.TelegramUpdate;
 import kyo.yaz.condominium.manager.core.domain.telegram.TelegramUser;
+import kyo.yaz.condominium.manager.core.service.SendLogs;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.core.service.entity.TelegramChatService;
 import kyo.yaz.condominium.manager.core.service.entity.UserService;
@@ -30,6 +31,8 @@ public class TelegramCommandResolver {
   private final TelegramRestApi telegramRestApi;
   private final RateService rateService;
   private final TelegramChatLinkHandler linkHandler;
+  private final TelegramSendEntityBackups sendEntityBackups;
+
 
   public Completable resolve(JsonNode json) {
     return Completable.defer(() -> {
@@ -64,7 +67,22 @@ public class TelegramCommandResolver {
                 .flatMap(msg -> telegramRestApi.sendMessage(chatId, msg))
                 .ignoreElement();
           }
+
+          if (text.startsWith("/backups")) {
+            return sendEntityBackups.sendAvailableBackups(chatId);
+          }
         }
+      }
+
+      final var callbackQuery = update.callbackQuery();
+
+      if (callbackQuery != null) {
+        final var from = callbackQuery.from();
+        if (callbackQuery.data().startsWith(TelegramSendEntityBackups.CALLBACK_KEY)) {
+          return sendEntityBackups.resolve(from.id(),
+              callbackQuery.data().replace(TelegramSendEntityBackups.CALLBACK_KEY, "").trim());
+        }
+
       }
 
       return Completable.complete();

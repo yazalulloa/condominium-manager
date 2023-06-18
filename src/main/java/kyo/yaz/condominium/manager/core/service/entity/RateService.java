@@ -1,119 +1,154 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.domain.FileResponse;
 import kyo.yaz.condominium.manager.core.domain.Paging;
+import kyo.yaz.condominium.manager.core.service.paging.MongoServicePagingProcessorImpl;
+import kyo.yaz.condominium.manager.core.service.paging.PagingJsonFile;
+import kyo.yaz.condominium.manager.core.service.paging.WriteEntityToFile;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import kyo.yaz.condominium.manager.persistence.domain.request.RateQueryRequest;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.persistence.repository.RateRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
-import java.util.stream.Stream;
+@Service("RATES")
+@AllArgsConstructor
+@Slf4j
+public class RateService implements MongoService<Rate> {
 
-@Service
-public class RateService {
+  private final RateRepository repository;
+  private final ObjectMapper objectMapper;
 
-    private final RateRepository repository;
+  public Single<Paging<Rate>> paging(int page, int pageSize) {
+    final var sortings = new LinkedHashSet<Sorting<RateQueryRequest.SortField>>();
+    sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.ID, Sort.Direction.DESC));
+    sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.DATE_OF_RATE, Sort.Direction.DESC));
+    sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.CREATED_AT, Sort.Direction.DESC));
 
-    @Autowired
-    public RateService(RateRepository repository) {
-        this.repository = repository;
-    }
+    final var request = RateQueryRequest.builder()
+        .page(PageRequest.of(page, pageSize))
+        .sortings(sortings)
+        .build();
 
-    public Single<Paging<Rate>> paging(int page, int pageSize) {
-        final var sortings = new LinkedHashSet<Sorting<RateQueryRequest.SortField>>();
-        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.ID, Sort.Direction.DESC));
-        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.DATE_OF_RATE, Sort.Direction.DESC));
-        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.CREATED_AT, Sort.Direction.DESC));
+    return RxJava3Adapter.monoToSingle(paging(request));
+  }
 
-        final var request = RateQueryRequest.builder()
-                .page(PageRequest.of(page, pageSize))
-                .sortings(sortings)
-                .build();
+  private Mono<Paging<Rate>> paging(RateQueryRequest request) {
+    final var listMono = repository.list(request);
+    final var totalCountMono = repository.count();
+    final var queryCountMono = repository.count(request);
 
-        return RxJava3Adapter.monoToSingle(paging(request));
-    }
+    return Mono.zip(totalCountMono, queryCountMono, listMono)
+        .map(tuple -> new Paging<>(tuple.getT1(), tuple.getT2(), tuple.getT3()));
+  }
 
-    private Mono<Paging<Rate>> paging(RateQueryRequest request) {
-        final var listMono = repository.list(request);
-        final var totalCountMono = repository.count();
-        final var queryCountMono = repository.count(request);
+  public Completable delete(Rate entity) {
+    return RxJava3Adapter.monoToCompletable(repository.delete(entity));
+  }
 
-        return Mono.zip(totalCountMono, queryCountMono, listMono)
-                .map(tuple -> new Paging<>(tuple.getT1(), tuple.getT2(), tuple.getT3()));
-    }
+  public Single<Rate> save(Rate entity) {
+    return RxJava3Adapter.monoToSingle(repository.save(entity));
+  }
 
-    public Completable delete(Rate entity) {
-        return RxJava3Adapter.monoToCompletable(repository.delete(entity));
-    }
+  public Single<Long> countAll() {
+    return RxJava3Adapter.monoToSingle(repository.count());
+  }
 
-    public Single<Rate> save(Rate entity) {
-        return RxJava3Adapter.monoToSingle(repository.save(entity));
-    }
+  public Maybe<Rate> last(Currency fromCurrency, Currency toCurrency) {
 
-    public Single<Long> countAll() {
-        return RxJava3Adapter.monoToSingle(repository.count());
-    }
+    final var sortings = new LinkedHashSet<Sorting<RateQueryRequest.SortField>>();
+    sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.ID, Sort.Direction.DESC));
+    sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.DATE_OF_RATE, Sort.Direction.DESC));
+    sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.CREATED_AT, Sort.Direction.DESC));
 
-    public Maybe<Rate> last(Currency fromCurrency, Currency toCurrency) {
+    final var request = RateQueryRequest.builder()
+        .fromCurrency(Set.of(fromCurrency))
+        .toCurrency(Set.of(toCurrency))
+        .page(PageRequest.of(0, 1))
+        .sortings(sortings)
+        .build();
+
+    return RxJava3Adapter.monoToMaybe(repository.list(request))
+        .map(List::iterator)
+        .filter(Iterator::hasNext)
+        .map(Iterator::next);
+  }
+
+  public Single<Rate> getLast(Currency fromCurrency, Currency toCurrency) {
+    return last(fromCurrency, toCurrency)
+        .switchIfEmpty(Single.error(new RuntimeException("Last rate not found")));
+  }
+
+  public Stream<Rate> stream(RateQueryRequest request) {
+    return repository.stream(request);
+  }
+
+  public long count() {
+    return Optional.ofNullable(repository.count()
+            .block())
+        .orElse(0L);
+  }
 
 
-        final var sortings = new LinkedHashSet<Sorting<RateQueryRequest.SortField>>();
-        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.ID, Sort.Direction.DESC));
-        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.DATE_OF_RATE, Sort.Direction.DESC));
-        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.CREATED_AT, Sort.Direction.DESC));
+  public Stream<Rate> stream(Query<Rate, String> query) {
 
-        final var request = RateQueryRequest.builder()
-                .fromCurrency(Set.of(fromCurrency))
-                .toCurrency(Set.of(toCurrency))
-                .page(PageRequest.of(0, 1))
-                .sortings(sortings)
-                .build();
+    final var sortings = new LinkedHashSet<Sorting<RateQueryRequest.SortField>>();
+    sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.ID, Sort.Direction.DESC));
+    sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.DATE_OF_RATE, Sort.Direction.DESC));
+    sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.CREATED_AT, Sort.Direction.DESC));
 
-        return RxJava3Adapter.monoToMaybe(repository.list(request))
-                .map(List::iterator)
-                .filter(Iterator::hasNext)
-                .map(Iterator::next);
-    }
+    final var request = RateQueryRequest.builder()
+        .page(PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
+        .sortings(sortings)
+        .build();
 
-    public Single<Rate> getLast(Currency fromCurrency, Currency toCurrency) {
-        return last(fromCurrency, toCurrency)
-                .switchIfEmpty(Single.error(new RuntimeException("Last rate not found")));
-    }
+    return stream(request);
+  }
 
-    public Stream<Rate> stream(RateQueryRequest request) {
-        return repository.stream(request);
-    }
+  public Single<List<Rate>> list(int page, int pageSize) {
+    final var mono = repository.findAllBy(PageRequest.of(page, pageSize))
+        .collectList();
 
-    public long count() {
-        return Optional.ofNullable(repository.count()
-                        .block())
-                .orElse(0L);
-    }
+    return RxJava3Adapter.monoToSingle(mono);
+  }
 
-    public Stream<Rate> stream(Query<Rate, String> query) {
+  public Single<FileResponse> download() {
 
-        final var sortings = new LinkedHashSet<Sorting<RateQueryRequest.SortField>>();
-        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.ID, Sort.Direction.DESC));
-        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.DATE_OF_RATE, Sort.Direction.DESC));
-        sortings.add(RateQueryRequest.sorting(RateQueryRequest.SortField.CREATED_AT, Sort.Direction.DESC));
+    final var writeEntityToFile = new WriteEntityToFile<>(objectMapper,
+        new MongoServicePagingProcessorImpl<>(this, 20));
 
-        final var request = RateQueryRequest.builder()
-                .page(PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
-                .sortings(sortings)
-                .build();
+    return writeEntityToFile.downloadFile("rates.json.gz");
 
-        return stream(request);
-    }
+  }
+
+  public Single<List<Rate>> save(Iterable<Rate> entities) {
+
+    final var mono = repository.saveAll(entities)
+        .collectList();
+
+    return RxJava3Adapter.monoToSingle(mono);
+  }
+
+  public Completable upload(String fileName) {
+    return PagingJsonFile.pagingJsonFile(30, fileName, objectMapper, Rate.class, c -> save(c).ignoreElement());
+  }
 }

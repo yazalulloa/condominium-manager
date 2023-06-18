@@ -7,30 +7,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.service.entity.TelegramChatService;
+import kyo.yaz.condominium.manager.core.service.telegram.TelegramRestApi;
 import kyo.yaz.condominium.manager.persistence.domain.NotificationEvent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class NotificationService {
 
-  private final long chatId;
 
   private final TelegramRestApi restApi;
   private final SendLogs sendLogs;
   private final TelegramChatService chatService;
   private final TranslationProvider translationProvider;
-
-  @Autowired
-  public NotificationService(@Value("${app.notification_chat_id}") long chatId, TelegramRestApi restApi,
-      SendLogs sendLogs, TelegramChatService chatService, TranslationProvider translationProvider) {
-    this.chatId = chatId;
-    this.restApi = restApi;
-    this.sendLogs = sendLogs;
-    this.chatService = chatService;
-    this.translationProvider = translationProvider;
-  }
 
   public boolean sendAppStartup() {
     final var event = NotificationEvent.APP_STARTUP;

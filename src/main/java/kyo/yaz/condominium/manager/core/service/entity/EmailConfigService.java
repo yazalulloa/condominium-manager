@@ -1,5 +1,6 @@
 package kyo.yaz.condominium.manager.core.service.entity;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.auth.oauth2.TokenResponseException;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -8,8 +9,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import kyo.yaz.condominium.manager.core.domain.FileResponse;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.service.NotificationService;
+import kyo.yaz.condominium.manager.core.service.paging.MongoServicePagingProcessorImpl;
+import kyo.yaz.condominium.manager.core.service.paging.PagingJsonFile;
+import kyo.yaz.condominium.manager.core.service.paging.WriteEntityToFile;
 import kyo.yaz.condominium.manager.core.verticle.SendEmailVerticle;
 import kyo.yaz.condominium.manager.core.vertx.VertxHandler;
 import kyo.yaz.condominium.manager.persistence.domain.NotificationEvent;
@@ -26,12 +31,13 @@ import org.springframework.stereotype.Service;
 import reactor.adapter.rxjava.RxJava3Adapter;
 import reactor.core.publisher.Mono;
 
-@Service
+@Service("EMAIL_CONFIGS")
 @Slf4j
 @AllArgsConstructor
-public class EmailConfigService {
+public class EmailConfigService implements MongoService<EmailConfig> {
 
   private final VertxHandler vertxHandler;
+  private final ObjectMapper objectMapper;
   private final EmailConfigRepository repository;
   private final NotificationService notificationService;
 
@@ -149,5 +155,33 @@ public class EmailConfigService {
   public Single<List<EmailConfig>> listForComboBox() {
     final var mono = repository.findByIdFrom().collectList();
     return RxJava3Adapter.monoToSingle(mono);
+  }
+
+  public Single<List<EmailConfig>> list(int page, int pageSize) {
+    final var mono = repository.findAllBy(PageRequest.of(page, pageSize))
+        .collectList();
+
+    return RxJava3Adapter.monoToSingle(mono);
+  }
+
+  public Single<FileResponse> download() {
+
+    final var writeEntityToFile = new WriteEntityToFile<>(objectMapper,
+        new MongoServicePagingProcessorImpl<>(this, 20));
+
+    return writeEntityToFile.downloadFile("email_configs.json.gz");
+
+  }
+
+  public Single<List<EmailConfig>> save(Iterable<EmailConfig> entities) {
+
+    final var mono = repository.saveAll(entities)
+        .collectList();
+
+    return RxJava3Adapter.monoToSingle(mono);
+  }
+
+  public Completable upload(String fileName) {
+    return PagingJsonFile.pagingJsonFile(30, fileName, objectMapper, EmailConfig.class, c -> save(c).ignoreElement());
   }
 }

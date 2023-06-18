@@ -1,6 +1,8 @@
 package kyo.yaz.condominium.manager.core.service;
 
 import io.reactivex.rxjava3.core.Single;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.core.service.entity.SequenceService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
@@ -21,6 +23,11 @@ public class SaveNewBcvRate {
 
 
   public Single<Boolean> saveNewRate() {
+
+   /* final var dayOfWeek = LocalDate.now().getDayOfWeek();
+    if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+      return Single.just(false);
+    }*/
 
     return getBcvUsdRate.newRate()
         .flatMap(rate -> {

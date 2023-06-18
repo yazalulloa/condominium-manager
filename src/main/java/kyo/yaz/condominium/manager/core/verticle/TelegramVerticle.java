@@ -12,7 +12,7 @@ import kyo.yaz.condominium.manager.core.domain.telegram.EditMessageText;
 import kyo.yaz.condominium.manager.core.domain.telegram.SendDocument;
 import kyo.yaz.condominium.manager.core.domain.telegram.SendMessage;
 import kyo.yaz.condominium.manager.core.service.HttpService;
-import kyo.yaz.condominium.manager.core.service.TelegramCommandResolver;
+import kyo.yaz.condominium.manager.core.service.telegram.TelegramCommandResolver;
 import kyo.yaz.condominium.manager.core.vertx.VertxHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

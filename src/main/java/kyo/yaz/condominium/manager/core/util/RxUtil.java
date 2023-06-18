@@ -11,6 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RxUtil {
 
+  public static CompletableObserver completableObserver(
+      @NonNull Action onComplete, @NonNull Consumer<? super Throwable> onError) {
+    return completableObserver(d -> {
+    }, onComplete, onError);
+  }
+
   public static CompletableObserver completableObserver(@NonNull Consumer<Disposable> disposableConsumer,
       @NonNull Action onComplete, @NonNull Consumer<? super Throwable> onError) {
     return new CompletableObserver() {
@@ -42,6 +48,13 @@ public class RxUtil {
         }
       }
     };
+  }
+
+  public static <T> SingleObserver<T> singleObserver(
+      @NonNull Consumer<? super T> onSuccess,
+      @NonNull Consumer<? super Throwable> onError) {
+    return singleObserver(d -> {
+    }, onSuccess, onError);
   }
 
   public static <T> SingleObserver<T> singleObserver(@NonNull Consumer<Disposable> disposableConsumer,
@@ -80,5 +93,4 @@ public class RxUtil {
       }
     };
   }
-
 }
