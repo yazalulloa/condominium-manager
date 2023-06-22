@@ -9,7 +9,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Component;
 
-@Component()
+@Component
 public class BcvUsdRateParser {
 
   public Single<Rate> parse(Document document) {

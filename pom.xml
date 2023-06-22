@@ -17,9 +17,9 @@
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <vaadin.version>24.0.6</vaadin.version>
+    <vaadin.version>24.1.1</vaadin.version>
     <!--<vaadin.version>23.3.2</vaadin.version>-->
-    <vertx.version>4.4.3</vertx.version>
+    <vertx.version>4.4.4</vertx.version>
     <mapstruct.version>1.5.3.Final</mapstruct.version>
     <lombok.version>1.18.28</lombok.version>
     <poi.version>5.2.3</poi.version>
@@ -92,7 +92,7 @@
 
     <dependency>
       <groupId>in.virit</groupId>
-      <artifactId>viritin</artifactId>
+        <artifactId>viritin</artifactId>
       <version>2.0.1</version>
     </dependency>
 

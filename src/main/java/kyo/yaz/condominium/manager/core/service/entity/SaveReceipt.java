@@ -20,25 +20,17 @@ import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt.ReserveFundTotal;
 import kyo.yaz.condominium.manager.persistence.entity.Sequence;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class SaveReceipt {
 
   private final ReceiptService receiptService;
   private final SequenceService sequenceService;
   private final BuildingService buildingService;
   private final ApartmentService apartmentService;
-
-  @Autowired
-  public SaveReceipt(ReceiptService receiptService, SequenceService sequenceService, BuildingService buildingService,
-      ApartmentService apartmentService) {
-    this.receiptService = receiptService;
-    this.sequenceService = sequenceService;
-    this.buildingService = buildingService;
-    this.apartmentService = apartmentService;
-  }
 
   public Single<Receipt> save(Receipt receipt) {
 

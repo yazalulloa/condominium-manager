@@ -10,6 +10,7 @@ import kyo.yaz.condominium.manager.core.service.GetPdfItems;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -26,6 +27,7 @@ import java.util.function.Consumer;
 @Component
 @Slf4j
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@RequiredArgsConstructor
 public class BuildReceiptPdfs implements GetPdfItems {
 
     private final CreatePdfReceiptService createPdfReceiptService;
@@ -33,11 +35,6 @@ public class BuildReceiptPdfs implements GetPdfItems {
     private String tempPath;
     private Consumer<Consumer<ProgressLayout>> plConsumer;
 
-    @Autowired
-    public BuildReceiptPdfs(CreatePdfReceiptService createPdfReceiptService, DeleteDirAfterDelay deleteDirAfterDelay) {
-        this.createPdfReceiptService = createPdfReceiptService;
-        this.deleteDirAfterDelay = deleteDirAfterDelay;
-    }
 
     public void setPlConsumer(Consumer<Consumer<ProgressLayout>> plConsumer) {
         this.plConsumer = plConsumer;
