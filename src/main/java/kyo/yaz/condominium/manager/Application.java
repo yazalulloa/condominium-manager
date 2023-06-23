@@ -8,6 +8,10 @@ import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import kyo.yaz.condominium.manager.core.util.EnvUtil;
 import kyo.yaz.condominium.manager.core.util.NetworkUtil;
 import kyo.yaz.condominium.manager.ui.views.util.FileUtil;
@@ -42,11 +46,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Slf4j
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     NetworkUtil.showPublicIp();
 
-    FileUtil.writeEnvToFile("APPLICATION_FILE", "application.yml");
-    FileUtil.writeEnvToFile("VERTICLES_FILE", "verticles.yml");
+    Files.createDirectories(Paths.get("config"));
+    FileUtil.writeEnvToFile("APPLICATION_FILE", "config/application.yml");
+    FileUtil.writeEnvToFile("VERTICLES_FILE", "config/verticles.yml");
 
     if (EnvUtil.isShowDir()) {
       FileUtil.showDir();
