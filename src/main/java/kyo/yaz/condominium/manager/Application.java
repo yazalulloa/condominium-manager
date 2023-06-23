@@ -8,13 +8,12 @@ import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import kyo.yaz.condominium.manager.core.util.EnvUtil;
+import kyo.yaz.condominium.manager.core.util.FileUtil;
 import kyo.yaz.condominium.manager.core.util.NetworkUtil;
-import kyo.yaz.condominium.manager.ui.views.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -47,6 +46,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
 
   public static void main(String[] args) throws IOException {
+    EnvUtil.saveAppStartedAt();
     NetworkUtil.showPublicIp();
 
     Files.createDirectories(Paths.get("config"));

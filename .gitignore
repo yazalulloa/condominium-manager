@@ -126,3 +126,4 @@ test-config
 env.conf
 
 src/test/java/GmailTest.java
+local.env

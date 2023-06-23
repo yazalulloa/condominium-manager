@@ -25,8 +25,8 @@ public class NotificationService {
 
   public boolean sendAppStartup() {
     final var event = NotificationEvent.APP_STARTUP;
-    final var msg = translationProvider.translate(event.name()) + " " + EnvUtil.cloud() + " " + EnvUtil.currentIp();
-    return blocking(send(msg.trim(), event));
+    final var msg = translationProvider.translate(event.name());
+    return blocking(send(EnvUtil.addEnvInfo(msg, false), event));
   }
 
   private Completable sendNotification(Set<NotificationEvent> set, Function<Long, Completable> function) {
@@ -40,7 +40,7 @@ public class NotificationService {
   }
 
   public Completable sendNewRate(String msg) {
-    return send(msg + " " + EnvUtil.cloud(), NotificationEvent.NEW_RATE);
+    return send(EnvUtil.addEnvInfo(msg), NotificationEvent.NEW_RATE);
   }
 
   public Completable send(String msg, NotificationEvent event) {
@@ -58,7 +58,7 @@ public class NotificationService {
 
   public boolean sendShuttingDownApp() {
     final var event = NotificationEvent.APP_SHUTTING_DOWN;
-    final var caption = translationProvider.translate(event.name()) + " " + EnvUtil.cloud() + " " + EnvUtil.currentIp();
-    return blocking(sendNotification(Set.of(event), chat -> sendLogs(chat, caption.trim())));
+    final var caption = translationProvider.translate(event.name());
+    return blocking(sendNotification(Set.of(event), chat -> sendLogs(chat, EnvUtil.addEnvInfo(caption))));
   }
 }

@@ -30,7 +30,7 @@ public class NetworkUtil {
     TimeZone.setDefault(timeZone);
     Single.fromCallable(NetworkUtil::getPublicIp)
         .subscribeOn(Schedulers.io())
-        .doOnSuccess(ip -> System.setProperty("CURRENT_IP", ip))
+        .doOnSuccess(EnvUtil::saveCurrentIp)
         .subscribe(ip -> log.info("PUBLIC_IP {}", ip), throwable -> log.error("FAILED_TO_GET_PUBLIC_IP", throwable));
   }
 }
