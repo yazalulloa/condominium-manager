@@ -65,6 +65,9 @@ public class EnvUtil {
         .filter(s -> !s.isEmpty())
         .ifPresent(str -> builder.append("\n").append("IP: ").append(str));
 
+    SystemUtil.systemInfo()
+        .forEach(str -> builder.append("\n").append(str));
+
     Optional.ofNullable(getAppStartedAt())
         .map(millis -> {
 

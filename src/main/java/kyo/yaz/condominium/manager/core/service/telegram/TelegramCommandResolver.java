@@ -6,6 +6,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.DatabindCodec;
+import java.util.stream.Collectors;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.domain.telegram.Chat;
 import kyo.yaz.condominium.manager.core.domain.telegram.TelegramUpdate;
@@ -15,6 +16,7 @@ import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.core.service.entity.TelegramChatService;
 import kyo.yaz.condominium.manager.core.service.entity.UserService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
+import kyo.yaz.condominium.manager.core.util.SystemUtil;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat;
 import kyo.yaz.condominium.manager.persistence.entity.TelegramChat.TelegramChatId;
 import kyo.yaz.condominium.manager.ui.views.telegram_chat.TelegramChatLinkHandler;
@@ -56,6 +58,11 @@ public class TelegramCommandResolver {
 
           if (text.startsWith("/log")) {
             return sendLogs.sendLogs(chatId, "logs");
+          }
+
+          if (text.startsWith("/system_info")) {
+            return telegramRestApi.sendMessage(chatId, SystemUtil.systemInfo().collect(Collectors.joining("\n")))
+                .ignoreElement();
           }
 
           if (text.startsWith("/tasa")) {

@@ -15,10 +15,12 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import kyo.yaz.condominium.manager.core.config.domain.UserSession;
 import kyo.yaz.condominium.manager.core.service.ProcessLoggedUser;
 import kyo.yaz.condominium.manager.core.util.FileUtil;
 import kyo.yaz.condominium.manager.core.util.MyIconsIcons;
+import kyo.yaz.condominium.manager.core.util.SystemUtil;
 import kyo.yaz.condominium.manager.persistence.entity.User;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
 import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
@@ -123,18 +125,9 @@ public class MainLayout extends AppLayout {
 
   private String memoryStats() {
     try {
-      final var availableProcessors = Runtime.getRuntime().availableProcessors();
-      final var maxMemory = Runtime.getRuntime().maxMemory();
-      final var totalMemory = Runtime.getRuntime().totalMemory();
-      final var freeMemory = Runtime.getRuntime().freeMemory();
-      final var usedMemory = totalMemory - freeMemory;
+      return SystemUtil.systemInfo()
+          .collect(Collectors.joining(" "));
 
-      return "CORES: %s MAX RAM: %s RAM total: %s FREE RAM: %s USED RAM: %s".formatted(
-          availableProcessors,
-          FileUtil.byteCountToDisplaySize(maxMemory),
-          FileUtil.byteCountToDisplaySize(totalMemory),
-          FileUtil.byteCountToDisplaySize(freeMemory),
-          FileUtil.byteCountToDisplaySize(usedMemory));
     } catch (Exception e) {
       log.info("Error getting RAM info", e);
       return "";
