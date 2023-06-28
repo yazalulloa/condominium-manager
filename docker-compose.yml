@@ -4,9 +4,12 @@ services:
     container_name: cmy
     image: cmy:latest
     restart: always
-    # command: java  -jar yaz-condominium-manager-1.0.0.jar
     ports:
       - "8090:8090"
+    volumes:
+      - ./config:/app/config
     environment:
+      - CLOUD_PROVIDER=LOCAL
       - SHOW_DIR=true
       - DOCKER_TIMEZONE=America/Caracas
+      - SEND_NOTIFICATIONS=true

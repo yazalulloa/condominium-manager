@@ -10,6 +10,7 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -212,7 +213,11 @@ public class ReceiptView extends BaseVerticalLayout {
     final var deleteBtn = new Button(IconUtil.trash());
     deleteBtn.addClickListener(v -> deleteReceipt(receipt));
 
-    final var buttons = new Div(deleteBtn, menuBar(receipt), newDownloadBtn(receipt));
+    final var anchor = new Anchor("/file-download?name=" + "test");
+    anchor.getElement().setAttribute("download", true);
+    anchor.add(new Button(new Icon(VaadinIcon.DOWNLOAD_ALT)));
+
+    final var buttons = new Div(deleteBtn, menuBar(receipt), newDownloadBtn(receipt), anchor);
     buttons.addClassName("buttons");
 
     div.add(buttons);

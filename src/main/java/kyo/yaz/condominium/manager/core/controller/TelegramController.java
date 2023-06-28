@@ -24,7 +24,7 @@ public class TelegramController {
   private final Vertx vertx;
 
   @Async
-    @PostMapping(path = "/webhook", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(path = "/webhook", consumes = MediaType.APPLICATION_JSON_VALUE)
   public CompletableFuture<String> webhook(@RequestBody JsonNode json) {
     log.info("WEBHOOK {}", Thread.currentThread());
     vertx.eventBus().sender(TelegramVerticle.WEB_HOOK).write(json);

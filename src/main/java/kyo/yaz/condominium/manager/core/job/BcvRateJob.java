@@ -46,7 +46,7 @@ public class BcvRateJob {
   }
 
   private void saveNewBcvRate() {
-    //log.info("RUN_JOB {}", Thread.currentThread());
+    log.info("RUN_JOB {}", Thread.currentThread());
 
     saveNewBcvRate.saveNewRate()
         .doOnError(throwable -> log.error("ERROR", throwable))

@@ -127,3 +127,5 @@ env.conf
 
 src/test/java/GmailTest.java
 local.env
+deploy.sh
+load.sh

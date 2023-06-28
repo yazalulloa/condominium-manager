@@ -59,11 +59,11 @@ public class EnvUtil {
     final var builder = new StringBuilder(msg);
     Optional.of(cloud())
         .filter(s -> !s.isEmpty())
-        .ifPresent(str -> builder.append(" ").append(str));
+        .ifPresent(str -> builder.append("\n").append("CLOUD: ").append(str));
 
     Optional.of(currentIp())
         .filter(s -> !s.isEmpty())
-        .ifPresent(str -> builder.append(" ").append(str));
+        .ifPresent(str -> builder.append("\n").append("IP: ").append(str));
 
     Optional.ofNullable(getAppStartedAt())
         .map(millis -> {
@@ -72,7 +72,7 @@ public class EnvUtil {
           final var dateTime = DateUtil.formatVe(date);
 
           if (!addTimeUp) {
-            return dateTime;
+            return "\nFecha de inicio: " + dateTime;
           }
 
           final var currentTimeMillis = System.currentTimeMillis();
@@ -81,7 +81,7 @@ public class EnvUtil {
           //log.info("STARTED AT {} CURRENT: {} DIFFERENCE {}", millis, currentTimeMillis, timeUp);
           final var duration = DurationFormatUtils.formatDuration(timeUp, "HH:mm:ss", false);
 
-          return "%s TIME UP %s".formatted(dateTime, duration);
+          return "\nFecha de inicio %s\nTIME UP %s".formatted(dateTime, duration);
         })
         .ifPresent(str -> builder.append(" ").append(str));
 
