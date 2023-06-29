@@ -42,6 +42,7 @@ public class HttpClientVerticle extends AbstractVerticle {
 
   @Override
   public void start() {
+
     webClient = WebClient.create(vertx, new WebClientOptions(config()));
 
     final var trustAllWebClientOptions = new WebClientOptions(config())

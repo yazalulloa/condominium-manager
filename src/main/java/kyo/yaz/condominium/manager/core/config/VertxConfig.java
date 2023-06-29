@@ -79,7 +79,9 @@ public class VertxConfig {
         .configRetrieverOptions(configRetrieverOptions)
         .build();
 
-    deployer.loadConfig();
+    deployer.loadConfig()
+        .onSuccess((f) -> log.info("Successfully deployed verticles"))
+        .onFailure(t -> log.error("ERROR DEPLOYING VERTICLE", t));
 
     return vertx;
   }

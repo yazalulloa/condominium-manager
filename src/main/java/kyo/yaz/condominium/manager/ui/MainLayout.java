@@ -15,16 +15,14 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import kyo.yaz.condominium.manager.core.config.domain.UserSession;
 import kyo.yaz.condominium.manager.core.service.ProcessLoggedUser;
-import kyo.yaz.condominium.manager.core.util.FileUtil;
 import kyo.yaz.condominium.manager.core.util.MyIconsIcons;
-import kyo.yaz.condominium.manager.core.util.SystemUtil;
 import kyo.yaz.condominium.manager.persistence.entity.User;
 import kyo.yaz.condominium.manager.ui.appnav.AppNav;
 import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
 import kyo.yaz.condominium.manager.ui.views.RateView;
+import kyo.yaz.condominium.manager.ui.views.SystemView;
 import kyo.yaz.condominium.manager.ui.views.UserView;
 import kyo.yaz.condominium.manager.ui.views.apartment.ApartmentView;
 import kyo.yaz.condominium.manager.ui.views.building.BuildingView;
@@ -90,6 +88,7 @@ public class MainLayout extends AppLayout {
         .addItem(new AppNavItem(UserView.PAGE_TITLE, UserView.class, VaadinIcon.USERS.create()))
         .addItem(
             new AppNavItem(TelegramChatView.PAGE_TITLE, TelegramChatView.class, MyIconsIcons.ICONS8_TELEGRAM.create()))
+        .addItem(new AppNavItem(SystemView.PAGE_TITLE, SystemView.class, VaadinIcon.INFO.create()))
         ;
 
   }
@@ -120,18 +119,7 @@ public class MainLayout extends AppLayout {
         .map(User::email)
         .orElse("");
 
-    viewTitle.setText(getCurrentPageTitle() + " " + email + " " + memoryStats());
-  }
-
-  private String memoryStats() {
-    try {
-      return SystemUtil.systemInfo()
-          .collect(Collectors.joining(" "));
-
-    } catch (Exception e) {
-      log.info("Error getting RAM info", e);
-      return "";
-    }
+    viewTitle.setText(getCurrentPageTitle() + " " + email);
   }
 
   private String getCurrentPageTitle() {

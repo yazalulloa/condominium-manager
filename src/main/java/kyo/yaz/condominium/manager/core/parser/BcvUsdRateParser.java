@@ -50,12 +50,11 @@ public class BcvUsdRateParser {
 
   }
 
-  public Single<Rate> parse(String html) {
+/*  public Single<Rate> parse(String html) {
     return Single.defer(() -> {
       final var document = Jsoup.parse(html);
       return parse(document);
     });
 
-
-  }
+  }*/
 }
