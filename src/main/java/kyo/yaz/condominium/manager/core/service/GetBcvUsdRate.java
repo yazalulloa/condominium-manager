@@ -1,12 +1,14 @@
 package kyo.yaz.condominium.manager.core.service;
 
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import kyo.yaz.condominium.manager.core.domain.HttpClientRequest;
 import kyo.yaz.condominium.manager.core.domain.HttpClientResponse;
 import kyo.yaz.condominium.manager.core.domain.HttpLogConfig;
 import kyo.yaz.condominium.manager.core.parser.BcvUsdRateParser;
 import kyo.yaz.condominium.manager.core.verticle.HttpClientVerticle;
+import kyo.yaz.condominium.manager.core.vertx.VertxHandler;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -20,14 +22,18 @@ import org.springframework.stereotype.Service;
 public class GetBcvUsdRate {
 
     private final String url;
+    private final VertxHandler vertxHandler;
     private final EventBus eventBus;
     private final BcvUsdRateParser bcvUsdRateParser;
+    private final HttpService httpService;
 
     @Autowired
-    public GetBcvUsdRate(@Value("${app.bcv_url}") String url, EventBus eventBus, BcvUsdRateParser bcvUsdRateParser) {
+    public GetBcvUsdRate(@Value("${app.bcv_url}") String url, VertxHandler vertxHandler, EventBus eventBus, BcvUsdRateParser bcvUsdRateParser, HttpService httpService) {
         this.url = url;
+        this.vertxHandler = vertxHandler;
         this.eventBus = eventBus;
         this.bcvUsdRateParser = bcvUsdRateParser;
+        this.httpService = httpService;
     }
 
     private Single<Document> document() {
@@ -39,7 +45,13 @@ public class GetBcvUsdRate {
                         .build())
                 .build();
 
-        return Single.create(emitter -> {
+        return httpService.send(httpClientRequest)
+                .map(HttpClientResponse::body)
+                .map(Buffer::toString)
+                .map(Jsoup::parse);
+
+
+      /*  return Single.create(emitter -> {
 
             eventBus.<HttpClientResponse>request(HttpClientVerticle.SEND, httpClientRequest)
                     .onComplete(ar -> {
@@ -52,7 +64,7 @@ public class GetBcvUsdRate {
                         }
 
                     });
-        });
+        });*/
 
     }
 

@@ -15,33 +15,34 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ServletContextListenerImpl implements ServletContextListener {
 
-  private final NotificationService notificationService;
+    private final NotificationService notificationService;
 
-  @Override
-  public void contextDestroyed(ServletContextEvent event) {
-    checkIfSend(notificationService::sendShuttingDownApp);
-  }
-
-  @Override
-  public void contextInitialized(ServletContextEvent event) {
-    log.info("contextInitialized");
-  }
-
-  private void checkIfSend(Runnable runnable) {
-    if (EnvUtil.sendNotifications()) {
-      runnable.run();
+    @Override
+    public void contextDestroyed(ServletContextEvent event) {
+        log.info("contextDestroyed {}", Thread.currentThread().getName());
+        checkIfSend(notificationService::sendShuttingDownApp);
     }
-  }
 
-  public void addHook() {
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      log.info("ShutdownHook");
-    }));
-  }
+    @Override
+    public void contextInitialized(ServletContextEvent event) {
+        log.info("contextInitialized {}", Thread.currentThread().getName());
+    }
 
-  @EventListener(ApplicationReadyEvent.class)
-  public void doSomethingAfterStartup() {
-    checkIfSend(notificationService::sendAppStartup);
+    private void checkIfSend(Runnable runnable) {
+        if (EnvUtil.sendNotifications()) {
+            runnable.run();
+        }
+    }
 
-  }
+    public void addHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("ShutdownHook {}", Thread.currentThread().getName());
+        }));
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void doSomethingAfterStartup() {
+        checkIfSend(notificationService::sendAppStartup);
+
+    }
 }

@@ -12,7 +12,7 @@ import kyo.yaz.condominium.manager.ui.views.actions.DownloadReceiptZipAction;
 
 import java.io.FileInputStream;
 
-public class DownloadReceiptZipAnchor implements SerializableBiConsumer<Anchor, Receipt> {
+/*public class DownloadReceiptZipAnchor implements SerializableBiConsumer<Anchor, Receipt> {
 
     private final DownloadReceiptZipAction<Receipt> action;
 
@@ -49,4 +49,4 @@ public class DownloadReceiptZipAnchor implements SerializableBiConsumer<Anchor, 
         anchor.getElement().setAttribute("download", true);
         anchor.add(downloadButton);
     }
-}
+}*/

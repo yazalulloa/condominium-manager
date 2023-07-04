@@ -7,6 +7,7 @@ import com.vaadin.flow.component.progressbar.ProgressBar;
 
 public class ProgressLayout extends Div {
 
+
     private final ProgressBar progressBar = new ProgressBar();
     private final Div progressBarLabelText = new Div();
     private final Div progressBarLabelValue = new Div();
@@ -22,6 +23,11 @@ public class ProgressLayout extends Div {
         progressBarLabel.add(progressBarLabelText, progressBarLabelValue);
 
         add(progressBarLabel, progressBar, progressBarSubLabel);
+    }
+
+    @Override
+    public void setText(String text) {
+        super.setText(text);
     }
 
     public ProgressBar progressBar() {

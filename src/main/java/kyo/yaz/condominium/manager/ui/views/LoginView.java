@@ -50,7 +50,7 @@ public class LoginView extends BaseVerticalLayout implements BeforeEnterObserver
 
   @Override
   public void beforeEnter(BeforeEnterEvent event) {
-    logger().info("BEFORE_ENTER");
+   // logger().info("BEFORE_ENTER");
     if (hasLoggedIn()) {
       final var user = userSession.getUser();
       logger().info("IS_LOGGED_IN {}", user.toString());
@@ -77,15 +77,15 @@ public class LoginView extends BaseVerticalLayout implements BeforeEnterObserver
     final var location = event.getLocation();
     final var locationChangeEvent = event.getLocationChangeEvent();
     final var eventLocation = locationChangeEvent.getLocation();
-    logger().info("AFTER_NAVIGATION {} {} {}", event, location, locationChangeEvent);
-    logger().info("LOCATION {} {}", location.getPath(), location.getSegments());
-    logger().info("EVENT_LOCATION {} {}", eventLocation.getPath(), eventLocation.getSegments());
+   // logger().info("AFTER_NAVIGATION {} {} {}", event, location, locationChangeEvent);
+   // logger().info("LOCATION {} {}", location.getPath(), location.getSegments());
+  //  logger().info("EVENT_LOCATION {} {}", eventLocation.getPath(), eventLocation.getSegments());
   }
 
   @Override
   protected void onDetach(DetachEvent detachEvent) {
     super.onDetach(detachEvent);
-    logger().info("onDetach");
+   // logger().info("onDetach");
   }
 
   /* @Override

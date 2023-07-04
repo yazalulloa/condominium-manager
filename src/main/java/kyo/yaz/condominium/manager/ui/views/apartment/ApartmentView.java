@@ -73,8 +73,8 @@ public class ApartmentView extends BaseVerticalLayout {
   @Override
   protected void onAttach(AttachEvent attachEvent) {
     super.onAttach(attachEvent);
-    initData();
     init();
+    initData();
   }
 
   private void init() {

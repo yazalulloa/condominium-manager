@@ -21,8 +21,9 @@ import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
-import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.component.DeleteDialog;
+import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
+import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -46,6 +47,7 @@ public class RateView extends BaseVerticalLayout {
     private final DeleteDialog deleteDialog = new DeleteDialog();
     private final RateService rateService;
     private final SaveNewBcvRate saveNewBcvRate;
+    private final ProgressLayout progressLayout = new ProgressLayout();
 
     @Autowired
     public RateView(RateService rateService, SaveNewBcvRate saveNewBcvRate) {
@@ -57,6 +59,7 @@ public class RateView extends BaseVerticalLayout {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
+        init();
         initData();
     }
 
@@ -64,21 +67,13 @@ public class RateView extends BaseVerticalLayout {
         addClassName("rates-view");
         setSizeFull();
         configureGrid();
-        gridPaginator.init();
 
-        add(getToolbar(), grid, footer());
+        add(getToolbar(), progressLayout, grid, footer());
     }
 
     private void initData() {
 
-
-        paging()
-                .map(paging -> (Runnable) () -> {
-                    setItems(paging);
-                    init();
-                })
-                .doOnSuccess(this::uiAsyncAction)
-                .ignoreElement()
+        refreshData()
                 .subscribeOn(Schedulers.io())
                 .subscribe(completableObserver());
     }
@@ -159,7 +154,14 @@ public class RateView extends BaseVerticalLayout {
     }
 
     private Single<Paging<Rate>> paging() {
-        return rateService.paging(gridPaginator.currentPage(), gridPaginator.itemsPerPage());
+        return rateService.paging(gridPaginator.currentPage(), gridPaginator.itemsPerPage())
+                .doOnSubscribe(d -> {
+                    uiAsyncAction(() -> {
+                        progressLayout.setProgressText("Buscando...");
+                        progressLayout.progressBar().setIndeterminate(true);
+                        progressLayout.setVisible(true);
+                    });
+                });
     }
 
     private void setCountText(long queryCount, long totalCount) {
@@ -171,7 +173,11 @@ public class RateView extends BaseVerticalLayout {
     private Completable refreshData() {
 
         return paging()
-                .map(paging -> (Runnable) () -> setItems(paging))
+                .map(paging -> (Runnable) () -> {
+                    progressLayout.setVisible(false);
+                    setItems(paging);
+                    gridPaginator.init();
+                })
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement();
     }
@@ -190,8 +196,7 @@ public class RateView extends BaseVerticalLayout {
         return saveNewBcvRate.saveNewRate()
                 .doOnSuccess(bool -> logger().info("NEW_RATE_SAVED {}", bool))
                 .doOnSuccess(bool -> asyncNotification(bool ? "Nueva tasa de cambio encontrada" : "Tasa ya guardada"))
-                .ignoreElement()
-                .andThen(refreshData())
+                .flatMapCompletable(b -> b ? refreshData() : Completable.complete())
                 .subscribeOn(Schedulers.io());
 
     }

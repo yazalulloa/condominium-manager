@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -40,8 +41,7 @@ public class BuildingRepositoryImpl implements BuildingCustomRepository {
             query.addCriteria(new Criteria().orOperator(criteria.toArray(new Criteria[0])));
 
 
-        return template.find(query, Building.class)
-                .collectList();
+        return find(query).collectList();
     }
 
     @Override
@@ -51,5 +51,17 @@ public class BuildingRepositoryImpl implements BuildingCustomRepository {
         final var options = new FindAndModifyOptions().returnNew(true).upsert(false);
 
         return template.findAndModify(query, update, options, Building.class);
+    }
+
+    @Override
+    public Flux<String> getIds() {
+        final var query = new Query();
+        query.fields().include("_id");
+        return find(query)
+                .map(Building::id);
+    }
+
+    private Flux<Building> find(Query query) {
+        return template.find(query, Building.class);
     }
 }

@@ -12,22 +12,26 @@ import kyo.yaz.condominium.manager.core.util.ZipUtility;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.actions.DownloadReceiptZipAction;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vaadin.firitin.components.DynamicFileDownloader;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class DownloadReceiptZipService {
 
     private final Vertx vertx;
@@ -35,12 +39,12 @@ public class DownloadReceiptZipService {
     private Consumer<Consumer<ProgressLayout>> plConsumer;
     private final GetPdfItems getPdfItems;
 
-    @Autowired
+  /*  @Autowired
     public DownloadReceiptZipService(Vertx vertx, CreatePdfReceiptService createPdfReceiptService, GetPdfItems getPdfItems) {
         this.vertx = vertx;
         this.createPdfReceiptService = createPdfReceiptService;
         this.getPdfItems = getPdfItems;
-    }
+    }*/
 
 
     public void setPlConsumer(Consumer<Consumer<ProgressLayout>> plConsumer) {
@@ -87,27 +91,29 @@ public class DownloadReceiptZipService {
         }
     };
 
+    public String zipPath(Receipt receipt, Collection<PdfReceiptItem> list) throws IOException {
+        updateProgress(pl -> {
+            pl.setProgressText("Creando zip");
+            pl.progressBar().setIndeterminate(true);
+        });
+
+        final var dirPath = "tmp/" + receipt.buildingId() + "/";
+        final var zipPath = dirPath + zipAction.fileName(receipt);
+        Files.createDirectories(Paths.get(dirPath));
+        final var files = list.stream().map(PdfReceiptItem::path)
+                .map(Path::toFile)
+                .toList();
+
+        ZipUtility.zip(files, zipPath);
+        updateProgress(pl -> pl.setProgressText("Descargando"));
+        return zipPath;
+    }
+
     public Single<String> zipPath(Receipt receipt) {
         getPdfItems.setPlConsumer(plConsumer);
 
         return getPdfItems.pdfItems(receipt)
-                .map(list -> {
-                    updateProgress(pl -> {
-                        pl.setProgressText("Creando zip");
-                        pl.progressBar().setIndeterminate(true);
-                    });
-
-                    final var dirPath = "tmp/" + receipt.buildingId() + "/";
-                    final var zipPath = dirPath + zipAction.fileName(receipt);
-                    Files.createDirectories(Paths.get(dirPath));
-                    final var files = list.stream().map(PdfReceiptItem::path)
-                            .map(Path::toFile)
-                            .toList();
-
-                    ZipUtility.zip(files, zipPath);
-                    updateProgress(pl -> pl.setProgressText("Descargando"));
-                    return zipPath;
-                });
+                .map(list -> zipPath(receipt, list));
     }
 
     public DynamicFileDownloader fileDownloader(Receipt receipt) {

@@ -1,10 +1,9 @@
 package kyo.yaz.condominium.manager.core.controller;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.concurrent.CompletableFuture;
+
+import kyo.yaz.condominium.manager.core.util.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
@@ -14,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -26,11 +26,11 @@ public class FileDownloadController {
 
   @Async
   @GetMapping()
-  public CompletableFuture<ResponseEntity<InputStreamResource>> fileDownload() throws FileNotFoundException {
+  public CompletableFuture<ResponseEntity<InputStreamResource>> fileDownload(@RequestParam String path) throws IOException {
     log.info("FILE_DOWNLOAD {}", Thread.currentThread());
-    //vertx.eventBus().sender(TelegramVerticle.WEB_HOOK).write(json);
+    final var str = StringUtil.unCompressStr(path);
 
-    final var downloadFile = new File("log/application.log");
+    final var downloadFile = new File(str);
 
     final var in = new BufferedInputStream(new FileInputStream(downloadFile));
     final var responseEntity = ResponseEntity.ok()

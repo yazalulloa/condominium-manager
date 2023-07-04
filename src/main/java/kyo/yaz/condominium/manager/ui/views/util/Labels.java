@@ -32,6 +32,7 @@ public class Labels {
     public static final String EDIT = "Editar";
     public static final String RESERVE_FUNDS_TITLE = "Fondos de reserva";
     public static final String VIEW_PDFS = "Ver PDFs";
+    public static final String TOTAL_EXPENSES = "Gastos totales";
 
   public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";

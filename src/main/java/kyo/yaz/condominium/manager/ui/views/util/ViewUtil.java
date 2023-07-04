@@ -204,6 +204,7 @@ public class ViewUtil {
   public static DatePicker datePicker(String label, ZoneId zoneId) {
     DatePicker.DatePickerI18n singleFormatI18n = new DatePicker.DatePickerI18n();
     singleFormatI18n.setDateFormat("yyyy-MM-dd");
+
     final var datePicker = new DatePicker(label, LocalDate.now(zoneId));
     datePicker.setI18n(singleFormatI18n);
 

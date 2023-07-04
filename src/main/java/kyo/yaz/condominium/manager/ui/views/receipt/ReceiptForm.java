@@ -11,6 +11,7 @@ import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
 import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
+import kyo.yaz.condominium.manager.ui.views.domain.DatePickerProvider;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class ReceiptForm extends BaseForm {
     private final ComboBox<Rate> rateComboBox = new ComboBox<>(Labels.Receipt.RATE_LABEL);
 
     @PropertyId("date")
-    private final DatePicker datePicker = ViewUtil.datePicker(Labels.Receipt.RECEIPT_DATE_LABEL);
+    private final DatePicker datePicker;// = ViewUtil.datePicker(Labels.Receipt.RECEIPT_DATE_LABEL);
     private final Binder<ReceiptFormItem> binder = new BeanValidationBinder<>(ReceiptFormItem.class);
     private ReceiptFormItem item;
     private final RateService rateService;
@@ -42,9 +43,10 @@ public class ReceiptForm extends BaseForm {
     private final TranslationProvider translationProvider;
 
     @Autowired
-    public ReceiptForm(TranslationProvider translationProvider, RateService rateService) {
+    public ReceiptForm(TranslationProvider translationProvider, RateService rateService, DatePickerProvider datePickerProvider) {
         this.translationProvider = translationProvider;
         this.rateService = rateService;
+        this.datePicker = datePickerProvider.datePicker(Labels.Receipt.RECEIPT_DATE_LABEL);
     }
 
     public void init() {

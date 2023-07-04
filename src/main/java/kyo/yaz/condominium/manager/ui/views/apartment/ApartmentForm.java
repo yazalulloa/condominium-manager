@@ -17,9 +17,9 @@ import kyo.yaz.condominium.manager.ui.views.base.BaseForm;
 import kyo.yaz.condominium.manager.ui.views.form.EmailsForm;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 
 public class ApartmentForm extends BaseForm {
 
@@ -68,7 +68,7 @@ public class ApartmentForm extends BaseForm {
     }
 
 
-    public void setBuildingIds(Set<String> buildingIds) {
+    public void setBuildingIds(Collection<String> buildingIds) {
         buildingField.setItems(buildingIds);
     }
 
