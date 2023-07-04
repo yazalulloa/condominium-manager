@@ -7,6 +7,7 @@ import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.CompletableObserver;
 import io.reactivex.rxjava3.core.SingleObserver;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Action;
 import io.reactivex.rxjava3.functions.Consumer;
 import kyo.yaz.condominium.manager.core.util.RxUtil;
@@ -45,13 +46,24 @@ public abstract class BaseVerticalLayout extends VerticalLayout {
 
     }
 
+    protected CompletableObserver completableObserver(@NonNull Consumer<Disposable> disposableConsumer) {
+        return completableObserver(disposableConsumer, () -> {
+        }, this::showError);
+    }
+
     protected CompletableObserver completableObserver(@NonNull Action onComplete, @NonNull Consumer<? super Throwable> onError) {
-        return RxUtil.completableObserver(compositeDisposable::add, onComplete, onError);
+        return completableObserver(compositeDisposable::add, onComplete, onError);
+    }
+
+    protected CompletableObserver completableObserver(@NonNull Consumer<Disposable> disposableConsumer,
+                                                      @NonNull Action onComplete, @NonNull Consumer<? super Throwable> onError) {
+        return RxUtil.completableObserver(disposableConsumer, onComplete, onError);
     }
 
     protected <T> SingleObserver<T> singleObserver(@NonNull Consumer<? super T> onSuccess, @NonNull Consumer<? super Throwable> onError) {
         return RxUtil.singleObserver(compositeDisposable::add, onSuccess, onError);
     }
+
     protected <T> SingleObserver<T> singleObserver(@NonNull Consumer<? super T> onSuccess) {
         return RxUtil.singleObserver(compositeDisposable::add, onSuccess, this::showError);
     }

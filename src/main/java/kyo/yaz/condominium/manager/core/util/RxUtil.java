@@ -7,6 +7,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Action;
 import io.reactivex.rxjava3.functions.Consumer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 
 @Slf4j
 public class RxUtil {
@@ -16,6 +17,8 @@ public class RxUtil {
     return completableObserver(d -> {
     }, onComplete, onError);
   }
+
+
 
   public static CompletableObserver completableObserver(@NonNull Consumer<Disposable> disposableConsumer,
       @NonNull Action onComplete, @NonNull Consumer<? super Throwable> onError) {
