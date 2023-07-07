@@ -11,7 +11,6 @@ import com.itextpdf.layout.properties.TextAlignment;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
-import kyo.yaz.condominium.manager.core.util.ObjectUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
@@ -25,7 +24,6 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -71,137 +69,24 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                 .findFirst()
                 .orElseThrow();
 
-        final var payment = aptTotal.amount();
+        final var currenciesToShowAmountToPay = building().currenciesToShowAmountToPay();
 
-        if (ObjectUtil.aBoolean(building().fixedPay())) {
+        currenciesToShowAmountToPay.forEach(type -> {
+            final var payment = aptTotal.amounts().get(type);
+            final var paragraph = new Paragraph(new Text(receiptValue + type.format(payment)).setUnderline());
+            document.add(paragraph);
+        });
 
-            if (building().currenciesToShowAmountToPay().isEmpty()) {
-                final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setBold().setUnderline());
-                document.add(paragraph);
-            } else {
+        if (currenciesToShowAmountToPay.isEmpty()) {
+            final var payment = aptTotal.amounts().get(building().mainCurrency());
+            final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().format(payment)).setUnderline());
+            document.add(paragraph);
+        }
 
-
-                for (final Currency type : building().currenciesToShowAmountToPay()) {
-                    switch (type) {
-
-                        case VED -> {
-                            final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setUnderline());
-                            document.add(paragraph);
-                        }
-                        case USD -> {
-
-                            final var decimal = payment;//.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
-
-                            final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
-                            document.add(paragraph);
-                        }
-                    }
-
-                  /*  if (type == building().mainCurrency()) {
-                        final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setUnderline());
-                        document.add(paragraph);
-                    }
-                    else {
-                        switch (type) {
-
-                            case VED -> {
-                                final var decimal = payment.multiply(receipt().rate().rate()).setScale(2, RoundingMode.HALF_UP);
-
-                                final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
-                                document.add(paragraph);
-                            }
-                            case USD -> {
-
-                                final var decimal = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
-
-                                final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
-                                document.add(paragraph);
-                            }
-                        }
-                    }*/
-                }
+        if (!building().fixedPay()) {
+            if (currenciesToShowAmountToPay.contains(Currency.USD) && currenciesToShowAmountToPay.contains(Currency.VED)) {
+                document.add(new Paragraph(String.format(usdExchangeRateTitle, receipt().rate().dateOfRate(), ConvertUtil.format(receipt().rate().rate(), Currency.VED))));
             }
-
-        } else {
-
-            if (building().currenciesToShowAmountToPay().isEmpty()) {
-                var value = payment;
-                if (building().mainCurrency() == Currency.USD) {
-                    value = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
-                }
-
-                final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(value)));
-                document.add(paragraph);
-            } else {
-                for (final Currency type : building().currenciesToShowAmountToPay()) {
-
-                    switch (type) {
-
-                        case VED -> {
-                            final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setUnderline());
-                            document.add(paragraph);
-                        }
-                        case USD -> {
-
-                            final var decimal = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
-
-                            final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
-                            document.add(paragraph);
-                        }
-                    }
-
-                   /* if (type == building().mainCurrency()) {
-                        final var paragraph = new Paragraph(new Text(receiptValue + building().mainCurrency().numberFormat().format(payment)).setUnderline());
-                        document.add(paragraph);
-                    }
-                    else {
-                        switch (type) {
-
-                            case VED -> {
-                                final var decimal = payment.multiply(receipt().rate().rate()).setScale(2, RoundingMode.HALF_UP);
-
-                                final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
-                                document.add(paragraph);
-                            }
-                            case USD -> {
-
-                                final var decimal = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
-
-                                final var paragraph = new Paragraph(new Text(receiptValue + type.numberFormat().format(decimal)).setUnderline());
-                                document.add(paragraph);
-                            }
-                        }
-                    }*/
-                }
-
-                if (building().currenciesToShowAmountToPay().contains(Currency.USD) && building().currenciesToShowAmountToPay().contains(Currency.VED)) {
-                    document.add(new Paragraph(String.format(usdExchangeRateTitle, receipt().rate().dateOfRate(), ConvertUtil.format(receipt().rate().rate(), Currency.VED))));
-                }
-            }
-
-
-           /* final var showVes = building().currenciesToShowAmountToPay().contains(Currency.VED);
-
-            if (showVes) {
-                final var paragraph = new Paragraph(new Text(receiptValue + Currency.VED.numberFormat().format(payment)).setUnderline());
-                document.add(paragraph);
-            }
-
-            if (building().mainCurrency() == Currency.VED) {
-
-                if (showVes) {
-                    document.add(new Paragraph(String.format(usdExchangeRateTitle, receipt().rate().dateOfRate(), ConvertUtil.format(receipt().rate().rate(), Currency.VED))));
-                }
-
-                final var usdReceiptValue = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
-                //payment.divide(BigDecimal.valueOf(usdExchangeRate), MathContext.UNLIMITED);
-                document.add(new Paragraph(new Text(receiptValue + ConvertUtil.format(usdReceiptValue, Currency.USD))).setUnderline());
-            } else {
-                final var usdReceiptValue = payment.divide(receipt().rate().rate(), 2, RoundingMode.HALF_UP);
-                //payment.divide(BigDecimal.valueOf(usdExchangeRate), MathContext.UNLIMITED);
-                document.add(new Paragraph(new Text(receiptValue + ConvertUtil.format(usdReceiptValue, Currency.USD))).setUnderline());
-
-            }*/
 
             document.add(new Paragraph("ALIQUOTA: " + apartment().amountToPay()));
         }
@@ -287,7 +172,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
 
 
                 if (!debtTableAdded.get()) {
-                    final var debt = ConvertUtil.format(receipt().totalDebt(), building.mainCurrency());
+                    final var debt = ConvertUtil.format(receipt().totalDebt(), building.debtCurrency());
                     final var fundAfterDebt = ConvertUtil.format(newFund.subtract(receipt().totalDebt()), building().mainCurrency());
 
                     addCell.accept("P/Cobrar > Recibos  %s".formatted(receipt.debtReceiptsAmount()));
@@ -300,6 +185,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
 
 
                 div.add(table);
+                div.add(new Paragraph("\n"));
             });
 
             //div.add(new Paragraph("Recibos en deuda: " + receipt().debtReceiptsAmount()));
@@ -397,7 +283,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
         });
 
 
-        final var format = ConvertUtil.format(total, building().mainCurrency());
+        final var format = Currency.VED.format(total);
 
         final var description = PdfUtil.tableCell();
         description.setTextAlignment(TextAlignment.LEFT);

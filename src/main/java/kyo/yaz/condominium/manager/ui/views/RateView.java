@@ -54,12 +54,12 @@ public class RateView extends BaseVerticalLayout {
         super();
         this.rateService = rateService;
         this.saveNewBcvRate = saveNewBcvRate;
+        init();
     }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        init();
         initData();
     }
 

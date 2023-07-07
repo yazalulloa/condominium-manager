@@ -24,7 +24,7 @@ import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
-import kyo.yaz.condominium.manager.core.service.entity.SaveReceipt;
+import kyo.yaz.condominium.manager.core.service.entity.CalculateReceiptInfo;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Expense.Type;
 import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
@@ -64,7 +64,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
     private final ApartmentService apartmentService;
     private final ReceiptService receiptService;
     private final BuildingService buildingService;
-    private final SaveReceipt saveReceipt;
+    private final CalculateReceiptInfo calculateReceiptInfo;
 
     private Long receiptId;
     private final ReceiptForm receiptForm;
@@ -76,13 +76,13 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
     @Autowired
     public EditReceiptView(ExpensesView expensesView, ApartmentService apartmentService, ReceiptService receiptService,
                            BuildingService buildingService,
-                           SaveReceipt saveReceipt, ReceiptForm receiptForm, DebtsView debtsView) {
+                           CalculateReceiptInfo calculateReceiptInfo, ReceiptForm receiptForm, DebtsView debtsView) {
         super();
         this.expensesView = expensesView;
         this.apartmentService = apartmentService;
         this.receiptService = receiptService;
         this.buildingService = buildingService;
-        this.saveReceipt = saveReceipt;
+        this.calculateReceiptInfo = calculateReceiptInfo;
         this.receiptForm = receiptForm;
         this.debtsView = debtsView;
     }
@@ -133,7 +133,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                     .rate(formItem.getRate())
                     .build();
 
-            saveReceipt.save(build)
+            calculateReceiptInfo.save(build)
                     .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
                     .subscribe(singleObserver(receipt -> {
                         logger().info("Navigating");
@@ -197,7 +197,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
             return () -> {
                 this.building = building;
 
-                debtsView.setCurrency(building.mainCurrency());
+                debtsView.setCurrency(building.debtCurrency());
 
                 final var debtList = Optional.ofNullable(receipt)
                         .map(Receipt::debts)

@@ -6,13 +6,12 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Vertx;
 import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
-import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.GetPdfItems;
+import kyo.yaz.condominium.manager.core.service.GetReceiptZipName;
 import kyo.yaz.condominium.manager.core.util.ZipUtility;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.actions.DownloadReceiptZipAction;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -35,7 +34,8 @@ import java.util.function.Consumer;
 public class DownloadReceiptZipService {
 
     private final Vertx vertx;
-    private final CreatePdfReceiptService createPdfReceiptService;
+
+    private final GetReceiptZipName getReceiptZipName;
     private Consumer<Consumer<ProgressLayout>> plConsumer;
     private final GetPdfItems getPdfItems;
 
@@ -67,7 +67,7 @@ public class DownloadReceiptZipService {
 
         @Override
         public String fileName(Receipt obj) {
-            return createPdfReceiptService.fileName(obj);
+            return getReceiptZipName.fileName(obj);
         }
 
         @Override

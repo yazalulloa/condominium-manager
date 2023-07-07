@@ -189,14 +189,11 @@ public class ExpensesView extends BaseDiv {
         totalCommon = BigDecimal.ZERO;
         totalUnCommon = BigDecimal.ZERO;
         for (ExpenseViewItem item : items()) {
-            switch (item.getType()) {
-
-                case COMMON -> {
-                    if (!item.isReserveFund()) {
-                        totalCommon = totalCommon.add(item.getAmount());
-                    }
+            if (!item.isReserveFund()) {
+                switch (item.getType()) {
+                    case COMMON -> totalCommon = totalCommon.add(item.getAmount());
+                    case UNCOMMON -> totalUnCommon = totalUnCommon.add(item.getAmount());
                 }
-                case UNCOMMON -> totalUnCommon = totalUnCommon.add(item.getAmount());
             }
         }
     }

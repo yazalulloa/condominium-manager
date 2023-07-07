@@ -4,6 +4,7 @@ import com.google.common.base.CaseFormat;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.DayOfWeek;
@@ -15,7 +16,8 @@ import java.util.Map;
 
 @Component
 @AllArgsConstructor
-    public class I18nProvider {
+@Slf4j
+public class I18nProvider {
 
     private static final Map<String, DatePicker.DatePickerI18n> DATE_PICKERS = new HashMap<>();
 
@@ -28,6 +30,7 @@ import java.util.Map;
     public DatePicker.DatePickerI18n datePickerI18n(String zoneId) {
         final var i18n = DATE_PICKERS.get(zoneId);
 
+        log.info("ZoneId {}", zoneId);
         if (i18n == null && zoneId.equals("America/Caracas")) {
             DatePicker.DatePickerI18n singleFormatI18n = new DatePicker.DatePickerI18n();
             singleFormatI18n.setDateFormat("yyyy-MM-dd");

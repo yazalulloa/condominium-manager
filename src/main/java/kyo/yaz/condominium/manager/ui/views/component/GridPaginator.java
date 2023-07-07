@@ -1,10 +1,13 @@
 package kyo.yaz.condominium.manager.ui.views.component;
 
+import com.vaadin.flow.component.AbstractField;
+import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.shared.Registration;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,7 +17,7 @@ import java.util.Optional;
 import java.util.TreeSet;
 
 @Slf4j
-public class GridPaginator extends Div {
+public class GridPaginator extends Div implements HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<ComboBox<Integer>, Integer>> {
 
     private final ComboBox<Integer> itemsPerPageComBox = ViewUtil.itemPerPageComboBox();
     private final ComboBox<Integer> pageComboBox = new ComboBox<>();
@@ -22,6 +25,8 @@ public class GridPaginator extends Div {
     private long totalCount = 0;
     private long numberOfPages = 0;
     private boolean isInit = false;
+
+    private Registration pageComboBoxRegistration;
 
     public GridPaginator(Runnable runnable) {
 
@@ -46,6 +51,8 @@ public class GridPaginator extends Div {
     }
 
     private void calculatePages() {
+        log.info("Calculating pages");
+
         final var pageSize = itemsPerPageComBox.getValue();
         final var oldNumberOfPages = numberOfPages;
         if (totalCount == 0) {
@@ -60,7 +67,7 @@ public class GridPaginator extends Div {
             setPages();
         }
 
-        setVisible(!(numberOfPages == 1));
+        setVisible(numberOfPages > 1);
     }
 
     public long totalCount() {
@@ -91,7 +98,9 @@ public class GridPaginator extends Div {
 
         pageComboBox.setItems(pageList);
         if (pageComboBox.getValue() == null || pageComboBox.getValue() == 0) {
+            removePageComboBoxListener();
             pageComboBox.setValue(1);
+            setPageComboBoxListener();
         }
     }
 
@@ -147,15 +156,7 @@ public class GridPaginator extends Div {
         });
 
         itemsPerPageComBox.addValueChangeListener(o -> calculatePages());
-        pageComboBox.addValueChangeListener(o -> {
-
-            if (o.getValue() != null) {
-
-
-                log.info("runnable {}", o.getValue());
-                runnable.run();
-            }
-        });
+        setPageComboBoxListener();
 
         add(itemsPerPageComBox, firstPage, previousPage, pageComboBox, nextPage, lastPage);
         isInit = true;
@@ -169,6 +170,26 @@ public class GridPaginator extends Div {
             return true;
         }
         return false;
+    }
+
+    private void removePageComboBoxListener() {
+        if (pageComboBoxRegistration != null) {
+            pageComboBoxRegistration.remove();
+            pageComboBoxRegistration = null;
+        }
+    }
+
+    private void setPageComboBoxListener() {
+        removePageComboBoxListener();
+        pageComboBoxRegistration = pageComboBox.addValueChangeListener(this);
+    }
+
+    @Override
+    public void valueChanged(AbstractField.ComponentValueChangeEvent<ComboBox<Integer>, Integer> event) {
+        if (event.getValue() != null) {
+            log.info("runnable {}", event.getValue());
+            runnable.run();
+        }
     }
 }
 

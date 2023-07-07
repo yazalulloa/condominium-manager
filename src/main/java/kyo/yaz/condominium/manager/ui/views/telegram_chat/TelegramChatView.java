@@ -79,12 +79,12 @@ public class TelegramChatView extends BaseVerticalLayout implements TelegramChat
     this.form = form;
     this.telegramStartUrl = telegramStartUrl;
     this.linkHandler = linkHandler;
+    init();
   }
 
   @Override
   protected void onAttach(AttachEvent attachEvent) {
     super.onAttach(attachEvent);
-    init();
     initData();
     linkHandler.addListener(this);
   }

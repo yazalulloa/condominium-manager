@@ -67,7 +67,7 @@ public class RxUtil {
     return new SingleObserver<>() {
       @Override
       public void onSubscribe(@NonNull Disposable d) {
-        log.info("SUBSCRIBE ON {}", Thread.currentThread());
+        //log.info("SUBSCRIBE ON {}", Thread.currentThread());
         try {
           disposableConsumer.accept(d);
         } catch (Throwable e) {
@@ -77,7 +77,7 @@ public class RxUtil {
 
       @Override
       public void onSuccess(@NonNull T t) {
-        log.info("SUCCESS ON {}", Thread.currentThread());
+        //log.info("SUCCESS ON {}", Thread.currentThread());
         try {
           onSuccess.accept(t);
         } catch (Throwable e) {
@@ -87,7 +87,7 @@ public class RxUtil {
 
       @Override
       public void onError(@NonNull Throwable throwable) {
-        log.info("ERROR ON {}", Thread.currentThread());
+       // log.info("ERROR ON {}", Thread.currentThread());
         try {
           onError.accept(throwable);
         } catch (Throwable e) {

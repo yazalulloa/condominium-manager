@@ -62,9 +62,9 @@ public class ConvertUtil {
         return numberFormat.format(decimal);
     }
 
-    public static <T extends IAmountCurrency> Pair<BigDecimal, Currency> pair(Collection<T> collection, BigDecimal usdRate) {
+    /*public static <T extends IAmountCurrency> Pair<BigDecimal, Currency> pair(Collection<T> collection, BigDecimal usdRate) {
         return pair(collection, r -> true, usdRate);
-    }
+    }*/
 
     public static <T extends IAmountCurrency> Pair<BigDecimal, Currency> pair(Collection<T> collection, Predicate<T> predicate, BigDecimal usdRate) {
 
@@ -82,7 +82,7 @@ public class ConvertUtil {
                 .orElse(BigDecimal.ZERO);
 
 
-        if (DecimalUtil.greaterThanZero(vedAmount)) {
+        if (!DecimalUtil.equalsToZero(vedAmount)) {
             final var amount = usdAmount.multiply(usdRate)
                     .add(vedAmount)
                     .setScale(2, RoundingMode.HALF_UP);

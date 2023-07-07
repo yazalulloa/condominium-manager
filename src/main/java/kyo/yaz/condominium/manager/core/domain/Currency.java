@@ -32,4 +32,8 @@ public enum Currency {
         }
         return ConvertUtil.VE_FORMAT;
     }
+
+    public String format(BigDecimal decimal) {
+        return numberFormat().format(decimal);
+    }
 }

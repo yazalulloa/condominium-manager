@@ -49,6 +49,7 @@ public class UserView extends BaseVerticalLayout {
   @Autowired
   public UserView(UserService userService) {
     this.userService = userService;
+    init();
   }
 
   @Override
@@ -61,7 +62,6 @@ public class UserView extends BaseVerticalLayout {
     addClassName("users-view");
     setSizeFull();
     configureGrid();
-    gridPaginator.init();
 
     add(getToolbar(), grid, footer());
   }
@@ -71,7 +71,7 @@ public class UserView extends BaseVerticalLayout {
     paging()
         .map(paging -> (Runnable) () -> {
           setItems(paging);
-          init();
+          gridPaginator.init();
         })
         .doOnSuccess(this::uiAsyncAction)
         .ignoreElement()

@@ -52,7 +52,7 @@ public class DefaultJacksonMessageCodec implements MessageCodec<Object, Object> 
 
     @Override
     public Object transform(Object o) {
-        log.info("transform");
+        //log.info("transform");
         return o;
     }
 }

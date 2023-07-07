@@ -35,7 +35,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
-import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
+import kyo.yaz.condominium.manager.core.service.GetPdfItems;
 import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
 import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
@@ -83,32 +83,31 @@ public class ReceiptView extends BaseVerticalLayout {
     private final ReceiptService receiptService;
     private final LoadCsvReceipt loadCsvReceipt;
     private final ProgressLayout progressLayout = new ProgressLayout();
-    private final CreatePdfReceiptService createPdfReceiptService;
+    private final GetPdfItems getPdfItems;
     private final SendEmailReceipts sendEmailReceipts;
     private final DownloadReceiptZipService downloadReceiptZipService;
     private final TranslationProvider translationProvider;
 
     @Autowired
     public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt,
-                       CreatePdfReceiptService createPdfReceiptService, SendEmailReceipts sendEmailReceipts,
+                       GetPdfItems getPdfItems, SendEmailReceipts sendEmailReceipts,
                        DownloadReceiptZipService downloadReceiptZipService, TranslationProvider translationProvider) {
         super();
         this.buildingService = buildingService;
         this.receiptService = receiptService;
         this.loadCsvReceipt = loadCsvReceipt;
-        this.createPdfReceiptService = createPdfReceiptService;
+        this.getPdfItems = getPdfItems;
         this.sendEmailReceipts = sendEmailReceipts;
         this.downloadReceiptZipService = downloadReceiptZipService;
         this.translationProvider = translationProvider;
 
         downloadReceiptZipService.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
+        init();
     }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-
-        init();
         initData();
     }
 
@@ -300,18 +299,22 @@ public class ReceiptView extends BaseVerticalLayout {
             progressLayout.setVisible(true);
         });
 
-        createPdfReceiptService.createFiles(receipt)
+        getPdfItems.pdfItems(receipt)
                 .observeOn(Schedulers.io())
-                .flatMap(list -> sendEmailReceipts.send(receipt, list))
+                .flatMap(list -> sendEmailReceipts.sendV2(receipt, list))
                 .toFlowable()
                 .flatMap(list -> {
+                    final var month = translationProvider.translate(receipt.month().name());
+                    final var prefix = "Enviando %s %s %s".formatted(receipt.buildingId(), month, receipt.date());
+
+                    final var progressText = prefix + " %s/%s";
 
                     uiAsyncAction(() -> {
                         progressLayout.progressBar().setIndeterminate(false);
                         progressLayout.progressBar().setMin(0);
                         progressLayout.progressBar().setMax(list.size());
                         progressLayout.progressBar().setValue(0);
-                        progressLayout.setProgressText("Enviando emails %s/%s".formatted(0, list.size()));
+                        progressLayout.setProgressText(progressText.formatted(0, list.size()));
                     });
 
                     final AtomicInteger i = new AtomicInteger(1);
@@ -322,7 +325,7 @@ public class ReceiptView extends BaseVerticalLayout {
                                     final var integer = i.getAndIncrement();
                                     progressLayout.progressBar().setValue(integer);
 
-                                    progressLayout.setProgressText("Enviando email %s/%s".formatted(integer, list.size()),
+                                    progressLayout.setProgressText(progressText.formatted(integer, list.size()),
                                             "%s -> %s".formatted(request.from(), request.to()));
                                 });
                             });

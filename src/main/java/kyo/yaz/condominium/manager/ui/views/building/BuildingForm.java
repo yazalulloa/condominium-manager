@@ -18,6 +18,7 @@ import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -39,8 +40,8 @@ public class BuildingForm extends BaseForm {
     @PropertyId("currenciesToShowAmountToPay")
     private final MultiSelectComboBox<Currency> currenciesToShowAmountToPayComboBox = new MultiSelectComboBox<>(Labels.Building.SHOW_PAYMENT_IN_CURRENCIES, Currency.values);
 
-    @PropertyId("roundUpPayments")
-    private final Checkbox roundUpPaymentsField = new Checkbox(Labels.Building.ROUND_UP_PAYMENTS_LABEL);
+    /*@PropertyId("roundUpPayments")
+    private final Checkbox roundUpPaymentsField = new Checkbox(Labels.Building.ROUND_UP_PAYMENTS_LABEL);*/
 
     @PropertyId("fixedPay")
     private final Checkbox fixedPayField = new Checkbox(Labels.Building.FIXED_PAY_LABEL);
@@ -76,7 +77,7 @@ public class BuildingForm extends BaseForm {
                 debtCurrencyComboBox,
                 currenciesToShowAmountToPayComboBox,
                 emailConfigComboBox,
-                roundUpPaymentsField,
+                //roundUpPaymentsField,
                 fixedPayField,
                 fixedPayAmountField);
 

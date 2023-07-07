@@ -3,7 +3,7 @@ package kyo.yaz.condominium.manager.core.service;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
-import kyo.yaz.condominium.manager.core.pdf.CreateBuildingPdfReceipt;
+import kyo.yaz.condominium.manager.core.pdf.CreatePdfBuildingReceipt;
 import kyo.yaz.condominium.manager.core.pdf.CreatePdfAptReceipt;
 import kyo.yaz.condominium.manager.core.pdf.CreatePdfReceipt;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
@@ -11,6 +11,7 @@ import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
 import kyo.yaz.condominium.manager.core.util.ZipUtility;
+import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -31,6 +33,7 @@ public class CreatePdfReceiptService {
     private final ApartmentService apartmentService;
     private final DeleteDirAfterDelay deleteDirAfterDelay;
     private final TranslationProvider translationProvider;
+    private final GetReceiptZipName getReceiptZipName;
 
 
     public Single<List<CreatePdfReceipt>> createFiles(Long receiptId) {
@@ -45,7 +48,9 @@ public class CreatePdfReceiptService {
                 .flatMapObservable(Observable::fromIterable)
                 .map(createPdfReceipt -> new PdfReceiptItem(createPdfReceipt.path(),
                         createPdfReceipt.path().getFileName().toString(),
-                        createPdfReceipt.id()))
+                        createPdfReceipt.id(),
+                        createPdfReceipt.building().name(),
+                        Optional.ofNullable(createPdfReceipt.apartment()).map(Apartment::emails).orElse(null)))
                 .toList(LinkedList::new)
                 /*.reduceWith(LinkedHashMap::new, (map, item) -> {
                     map.put(item.id(), item);
@@ -67,7 +72,7 @@ public class CreatePdfReceiptService {
 
                 final var list = new LinkedList<CreatePdfReceipt>();
 
-                final var buildingPdfReceipt = CreateBuildingPdfReceipt.builder()
+                final var buildingPdfReceipt = CreatePdfBuildingReceipt.builder()
                         .translationProvider(translationProvider)
                         .path(path.resolve(building.id() + ".pdf"))
                         .receipt(receipt)
@@ -122,17 +127,12 @@ public class CreatePdfReceiptService {
         return createFiles(receipt, true);
     }
 
-    public String fileName(Receipt receipt) {
-        final var month = translationProvider.translate(receipt.month().name());
-        return "%s_%s_%s.zip".formatted(receipt.buildingId(), month, receipt.date());
-    }
-
     public Single<String> zip(Receipt receipt) {
         return createFiles(receipt)
                 .map(list -> {
 
                     final var dirPath = "tmp/" + receipt.buildingId() + "/";
-                    final var path = dirPath + fileName(receipt);
+                    final var path = dirPath + getReceiptZipName.fileName(receipt);
                     Files.createDirectories(Paths.get(dirPath));
                     final var files = list.stream().map(CreatePdfReceipt::path)
                             .map(Path::toFile)

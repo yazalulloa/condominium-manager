@@ -9,6 +9,7 @@ services:
     volumes:
       - ./config:/app/config
     environment:
+      - TZ=America/Caracas
       - CLOUD_PROVIDER=LOCAL
       - SHOW_DIR=true
       - DOCKER_TIMEZONE=America/Caracas

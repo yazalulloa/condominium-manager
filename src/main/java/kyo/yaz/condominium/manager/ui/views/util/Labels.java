@@ -16,7 +16,7 @@ public class Labels {
     public static final String DEBTS = "Deudas";
     public static final String NEW_EXPENSE = "Nuevo Gasto";
     public static final String NEW_DEBT = "Nueva Deuda";
-  public static final String ASK_CONFIRMATION_DELETE_TELEGRAM_CHAT = "Esta seguro de borrar el chat\n %s %s?";
+    public static final String ASK_CONFIRMATION_DELETE_TELEGRAM_CHAT = "Esta seguro de borrar el chat\n %s %s?";
     public static final String ASK_CONFIRMATION_DELETE_USERS = "Esta seguro de borrar el usuarios\n %s %s?";
     public static final String ASK_CONFIRMATION_DELETE_RATE = "Esta seguro de borrar la tasa de cambio\n %s %s %s?";
     public static final String ASK_CONFIRMATION_DELETE_APT = "Esta seguro de borrar el apartament \n %s %s?";
@@ -34,7 +34,7 @@ public class Labels {
     public static final String VIEW_PDFS = "Ver PDFs";
     public static final String TOTAL_EXPENSES = "Gastos totales";
 
-  public static class Apartment {
+    public static class Apartment {
         public static final String BUILDING_LABEL = "Edificio";
         public static final String NUMBER_LABEL = "Nro de apt";
         public static final String NAME_LABEL = "Propietario";
@@ -68,6 +68,7 @@ public class Labels {
         public static final String ROUND_UP_PAYMENTS_LABEL = "Redondear hacia arriba los montos a pagar";
         public static final String RESERVE_FUND_PERCENTAGE_LABEL = "Porcentage para el Fondo de reserva";
         public static final String AMOUNT_OF_APTS = "Cantidad de apartamentos";
+        public static final String ROUNDING_MODE_APT_PAYMENT_LABEL = "Redondeo de pagos por apartamento";
     }
 
 
@@ -162,6 +163,6 @@ public class Labels {
 
     public static class TelegramChat {
 
-      public static final String NOTIFICATION_LABEL = "Notificaciones";
+        public static final String NOTIFICATION_LABEL = "Notificaciones";
     }
 }

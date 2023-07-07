@@ -32,7 +32,7 @@ public class LoadCsvReceipt {
 
         final var debtList = csvReceipt.debts().stream()
             .map(debt -> debt.toBuilder()
-                .previousPaymentAmountCurrency(debt.previousPaymentAmount() != null ? building.mainCurrency() : null)
+                .previousPaymentAmountCurrency(debt.previousPaymentAmount() != null ? building.debtCurrency() : null)
                 .build())
             .collect(Collectors.toList());
 

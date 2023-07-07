@@ -7,12 +7,12 @@ import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.DeleteDirAfterDelay;
 import kyo.yaz.condominium.manager.core.service.GetPdfItems;
+import kyo.yaz.condominium.manager.core.service.entity.CalculateReceiptInfo;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -32,6 +32,7 @@ public class BuildReceiptPdfs implements GetPdfItems {
 
     private final CreatePdfReceiptService createPdfReceiptService;
     private final DeleteDirAfterDelay deleteDirAfterDelay;
+    private final CalculateReceiptInfo calculateReceiptInfo;
     private String tempPath;
     private Consumer<Consumer<ProgressLayout>> plConsumer;
 
@@ -45,7 +46,9 @@ public class BuildReceiptPdfs implements GetPdfItems {
 
         tempPath = "tmp/" + UUID.randomUUID() + "/";
         final AtomicInteger i = new AtomicInteger(1);
-        return createPdfReceiptService.pdfReceipts(tempPath, receipt)
+
+        return calculateReceiptInfo.calculate(receipt)
+                .flatMap(newReceipt -> createPdfReceiptService.pdfReceipts(tempPath, newReceipt))
                 .observeOn(Schedulers.io())
                 .flatMap(list -> {
 
@@ -80,7 +83,10 @@ public class BuildReceiptPdfs implements GetPdfItems {
                                         .map(Apartment.ApartmentId::number)
                                         .orElse(pdf.building().name());
 
-                                return new PdfReceiptItem(pdf.path(), "%s.pdf".formatted(fileName), pdf.id());
+                                return new PdfReceiptItem(pdf.path(), "%s.pdf".formatted(fileName),
+                                        pdf.id(),
+                                        pdf.building().name(),
+                                        Optional.ofNullable(pdf.apartment()).map(Apartment::emails).orElse(null));
                             })
                             .toList(LinkedList::new);
 

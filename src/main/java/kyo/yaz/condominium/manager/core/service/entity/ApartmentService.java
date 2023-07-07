@@ -44,10 +44,7 @@ public class ApartmentService implements MongoService<Apartment> {
 
     final var sortings = new LinkedHashSet<Sorting<ApartmentQueryRequest.SortField>>();
 
-    if (buildings == null || buildings.isEmpty()) {
-      sortings.add(ApartmentQueryRequest.sorting(ApartmentQueryRequest.SortField.BUILDING_ID, Sort.Direction.ASC));
-    }
-
+    sortings.add(ApartmentQueryRequest.sorting(ApartmentQueryRequest.SortField.BUILDING_ID, Sort.Direction.ASC));
     sortings.add(ApartmentQueryRequest.sorting(ApartmentQueryRequest.SortField.NUMBER, Sort.Direction.ASC));
 
     final var request = ApartmentQueryRequest.builder()
@@ -98,7 +95,17 @@ public class ApartmentService implements MongoService<Apartment> {
   public Completable delete(Apartment entity) {
     return RxJava3Adapter.monoToCompletable(repository.delete(entity));
   }
+  public Completable delete(Iterable<Apartment> entities) {
+    return RxJava3Adapter.monoToCompletable(repository.deleteAll(entities));
+  }
 
+  public Single<List<Apartment>> save(Iterable<Apartment> entities) {
+
+    final var mono = repository.saveAll(entities)
+            .collectList();
+
+    return RxJava3Adapter.monoToSingle(mono);
+  }
   public Single<Apartment> save(Apartment entity) {
     return RxJava3Adapter.monoToSingle(repository.save(entity));
   }
@@ -133,14 +140,6 @@ public class ApartmentService implements MongoService<Apartment> {
 
     return writeEntityToFile.downloadFile("apartments.json.gz");
 
-  }
-
-  public Single<List<Apartment>> save(Iterable<Apartment> entities) {
-
-    final var mono = repository.saveAll(entities)
-        .collectList();
-
-    return RxJava3Adapter.monoToSingle(mono);
   }
 
   public Completable upload(String fileName) {

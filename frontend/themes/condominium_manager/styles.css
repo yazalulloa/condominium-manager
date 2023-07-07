@@ -49,8 +49,9 @@ a[highlight] {
 }
 
 * {
-    /*font-family: "Lucida Console", "Courier New", monospace;
-    font-size: 1rem;*/
+    font-family: Arial, Helvetica, sans-serif;
+    /*font-family: "Lucida Console", "Courier New", monospace;*/
+    font-size: 1rem;
 
     spacing-xs: 4px;
     spacing-s: 8px;

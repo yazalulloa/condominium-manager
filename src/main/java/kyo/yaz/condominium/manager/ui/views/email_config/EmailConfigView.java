@@ -63,12 +63,13 @@ public class EmailConfigView extends BaseVerticalLayout {
     @Autowired
     public EmailConfigView(EmailConfigService service) {
         this.service = service;
+        init();
     }
 
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        init();
+
 
         refreshData()
                 .subscribeOn(Schedulers.io())

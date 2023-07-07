@@ -21,6 +21,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
+import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.service.GetPdfItems;
 import kyo.yaz.condominium.manager.core.util.StringUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
@@ -46,24 +47,27 @@ public class ReceipPdfView extends BaseDiv {
     private final Anchor downloadAnchor = new Anchor();
     private final GetPdfItems getPdfItems;
     private final DownloadReceiptZipService downloadReceiptZipService;
+    private final TranslationProvider translationProvider;
+    private H5 title;
 
     @Autowired
-    public ReceipPdfView(GetPdfItems getPdfItems, DownloadReceiptZipService downloadReceiptZipService) {
+    public ReceipPdfView(GetPdfItems getPdfItems, DownloadReceiptZipService downloadReceiptZipService, TranslationProvider translationProvider) {
         this.getPdfItems = getPdfItems;
         this.downloadReceiptZipService = downloadReceiptZipService;
-        addClassName("receipt-pdf-view");
-        setSizeFull();
+        this.translationProvider = translationProvider;
+        init();
     }
 
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        super.onAttach(attachEvent);
+    private void init() {
+        addClassName("receipt-pdf-view");
+        setSizeFull();
 
         final var goBackBtn = new Button(new Icon(VaadinIcon.ARROW_LEFT));
         goBackBtn.setDisableOnClick(true);
         goBackBtn.addClickListener(e -> ui(ui -> ui.navigate(ReceiptView.class)));
 
-        final var title = new H5("Recibo de Pago PDF");
+
+        title = new H5("Recibo de Pago PDF ");
         title.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE, LumoUtility.AlignContent.CENTER, LumoUtility.AlignSelf.CENTER, LumoUtility.AlignItems.CENTER);
 
 
@@ -76,7 +80,12 @@ public class ReceipPdfView extends BaseDiv {
         progressContainer.setMargin(true);
 
         add(horizontalLayout, progressContainer);
-        init();
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        initData();
     }
 
     @Override
@@ -85,7 +94,7 @@ public class ReceipPdfView extends BaseDiv {
         getPdfItems.delete();
     }
 
-    public void init() {
+    public void initData() {
         final var receipt = (Receipt) VaadinSession.getCurrent().getAttribute("receipt");
 
         if (receipt == null) {
@@ -111,11 +120,14 @@ public class ReceipPdfView extends BaseDiv {
                     final var zipPath = downloadReceiptZipService.zipPath(receipt, list);
                     final var filePath = StringUtil.compressStr(zipPath);
 
-                    downloadAnchor.setHref("/file-download?path=" + filePath);
-                    downloadAnchor.getElement().setAttribute("download", true);
-                    downloadAnchor.add(new Button("Descargar todos"));
+                    final var month = translationProvider.translate(receipt.month().name());
+                    final var titleText = "Recibo de Pago PDF %s %s %s %s".formatted(receipt.buildingId(), month, receipt.date(), receipt.id());
 
                     uiAsyncAction(() -> {
+                        title.setText(titleText);
+                        downloadAnchor.setHref("/file-download?path=" + filePath);
+                        downloadAnchor.getElement().setAttribute("download", true);
+                        downloadAnchor.add(new Button("Descargar todos"));
                         remove(progressContainer);
                         add(tabSheet);
                         tabSheet.setSizeFull();

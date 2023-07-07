@@ -17,10 +17,10 @@
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <vaadin.version>24.1.1</vaadin.version>
+    <vaadin.version>24.1.2</vaadin.version>
     <!--<vaadin.version>23.3.2</vaadin.version>-->
     <vertx.version>4.4.4</vertx.version>
-    <mapstruct.version>1.5.3.Final</mapstruct.version>
+    <mapstruct.version>1.5.5.Final</mapstruct.version>
     <lombok.version>1.18.28</lombok.version>
     <poi.version>5.2.3</poi.version>
     <version.light-4j>2.1.18</version.light-4j>
@@ -29,7 +29,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.1.0</version>
+    <version>3.1.1</version>
   </parent>
 
   <dependencyManagement>
@@ -93,7 +93,7 @@
     <dependency>
       <groupId>in.virit</groupId>
         <artifactId>viritin</artifactId>
-      <version>2.0.1</version>
+      <version>2.1.0</version>
     </dependency>
 
     <dependency>
@@ -188,7 +188,7 @@
     <dependency>
       <groupId>io.github.bonigarcia</groupId>
       <artifactId>webdrivermanager</artifactId>
-      <version>5.3.3</version>
+      <version>5.4.0</version>
       <!--<version>5.0.3</version>-->
       <scope>test</scope>
     </dependency>
@@ -196,7 +196,7 @@
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-test</artifactId>
-      <version>3.5.6</version>
+      <version>3.5.7</version>
       <scope>test</scope>
     </dependency>
 
@@ -306,7 +306,7 @@
     <dependency>
       <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
-      <version>8.0.0.Final</version>
+      <version>8.0.1.Final</version>
     </dependency>
 
     <!--  <dependency>
@@ -324,7 +324,7 @@
     <dependency>
       <groupId>com.google.http-client</groupId>
       <artifactId>google-http-client-jackson2</artifactId>
-      <version>1.43.2</version>
+      <version>1.43.3</version>
     </dependency>
 
     <dependency>
@@ -336,7 +336,7 @@
     <dependency>
       <groupId>com.google.apis</groupId>
       <artifactId>google-api-services-gmail</artifactId>
-      <version>v1-rev20230515-2.0.0</version>
+      <version>v1-rev20230612-2.0.0</version>
     </dependency>
 
     <dependency>
@@ -348,20 +348,20 @@
     <dependency>
       <groupId>jakarta.mail</groupId>
       <artifactId>jakarta.mail-api</artifactId>
-      <version>2.1.1</version>
+      <version>2.1.2</version>
     </dependency>
 
     <dependency>
       <groupId>jakarta.activation</groupId>
       <artifactId>jakarta.activation-api</artifactId>
-      <version>2.1.1</version>
+      <version>2.1.2</version>
     </dependency>
 
 
     <dependency>
       <groupId>de.flapdoodle.embed</groupId>
       <artifactId>de.flapdoodle.embed.mongo</artifactId>
-      <version>4.6.1</version>
+      <version>4.7.0</version>
       <scope>test</scope>
     </dependency>
 

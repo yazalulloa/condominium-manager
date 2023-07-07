@@ -5,15 +5,10 @@ import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import org.checkerframework.checker.nullness.Opt;
 
 public class ObjectUtil {
 
@@ -21,24 +16,16 @@ public class ObjectUtil {
         return Optional.ofNullable(aBoolean).orElse(false);
     }
 
-    public static BigDecimal totalAptPay(BigDecimal unCommonPayPerApt, Building building, BigDecimal rate,
-                                         BigDecimal totalCommonExpenses,
-                                         BigDecimal aptAliquot,
-                                         Collection<ExtraCharge> extraCharges) {
-
-        Function<BigDecimal, BigDecimal> function = bigDecimal -> {
-            if (building.roundUpPayments()) {
-                return bigDecimal.setScale(0, RoundingMode.UP);
-            }
-            return bigDecimal.setScale(2, RoundingMode.HALF_UP);
-        };
+    public static Map<Currency, BigDecimal> totalAptPay(BigDecimal unCommonPayPerApt, Building building, BigDecimal rate,
+                                                        BigDecimal totalCommonExpenses,
+                                                        BigDecimal aptAliquot,
+                                                        Collection<ExtraCharge> extraCharges) {
 
         final var currency = building.mainCurrency();
         if (ObjectUtil.aBoolean(building.fixedPay())) {
 
-            final var bigDecimal = totalPayment(building.fixedPayAmount(), currency, rate, extraCharges);
+            return totalPayment(building.fixedPay(), building.fixedPayAmount(), currency, rate, extraCharges);
 
-            return function.apply(bigDecimal);
         } else {
 
             //document.add(new Paragraph("MONTO DE GASTOS NO COMUNES POR C/U: " + currencyType.numberFormat().format(unCommonPay)));
@@ -46,31 +33,84 @@ public class ObjectUtil {
             final var aliquotAmount = DecimalUtil.percentageOf(aptAliquot, totalCommonExpenses);
             // document.add(new Paragraph("MONTO POR ALIQUOTA: " + currencyType.numberFormat().format(aliquotAmount)));
             final var beforePay = aliquotAmount.add(unCommonPayPerApt);//.setScale(2, RoundingMode.UP);
-            final var bigDecimal = totalPayment(beforePay, currency, rate, extraCharges).setScale(2, RoundingMode.HALF_UP);
-            return function.apply(bigDecimal);
+            return totalPayment(building.fixedPay(), beforePay, currency, rate, extraCharges);
 
         }
     }
 
-    public static BigDecimal totalPayment(BigDecimal payment, Currency currencyType, BigDecimal usdExchangeRate, Collection<ExtraCharge> extraCharges) {
-        //final var usdExchangeRate = BigDecimal.valueOf(rate);
+    public static Map<Currency, BigDecimal> totalPayment(boolean fixedPay,
+                                                         BigDecimal preCalculatedPayment,
+                                                         Currency currencyType, BigDecimal usdExchangeRate,
+                                                         Collection<ExtraCharge> extraCharges) {
+
+        var usdPay = BigDecimal.ZERO;
+        var vesPay = BigDecimal.ZERO;
+
+        Function<BigDecimal, BigDecimal> toUsd = ves -> {
+            return ves.divide(usdExchangeRate, 2, RoundingMode.HALF_UP);
+        };
+
+        Function<BigDecimal, BigDecimal> toVes = usd -> {
+            return usd.multiply(usdExchangeRate);
+        };
+
+        final var vesExtraCharge = extraCharges.stream().filter(c -> c.currency() == Currency.VED)
+                .map(ExtraCharge::amount)
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
+
+        final var usdExtraCharge = extraCharges.stream().filter(c -> c.currency() == Currency.USD)
+                .map(ExtraCharge::amount)
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
+
+        vesPay = vesPay.add(vesExtraCharge).add(DecimalUtil.equalsToZero(usdExtraCharge) ? BigDecimal.ZERO : toVes.apply(usdExtraCharge));
+        usdPay = usdPay.add(usdExtraCharge).add(DecimalUtil.equalsToZero(vesExtraCharge) ? BigDecimal.ZERO : toUsd.apply(vesExtraCharge));
 
 
-        if (!extraCharges.isEmpty()) {
-            final var vesExtraCharge = extraCharges.stream().filter(c -> Optional.ofNullable(c.currency()).orElse(Currency.VED) == Currency.VED).map(ExtraCharge::amount)
-                    .reduce(BigDecimal::add)
-                    .orElse(BigDecimal.ZERO);
-
-            final var usdExtraCharge = extraCharges.stream().filter(c -> c.currency() == Currency.USD).map(ExtraCharge::amount)
-
-                    .reduce(BigDecimal::add)
-                    .orElse(BigDecimal.ZERO);
+        if (fixedPay) {
             if (currencyType == Currency.USD) {
-                payment = payment.add(usdExtraCharge);
+                usdPay = usdPay.add(preCalculatedPayment);
+                vesPay = vesPay.add(toVes.apply(preCalculatedPayment));
+            } else {
+                vesPay = vesPay.add(preCalculatedPayment);
+                usdPay = usdPay.add(toUsd.apply(preCalculatedPayment));
+            }
+        } else {
+            vesPay = vesPay.add(preCalculatedPayment);
+            usdPay = usdPay.add(toUsd.apply(preCalculatedPayment));
+        }
 
-                if (!DecimalUtil.equalsToZero(vesExtraCharge)) {
-                    final var toUsd = vesExtraCharge.divide(usdExchangeRate, 2, RoundingMode.HALF_UP);
-                    payment = payment.add(toUsd);
+        Function<BigDecimal, BigDecimal> function = bigDecimal -> {
+            /*if (building.roundUpPayments()) {
+                return bigDecimal.setScale(0, RoundingMode.UP);
+            }*/
+
+            return bigDecimal.setScale(2, RoundingMode.HALF_UP);
+        };
+
+        return Map.of(
+                Currency.USD, function.apply(usdPay),
+                Currency.VED, function.apply(vesPay)
+        );
+
+       /* if (!extraCharges.isEmpty()) {
+
+
+            if (fixedPay) {
+                if (currencyType == Currency.USD) {
+                    payment = payment.add(usdExtraCharge);
+
+                    if (!DecimalUtil.equalsToZero(vesExtraCharge)) {
+                        final var toUsd = vesExtraCharge.divide(usdExchangeRate, 2, RoundingMode.HALF_UP);
+                        payment = payment.add(toUsd);
+                    }
+                } else {
+                    payment = payment.add(vesExtraCharge);
+                    if (!DecimalUtil.equalsToZero(usdExtraCharge)) {
+                        final var toVes = usdExtraCharge.multiply(usdExchangeRate, MathContext.UNLIMITED);//.setScale(2, RoundingMode.UP);
+                        payment = payment.add(toVes);
+                    }
                 }
             } else {
                 payment = payment.add(vesExtraCharge);
@@ -78,11 +118,14 @@ public class ObjectUtil {
                     final var toVes = usdExtraCharge.multiply(usdExchangeRate, MathContext.UNLIMITED);//.setScale(2, RoundingMode.UP);
                     payment = payment.add(toVes);
                 }
+
             }
+
+
         }
 
 
-        return payment;
+        return payment;*/
     }
 
     public static List<ExtraCharge> extraCharges(String aptNumber, List<ExtraCharge> first, List<ExtraCharge> second) {
