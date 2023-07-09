@@ -5,12 +5,14 @@ import kyo.yaz.condominium.manager.core.util.PoiUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
+import kyo.yaz.condominium.manager.ui.views.util.AppUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -86,32 +88,35 @@ public class ParseCsv {
     public List<Debt> debts(Sheet sheet) {
         final var debts = new LinkedList<Debt>();
 
-        boolean skipFirst = false;
         for (final Row row : sheet) {
             final var list = PoiUtil.toList(row);
             if (list.size() >= 4) {
-                if (!skipFirst) {
-                    skipFirst = true;
-                    continue;
-                }
+
                 final var apt = PoiUtil.apt(list.get(0).trim());
                 final var name = list.get(1).trim();
                 final var receipts = list.get(2).trim();
                 final var amount = list.get(3).trim();
+
+                if (!amount.isEmpty() && !AppUtil.isNumeric(amount)) {
+                    continue;
+                }
+
                 final var status = list.size() > 4 ? list.get(4) : "";
                 final var abono = list.size() > 5 ? list.get(5) : null;
 
                 final var previousPaymentAmount = Optional.ofNullable(abono)
-                    .filter(str -> !str.equals("OJO"))
+                        .filter(str -> !str.equals("OJO"))
                         .map(PoiUtil::decimal)
                         .orElse(null);
+
+                final var amountDecimal = amount.isEmpty() ? BigDecimal.ZERO : PoiUtil.decimal(amount);
 
 
                 final var debt = Debt.builder()
                         .aptNumber(apt)
                         .name(name)
                         .receipts(PoiUtil.decimal(receipts).intValue())
-                        .amount(PoiUtil.decimal(amount))
+                        .amount(amountDecimal)
                         .months(months(status))
                         .previousPaymentAmount(previousPaymentAmount)
                         .build();

@@ -102,6 +102,7 @@ public class ReceiptView extends BaseVerticalLayout {
         this.translationProvider = translationProvider;
 
         downloadReceiptZipService.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
+        getPdfItems.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
         init();
     }
 
@@ -239,9 +240,9 @@ public class ReceiptView extends BaseVerticalLayout {
     private Component cardBody(Receipt receipt) {
         final var div = new Div();
         div.addClassName("body");
+
         Map.of(
-                Labels.Receipt.EXPENSE_COMMON_LABEL,
-                ConvertUtil.format(receipt.totalCommonExpenses(), receipt.totalCommonExpensesCurrency()),
+                Labels.Receipt.EXPENSE_COMMON_LABEL, ConvertUtil.format(receipt.totalCommonExpenses(), receipt.totalCommonExpensesCurrency()),
                 Labels.Receipt.EXPENSE_UNCOMMON_LABEL,
                 ConvertUtil.format(receipt.totalUnCommonExpenses(), receipt.totalUnCommonExpensesCurrency()),
                 Labels.Receipt.DEBT_RECEIPT_TOTAL_NUMBER_LABEL, receipt.debtReceiptsAmount(),
@@ -252,10 +253,12 @@ public class ReceiptView extends BaseVerticalLayout {
         ).forEach((label, value) -> div.add(new Span("%s: %s".formatted(label, value.toString()))));
 
         final var sentIcon = IconUtil.checkMarkOrCross(Optional.ofNullable(receipt.sent()).orElse(false));
+
+        final var sent = new Span(new Span(Labels.Receipt.SENT_LABEL + ": "), sentIcon);
         if (receipt.lastSent() != null) {
             sentIcon.setTooltipText(DateUtil.formatVe(receipt.lastSent()));
         }
-        final var sent = new Span(new Span(Labels.Receipt.SENT_LABEL + ": "), sentIcon);
+
 
         div.add(sent);
         return div;
@@ -301,6 +304,13 @@ public class ReceiptView extends BaseVerticalLayout {
 
         getPdfItems.pdfItems(receipt)
                 .observeOn(Schedulers.io())
+                .doOnSuccess(l -> {
+                    uiAsyncAction(() -> {
+                        progressLayout.setProgressText("Preparando para enviar");
+                        progressLayout.progressBar().setIndeterminate(true);
+                        progressLayout.setVisible(true);
+                    });
+                })
                 .flatMap(list -> sendEmailReceipts.sendV2(receipt, list))
                 .toFlowable()
                 .flatMap(list -> {

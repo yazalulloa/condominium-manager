@@ -52,7 +52,7 @@ public class SendEmailReceipts {
                                             final var emailRequest = EmailRequest.builder()
                                                     .from(emailConfig.from())
                                                     .to(pdfReceipt.emails())
-                                                    //.to(Set.of("yzlup2@gmail.com"))
+                                                    .to(Set.of("yzlup2@gmail.com"))
                                                     .subject(subject.formatted(month, pdfReceipt.buildingName() ,
                                                             pdfReceipt.id()))
                                                     .text(bodyText)

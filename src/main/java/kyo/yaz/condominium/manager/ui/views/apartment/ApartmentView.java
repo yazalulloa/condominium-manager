@@ -24,7 +24,10 @@ import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.reactivex.rxjava3.subjects.AsyncSubject;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.mapper.ApartmentMapper;
@@ -243,8 +246,26 @@ public class ApartmentView extends BaseVerticalLayout {
         buildingComboBox.setClearButtonVisible(true);
         buildingComboBox.setAutoOpen(true);
 
+        final var asyncSubject = BehaviorSubject.create();
 
-        final var disposable = Flowable.create(emitter -> {
+        buildingComboBox.addValueChangeListener(o -> {
+            logger().info("emit event {}", o.getValue());
+            asyncSubject.onNext(o.getValue());
+        });
+
+        final var subscribed = asyncSubject
+                .debounce(1000, TimeUnit.MILLISECONDS)
+                .distinctUntilChanged()
+                .subscribe(o -> {
+                    logger().info("consume event {}", o);
+                    if (!gridPaginator.goToFirstPage()) {
+                        updateGrid();
+                    }
+                }, this::showError);
+
+        compositeDisposable.add(subscribed);
+
+       /* final var disposable = Flowable.create(emitter -> {
                     buildingComboBox.addValueChangeListener(o -> {
                         logger().info("emit event {}", o.getValue());
                         emitter.onNext(o.getValue());
@@ -256,10 +277,9 @@ public class ApartmentView extends BaseVerticalLayout {
                     if (!gridPaginator.goToFirstPage()) {
                         updateGrid();
                     }
-                }, t -> {
-                });
+                }, this::showError);
 
-        compositeDisposable.add(disposable);
+        compositeDisposable.add(disposable);*/
 
 
         /*buildingComboBox.addValueChangeListener(o -> {

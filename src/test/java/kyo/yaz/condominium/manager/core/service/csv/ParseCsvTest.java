@@ -13,7 +13,8 @@ class ParseCsvTest {
 
     @Test
     void test() throws IOException {
-        final var path = "/home/yaz/Downloads/ANTONIETA FACTURA  JUNIO 23.xlsx";
+        final var path = "C:\\Users\\yazal\\Downloads\\MARACAIBO PREFACTURA JUN23  YAZAL ANALIZA.xlsx";
+        //final var path = "/home/yaz/Downloads/ANTONIETA FACTURA  JUNIO 23.xlsx";
         //final var path = "/home/yaz/Downloads/GLADYS FACTURA  MAY23 YAZAL.xlsx";
         final var csvReceipt = new ParseCsv().csvReceipt(new FileInputStream(path));
 

@@ -151,10 +151,11 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
 
             receipt().reserveFundTotals().forEach(fund -> {
                 final var newFund = fund.fund().add(fund.amount());
-                final var previousReserveFund = ConvertUtil.format(fund.fund(), building().mainCurrency());
-                final var amountToPay = ConvertUtil.format(fund.amount(), building().mainCurrency()) + " " + fund.pay() + (fund.type() == ReserveFund.Type.FIXED_PAY ? "" : "%");
-                final var newReserveFund = ConvertUtil.format(newFund, building().mainCurrency());
+                final var reserveFundCurrency = Currency.VED;
 
+                final var previousReserveFund = reserveFundCurrency.format(fund.fund());
+                final var amountToPay = reserveFundCurrency.format(fund.amount()) + " " + (fund.type() == ReserveFund.Type.FIXED_PAY ? "" : fund.pay() + "%");
+                final var newReserveFund = reserveFundCurrency.format(newFund);
 
                 final var table = PdfUtil.table(4);
 
@@ -171,9 +172,12 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
                 addCell.accept(newReserveFund);
 
 
-                if (!debtTableAdded.get()) {
-                    final var debt = ConvertUtil.format(receipt().totalDebt(), building.debtCurrency());
-                    final var fundAfterDebt = ConvertUtil.format(newFund.subtract(receipt().totalDebt()), building().mainCurrency());
+                if (fund.name().equals("FONDO DE RESERVA") && !debtTableAdded.get()) {
+                    final var totalDebt = receipt().totalDebt();
+                    final var debt = building.debtCurrency().format(totalDebt);
+
+                    final var modifiedDebt = Currency.toCurrency(totalDebt, building().debtCurrency(), receipt.rate().rate(), reserveFundCurrency);
+                    final var fundAfterDebt = reserveFundCurrency.format(newFund.subtract(modifiedDebt));
 
                     addCell.accept("P/Cobrar > Recibos  %s".formatted(receipt.debtReceiptsAmount()));
                     addCell.accept(debt);

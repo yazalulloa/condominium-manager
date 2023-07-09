@@ -8,8 +8,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -162,20 +160,25 @@ public class FileUtil {
      */
     public static final BigDecimal ONE_YB = ONE_KB_BI.multiply(ONE_ZB);
 
-    public static final Map<String, BigDecimal> MEMORY_MAP;
-
-    static {
-        MEMORY_MAP = new LinkedHashMap<>();
-        MEMORY_MAP.put("EB", ONE_EB_BI);
-        MEMORY_MAP.put("PB", ONE_PB_BI);
-        MEMORY_MAP.put("TB", ONE_TB_BI);
-        MEMORY_MAP.put("GB", ONE_GB_BI);
-        MEMORY_MAP.put("MB", ONE_MB_BI);
-        MEMORY_MAP.put("KB", ONE_KB_BI);
-    }
+    public static final UnitSizeTuple[] UNIT_SIZE_TUPLES = {
+            new UnitSizeTuple("EB", ONE_EB_BI),
+            new UnitSizeTuple("PB", ONE_PB_BI),
+            new UnitSizeTuple("TB", ONE_TB_BI),
+            new UnitSizeTuple("GB", ONE_GB_BI),
+            new UnitSizeTuple("MB", ONE_MB_BI),
+            new UnitSizeTuple("KB", ONE_KB_BI)
+    };
 
     // See https://issues.apache.org/jira/browse/IO-226 - should the rounding be changed?
+
+
+    private record UnitSizeTuple(String unit,
+                                 BigDecimal size) {
+
+    }
+
     public static String byteCountToDisplaySize(final BigDecimal size) {
+
         Objects.requireNonNull(size, "size");
 
         BiFunction<String, BigDecimal, String> getDisplaySize = (unit, divisor) -> {
@@ -191,10 +194,14 @@ public class FileUtil {
             return null;
         };
 
-        return MEMORY_MAP.entrySet().stream().map(entry -> getDisplaySize.apply(entry.getKey(), entry.getValue()))
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(size + " bytes");
+        for (UnitSizeTuple(String unit, BigDecimal size1) : UNIT_SIZE_TUPLES) {
+            final var displaySize = getDisplaySize.apply(unit, size1);
+            if (displaySize != null) {
+                return displaySize;
+            }
+        }
+
+        return size + " bytes";
 
  /* final String displaySize;
     if (size.divide(ONE_EB_BI, RoundingMode.HALF_UP).compareTo(BigDecimal.ZERO) > 0) {
