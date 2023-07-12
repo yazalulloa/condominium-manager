@@ -1,7 +1,6 @@
 package kyo.yaz.condominium.manager.persistence.repository.impl;
 
 import kyo.yaz.condominium.manager.persistence.domain.request.RateQueryRequest;
-import kyo.yaz.condominium.manager.persistence.entity.EmailConfig;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.persistence.repository.base.RateCustomRepository;
 import kyo.yaz.condominium.manager.persistence.util.QueryUtil;
@@ -63,6 +62,19 @@ public class RateRepositoryImpl implements RateCustomRepository {
                 })
                 .ifPresent(criteriaList::add);
 
+        Optional.ofNullable(request.hashes())
+                .filter(s -> !s.isEmpty())
+                .map(set -> {
+
+                    final var list = set.stream()
+                            .map(str -> Criteria.where("hash").is(str))
+                            .collect(Collectors.toList());
+
+                    return new Criteria().orOperator(list);
+
+                })
+                .ifPresent(criteriaList::add);
+
 
         if (!criteriaList.isEmpty()) {
             query.addCriteria(new Criteria().andOperator(criteriaList));
@@ -112,7 +124,6 @@ public class RateRepositoryImpl implements RateCustomRepository {
 
         return mongoTemplate.stream(query, Rate.class);
     }
-
 
 
     private Flux<Rate> find(Query query) {

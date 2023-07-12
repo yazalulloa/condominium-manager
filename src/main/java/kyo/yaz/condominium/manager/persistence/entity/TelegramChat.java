@@ -8,11 +8,7 @@ import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import kyo.yaz.condominium.manager.persistence.domain.NotificationEvent;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.Id;
@@ -28,6 +24,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Document("telegram_chats")
+@EqualsAndHashCode
 public class TelegramChat {
 
   @Id

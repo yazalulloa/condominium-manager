@@ -9,10 +9,7 @@ import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
 import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.Id;
@@ -34,6 +31,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Document("receipts")
+@EqualsAndHashCode
 public class Receipt {
 
     @Id
@@ -87,6 +85,7 @@ public class Receipt {
     @Getter
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @EqualsAndHashCode
     public static class AptTotal {
 
         @JsonProperty
@@ -111,6 +110,7 @@ public class Receipt {
     @Getter
     @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @EqualsAndHashCode
     public static class ReserveFundTotal {
 
         @JsonProperty

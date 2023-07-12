@@ -7,12 +7,9 @@ import kyo.yaz.condominium.manager.core.domain.HttpClientRequest;
 import kyo.yaz.condominium.manager.core.domain.HttpClientResponse;
 import kyo.yaz.condominium.manager.core.domain.HttpLogConfig;
 import kyo.yaz.condominium.manager.core.parser.BcvUsdRateParser;
-import kyo.yaz.condominium.manager.core.verticle.HttpClientVerticle;
 import kyo.yaz.condominium.manager.core.vertx.VertxHandler;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,7 +33,7 @@ public class GetBcvUsdRate {
         this.httpService = httpService;
     }
 
-    private Single<Document> document() {
+    private Single<String> document() {
         final HttpClientRequest httpClientRequest = HttpClientRequest.get(url)
                 .toBuilder()
                 .trustAll(true)
@@ -47,8 +44,7 @@ public class GetBcvUsdRate {
 
         return httpService.send(httpClientRequest)
                 .map(HttpClientResponse::body)
-                .map(Buffer::toString)
-                .map(Jsoup::parse);
+                .map(Buffer::toString);
 
 
       /*  return Single.create(emitter -> {
@@ -69,6 +65,6 @@ public class GetBcvUsdRate {
     }
 
     public Single<Rate> newRate() {
-        return document().flatMap(bcvUsdRateParser::parse);
+        return document().map(bcvUsdRateParser::parse);
     }
 }

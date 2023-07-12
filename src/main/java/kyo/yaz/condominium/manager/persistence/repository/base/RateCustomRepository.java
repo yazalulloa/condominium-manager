@@ -1,7 +1,6 @@
 package kyo.yaz.condominium.manager.persistence.repository.base;
 
 import kyo.yaz.condominium.manager.persistence.domain.request.RateQueryRequest;
-import kyo.yaz.condominium.manager.persistence.entity.EmailConfig;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

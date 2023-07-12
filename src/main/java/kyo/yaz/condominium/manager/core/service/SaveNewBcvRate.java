@@ -18,51 +18,60 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class SaveNewBcvRate {
 
-  private final SequenceService sequenceService;
-  private final RateService rateService;
-  private final GetBcvUsdRate getBcvUsdRate;
-  private final NotificationService notificationService;
+    private final SequenceService sequenceService;
+    private final RateService rateService;
+    private final GetBcvUsdRate getBcvUsdRate;
+    private final NotificationService notificationService;
 
 
-  public Single<Boolean> saveNewRate() {
+    public Single<Boolean> saveNewRate() {
 
-   /* final var dayOfWeek = LocalDate.now().getDayOfWeek();
-    if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
-      return Single.just(false);
-    }*/
+        return getBcvUsdRate.newRate()
+                .flatMap(rate -> {
 
-    return getBcvUsdRate.newRate()
-        .flatMap(rate -> {
+                    final var saveRate = sequenceService.nextSequence(Sequence.Type.RATES)
+                            .<Rate>map(id -> rate.toBuilder()
+                                    .id(id)
+                                    .createdAt(DateUtil.nowZonedWithUTC())
+                                    .build())
+                            .flatMap(rateService::save)
+                            .map(r -> "Nueva tasa añadida\n%s\nFecha de la tasa: %s".formatted(r.rate(), r.dateOfRate()))
+                            .flatMapCompletable(notificationService::sendNewRate)
+                            .toSingleDefault(true);
 
-          final var saveRate = sequenceService.nextSequence(Sequence.Type.RATES)
-              .<Rate>map(id -> rate.toBuilder()
-                  .id(id)
-                  .createdAt(DateUtil.nowZonedWithUTC())
-                  .build())
-              .flatMap(rateService::save)
-              .map(r -> "Nueva tasa añadida\n%s\nFecha de la tasa: %s".formatted(r.rate(), r.dateOfRate()))
-              .flatMapCompletable(notificationService::sendNewRate)
-              .toSingleDefault(true);
 
-          return rateService.last(rate.fromCurrency(), rate.toCurrency())
-              .filter(lastRate -> {
-                    final var isSameRate = DecimalUtil.equalsTo(lastRate.rate(), rate.rate())
-                        && lastRate.dateOfRate().isEqual(rate.dateOfRate())
-                        && lastRate.source() == rate.source();
+                    final var lastSingle = rateService.last(rate.fromCurrency(), rate.toCurrency())
+                            .switchIfEmpty(Maybe.fromAction(() -> log.info("LAST RATE NOT FOUND")))
+                            .map(lastRate -> {
+                                        final var isSameRate = DecimalUtil.equalsTo(lastRate.rate(), rate.rate())
+                                                && lastRate.dateOfRate().isEqual(rate.dateOfRate())
+                                                && lastRate.source() == rate.source();
 
-                    if (!isSameRate) {
-                      log.info("LAST RATE IS DIFFERENT \nOLD: {}\nNEW: {}", Json.encodePrettily(lastRate),
-                          Json.encodePrettily(rate));
-                    }
+                                        if (!isSameRate) {
+                                            log.info("LAST RATE IS DIFFERENT \nOLD: {}\nNEW: {}", Json.encodePrettily(lastRate),
+                                                    Json.encodePrettily(rate));
+                                        }
 
-                    return isSameRate;
-                  }
-              )
-              .map(r -> false)
-              .switchIfEmpty(Maybe.fromAction(() -> log.info("LAST RATE NOT FOUND")))
-              .switchIfEmpty(saveRate);
+                                        return isSameRate;
+                                    }
+                            )
+                            .defaultIfEmpty(false);
 
-        });
+                    final var existSingle = rateService.exists(rate.hash());
 
-  }
+                    return Single.zip(lastSingle, existSingle, (lastIsSame, exists) -> {
+
+                        if (lastIsSame || exists) {
+                            if (!lastIsSame) {
+                                log.info("HASH IS ALREADY SAVED");
+                            }
+
+                            return Single.just(false);
+                        }
+
+                        return saveRate;
+                    }).flatMap(s -> s);
+                });
+
+    }
 }

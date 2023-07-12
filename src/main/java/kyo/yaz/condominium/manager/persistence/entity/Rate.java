@@ -8,10 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import kyo.yaz.condominium.manager.core.domain.Currency;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.Id;
@@ -28,6 +25,7 @@ import org.springframework.data.mongodb.core.mapping.FieldType;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @AllArgsConstructor
 @Document("rates")
+@EqualsAndHashCode
 public class Rate {
 
   @Id
@@ -58,6 +56,9 @@ public class Rate {
 
   @JsonProperty
   private final String description;
+
+  @JsonProperty
+  private final Long hash;
 
 
   public enum Source {

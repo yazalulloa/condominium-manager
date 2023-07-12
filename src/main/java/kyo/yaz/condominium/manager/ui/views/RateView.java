@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -41,6 +42,8 @@ public class RateView extends BaseVerticalLayout {
 
     private final Grid<Rate> grid = new Grid<>();
     private final AtomicBoolean addingRate = new AtomicBoolean(false);
+
+    private final Button refreshBtn = new Button(VaadinIcon.REFRESH.create());
     private final Text queryCountText = new Text(null);
     private final Text totalCountText = new Text(null);
     private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
@@ -86,7 +89,6 @@ public class RateView extends BaseVerticalLayout {
 
     private void configureGrid() {
         grid.addClassNames("rates-grid");
-
         grid.addComponentColumn(this::card);
         grid.setPageSize(gridPaginator.itemsPerPage());
         grid.setSizeFull();
@@ -100,19 +102,30 @@ public class RateView extends BaseVerticalLayout {
 
     private Component card(Rate rate) {
 
-
         final var body = new Div(new Span(ConvertUtil.format(rate.rate(), rate.toCurrency())), new Span(rate.dateOfRate().toString()),
                 new Span(rate.source().name()));
 
         body.addClassName("body");
 
-        final var footer = new Div(new Span(rate.rate().toString()), new Span(String.format("%s -> %s", rate.fromCurrency().name(), rate.toCurrency().name())),
-                new Span(DateUtil.formatVe(rate.createdAt())));
+        final var footer = new Div(new Span(rate.rate().toString()),
+                new Span(String.format("%s -> %s", rate.fromCurrency().name(), rate.toCurrency().name())),
+                new Span(DateUtil.formatVe(rate.createdAt())),
+                new Span("ID: " + rate.id())
+
+        );
+
+        if (rate.hash() != null) {
+            footer.add(new Span("Hash: " + rate.hash()));
+        }
 
         footer.addClassName("footer");
 
         final var deleteBtn = new Button(IconUtil.trash());
-        deleteBtn.addClickListener(v -> deleteDialog(rate));
+        deleteBtn.addClickListener(v -> {
+
+
+            deleteDialog(rate);
+        });
 
         final var buttons = new Div(deleteBtn);
         buttons.addClassName("buttons");
@@ -148,7 +161,10 @@ public class RateView extends BaseVerticalLayout {
 
         });
 
-        final var toolbar = new Div(addButton, queryCountText);
+        refreshBtn.setDisableOnClick(true);
+        refreshBtn.addClickListener(v -> updateGrid());
+
+        final var toolbar = new Div(addButton, refreshBtn, queryCountText);
         toolbar.addClassName("toolbar");
         return toolbar;
     }
@@ -157,6 +173,7 @@ public class RateView extends BaseVerticalLayout {
         return rateService.paging(gridPaginator.currentPage(), gridPaginator.itemsPerPage())
                 .doOnSubscribe(d -> {
                     uiAsyncAction(() -> {
+                        refreshBtn.setEnabled(false);
                         progressLayout.setProgressText("Buscando...");
                         progressLayout.progressBar().setIndeterminate(true);
                         progressLayout.setVisible(true);
@@ -174,6 +191,7 @@ public class RateView extends BaseVerticalLayout {
 
         return paging()
                 .map(paging -> (Runnable) () -> {
+                    refreshBtn.setEnabled(true);
                     progressLayout.setVisible(false);
                     setItems(paging);
                     gridPaginator.init();

@@ -23,6 +23,7 @@ import java.util.Set;
 public class RateQueryRequest {
 
     private final Set<Long> ids;
+    private final Set<Long> hashes;
     private final Set<Currency> fromCurrency;
     private final Set<Currency> toCurrency;
     private final Set<Rate.Source> source;
