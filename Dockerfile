@@ -3,7 +3,8 @@ FROM maven:3.9.1-amazoncorretto-20-debian as build
 
 WORKDIR /app
 COPY pom.xml .
-RUN --mount=type=cache,target=/root/.m2,target=/root/.vaadin mvn clean package -Dmaven.main.skip -Dmaven.test.skip -Dspring-boot.repackage.skip=true  && rm -r target
+RUN --mount=type=cache,target=/root/.m2 --mount=type=cache,target=/root/.vaadin mvn clean package -Dmaven.main.skip -Dmaven.test.skip -Dspring-boot.repackage.skip=true  && rm -r target
+#RUN --mount=type=cache,target=/root/.m2,target=/root/.vaadin mvn clean package -Dmaven.main.skip -Dmaven.test.skip -Dspring-boot.repackage.skip=true  && rm -r target
 
 # To resolve dependencies in a safe way (no re-download when the source code changes)
 # RUN mvn clean package -Dmaven.main.skip -Dmaven.test.skip -Dspring-boot.repackage.skip=true  && rm -r target
@@ -13,7 +14,8 @@ COPY src ./src
 COPY frontend ./frontend
 # COPY package-lock.json .
 # COPY tsconfig.json .
-RUN --mount=type=cache,target=/root/.m2,target=/root/.vaadin mvn package -Pproduction -Dvaadin.force.production.build=true
+# RUN --mount=type=cache,target=/root/.m2,target=/root/.vaadin mvn package -Pproduction -Dvaadin.force.production.build=true
+RUN --mount=type=cache,target=/root/.m2 --mount=type=cache,target=/root/.vaadin mvn package -Pproduction -Dvaadin.force.production.build=true
 
 # native:compile
 # FROM eclipse-temurin:17-jdk-alpine

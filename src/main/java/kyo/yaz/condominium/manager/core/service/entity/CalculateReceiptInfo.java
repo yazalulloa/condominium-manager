@@ -125,9 +125,10 @@ public class CalculateReceiptInfo {
 
             final var totalUnCommonExpenses = totalUnCommonExpensePair.getFirst();
 
+            final var equalsToZero = DecimalUtil.equalsToZero(totalUnCommonExpenses);
             final var unCommonPay =
-                    DecimalUtil.equalsToZero(totalUnCommonExpenses) ? totalUnCommonExpenses
-                            .divide(BigDecimal.valueOf(apartments.size()), MathContext.DECIMAL128) : BigDecimal.ZERO;
+                    equalsToZero ?  BigDecimal.ZERO : totalUnCommonExpenses
+                            .divide(BigDecimal.valueOf(apartments.size()), MathContext.DECIMAL128) ;
 
             final var aptTotals = apartments.stream()
                     .map(apartment -> {

@@ -181,23 +181,13 @@ public class FileUtil {
 
         Objects.requireNonNull(size, "size");
 
-        BiFunction<String, BigDecimal, String> getDisplaySize = (unit, divisor) -> {
-            if (DecimalUtil.greaterThan(divisor, size)) {
-                return null;
-            }
+        for (UnitSizeTuple(String unit, BigDecimal divisor) : UNIT_SIZE_TUPLES) {
+            if (!DecimalUtil.greaterThan(divisor, size)) {
 
-            final var quotient = size.divide(divisor, 4, RoundingMode.HALF_UP);
-            if (DecimalUtil.greaterThan(quotient, BigDecimal.ONE)) {
-                return quotient + " " + unit;
-            }
-
-            return null;
-        };
-
-        for (UnitSizeTuple(String unit, BigDecimal size1) : UNIT_SIZE_TUPLES) {
-            final var displaySize = getDisplaySize.apply(unit, size1);
-            if (displaySize != null) {
-                return displaySize;
+                final var quotient = size.divide(divisor, 4, RoundingMode.HALF_UP);
+                if (DecimalUtil.greaterThan(quotient, BigDecimal.ONE)) {
+                    return quotient + " " + unit;
+                }
             }
         }
 

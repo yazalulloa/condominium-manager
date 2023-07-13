@@ -92,10 +92,6 @@ public class Receipt {
         private final String number;
         @JsonProperty
         private final String name;
-
-        @Deprecated
-        @JsonProperty
-        private final BigDecimal amount;
         @JsonProperty
         private final Map<Currency, BigDecimal> amounts;
         @JsonProperty

@@ -22,7 +22,7 @@ class CalculateReceiptInfoTest {
     JacksonUtil.defaultConfig(DatabindCodec.mapper());
     JacksonUtil.defaultConfig(DatabindCodec.prettyMapper());
 
-    final var testObserver = calculateReceiptInfo.calculate(56L)
+    final var testObserver = calculateReceiptInfo.calculate(55L)
         .map(Json::encodePrettily)
         .doOnSuccess(System.out::println)
         .test();
