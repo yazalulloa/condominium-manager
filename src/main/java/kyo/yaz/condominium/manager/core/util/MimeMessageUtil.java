@@ -1,6 +1,6 @@
 package kyo.yaz.condominium.manager.core.util;
 
-import kyo.yaz.condominium.manager.core.domain.EmailRequest;
+import kyo.yaz.condominium.manager.core.domain.ReceiptEmailRequest;
 
 import jakarta.activation.DataHandler;
 import jakarta.activation.FileDataSource;
@@ -24,22 +24,22 @@ public class MimeMessageUtil {
         return addresses;
     }
 
-    public static MimeMessage basicMimeMessage(EmailRequest emailRequest) throws MessagingException {
+    public static MimeMessage basicMimeMessage(ReceiptEmailRequest receiptEmailRequest) throws MessagingException {
         final var props = new Properties();
         final var session = Session.getDefaultInstance(props, null);
 
         final var mimeMessage = new MimeMessage(session);
 
-        mimeMessage.setFrom(new InternetAddress(emailRequest.from()));
+        mimeMessage.setFrom(new InternetAddress(receiptEmailRequest.from()));
 
-        mimeMessage.addRecipients(Message.RecipientType.TO, internetAddresses(emailRequest.to()));
-        mimeMessage.addRecipients(Message.RecipientType.CC, internetAddresses(emailRequest.cc()));
-        mimeMessage.addRecipients(Message.RecipientType.BCC, internetAddresses(emailRequest.bcc()));
-        mimeMessage.setSubject(emailRequest.subject());
+        mimeMessage.addRecipients(Message.RecipientType.TO, internetAddresses(receiptEmailRequest.to()));
+        mimeMessage.addRecipients(Message.RecipientType.CC, internetAddresses(receiptEmailRequest.cc()));
+        mimeMessage.addRecipients(Message.RecipientType.BCC, internetAddresses(receiptEmailRequest.bcc()));
+        mimeMessage.setSubject(receiptEmailRequest.subject());
         return mimeMessage;
     }
 
-    public static MimeMessage createEmail(EmailRequest request) throws MessagingException {
+    public static MimeMessage createEmail(ReceiptEmailRequest request) throws MessagingException {
 
         final var mimeMessage = basicMimeMessage(request);
 

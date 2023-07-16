@@ -7,7 +7,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Vertx;
 import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
 import kyo.yaz.condominium.manager.core.service.GetPdfItems;
-import kyo.yaz.condominium.manager.core.service.GetReceiptZipName;
+import kyo.yaz.condominium.manager.core.service.GetReceiptName;
 import kyo.yaz.condominium.manager.core.util.ZipUtility;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.actions.DownloadReceiptZipAction;
@@ -35,7 +35,7 @@ public class DownloadReceiptZipService {
 
     private final Vertx vertx;
 
-    private final GetReceiptZipName getReceiptZipName;
+    private final GetReceiptName getReceiptName;
     private Consumer<Consumer<ProgressLayout>> plConsumer;
     private final GetPdfItems getPdfItems;
 
@@ -67,7 +67,7 @@ public class DownloadReceiptZipService {
 
         @Override
         public String fileName(Receipt obj) {
-            return getReceiptZipName.fileName(obj);
+            return getReceiptName.zipFileName(obj);
         }
 
         @Override

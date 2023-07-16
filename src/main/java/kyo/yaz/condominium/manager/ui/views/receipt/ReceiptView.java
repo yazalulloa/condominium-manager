@@ -35,7 +35,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
-import kyo.yaz.condominium.manager.core.service.GetPdfItems;
 import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
 import kyo.yaz.condominium.manager.core.service.csv.LoadCsvReceipt;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
@@ -47,6 +46,7 @@ import kyo.yaz.condominium.manager.ui.views.base.BaseVerticalLayout;
 import kyo.yaz.condominium.manager.ui.views.component.DeleteDialog;
 import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
+import kyo.yaz.condominium.manager.ui.views.domain.EmailAptReceiptRequest;
 import kyo.yaz.condominium.manager.ui.views.receipt.pdf.ReceipPdfView;
 import kyo.yaz.condominium.manager.ui.views.receipt.service.DownloadReceiptZipService;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
@@ -57,7 +57,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Month;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 @PageTitle(ReceiptView.PAGE_TITLE)
@@ -83,26 +82,27 @@ public class ReceiptView extends BaseVerticalLayout {
     private final ReceiptService receiptService;
     private final LoadCsvReceipt loadCsvReceipt;
     private final ProgressLayout progressLayout = new ProgressLayout();
-    private final GetPdfItems getPdfItems;
     private final SendEmailReceipts sendEmailReceipts;
     private final DownloadReceiptZipService downloadReceiptZipService;
     private final TranslationProvider translationProvider;
+    private final EmailAptReceiptDialog emailAptReceiptDialog;
 
     @Autowired
     public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt,
-                       GetPdfItems getPdfItems, SendEmailReceipts sendEmailReceipts,
-                       DownloadReceiptZipService downloadReceiptZipService, TranslationProvider translationProvider) {
+                       SendEmailReceipts sendEmailReceipts,
+                       DownloadReceiptZipService downloadReceiptZipService, TranslationProvider translationProvider,
+                       EmailAptReceiptDialog emailAptReceiptDialog) {
         super();
         this.buildingService = buildingService;
         this.receiptService = receiptService;
         this.loadCsvReceipt = loadCsvReceipt;
-        this.getPdfItems = getPdfItems;
         this.sendEmailReceipts = sendEmailReceipts;
         this.downloadReceiptZipService = downloadReceiptZipService;
         this.translationProvider = translationProvider;
+        this.emailAptReceiptDialog = emailAptReceiptDialog;
 
         downloadReceiptZipService.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
-        getPdfItems.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
+        sendEmailReceipts.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
         init();
     }
 
@@ -139,9 +139,17 @@ public class ReceiptView extends BaseVerticalLayout {
         editMenu.addComponentAsFirst(createIcon(VaadinIcon.EDIT));
         editMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::editEntity));
 
+
+        final var sendEmailNowMenu = contextMenu.addItem(Labels.SEND_EMAIL_NOW);
+        sendEmailNowMenu.addComponentAsFirst(createIcon(VaadinIcon.ENVELOPE));
+        sendEmailNowMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::sendEmails));
+
         final var sendEmailMenu = contextMenu.addItem(Labels.SEND_EMAIL);
         sendEmailMenu.addComponentAsFirst(createIcon(VaadinIcon.ENVELOPE));
-        sendEmailMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(this::sendEmails));
+        sendEmailMenu.addMenuItemClickListener(e -> e.getItem().ifPresent(receipt -> {
+            emailAptReceiptDialog.setReceipt(receipt);
+            emailAptReceiptDialog.open();
+        }));
 
         final var copyMenu = contextMenu.addItem(Labels.COPY);
         copyMenu.addComponentAsFirst(createIcon(VaadinIcon.COPY));
@@ -295,6 +303,21 @@ public class ReceiptView extends BaseVerticalLayout {
         editEntity("copy");
     }
 
+
+    private void sendEmails(EmailAptReceiptRequest request) {
+        uiAsyncAction(() -> {
+            progressLayout.setProgressText("Creando archivos");
+            progressLayout.progressBar().setIndeterminate(true);
+            progressLayout.setVisible(true);
+        });
+
+        sendEmailReceipts.sendEmails(request)
+                .andThen(refreshData())
+                .subscribeOn(Schedulers.io())
+                .subscribe(completableObserver());
+
+    }
+
     private void sendEmails(Receipt receipt) {
         uiAsyncAction(() -> {
             progressLayout.setProgressText("Creando archivos");
@@ -302,47 +325,7 @@ public class ReceiptView extends BaseVerticalLayout {
             progressLayout.setVisible(true);
         });
 
-        getPdfItems.pdfItems(receipt)
-                .observeOn(Schedulers.io())
-                .doOnSuccess(l -> {
-                    uiAsyncAction(() -> {
-                        progressLayout.setProgressText("Preparando para enviar");
-                        progressLayout.progressBar().setIndeterminate(true);
-                        progressLayout.setVisible(true);
-                    });
-                })
-                .flatMap(list -> sendEmailReceipts.sendV2(receipt, list))
-                .toFlowable()
-                .flatMap(list -> {
-                    final var month = translationProvider.translate(receipt.month().name());
-                    final var prefix = "Enviando %s %s %s".formatted(receipt.buildingId(), month, receipt.date());
-
-                    final var progressText = prefix + " %s/%s";
-
-                    uiAsyncAction(() -> {
-                        progressLayout.progressBar().setIndeterminate(false);
-                        progressLayout.progressBar().setMin(0);
-                        progressLayout.progressBar().setMax(list.size());
-                        progressLayout.progressBar().setValue(0);
-                        progressLayout.setProgressText(progressText.formatted(0, list.size()));
-                    });
-
-                    final AtomicInteger i = new AtomicInteger(1);
-
-                    return Single.concat(list)
-                            .doOnNext(request -> {
-                                uiAsyncAction(() -> {
-                                    final var integer = i.getAndIncrement();
-                                    progressLayout.progressBar().setValue(integer);
-
-                                    progressLayout.setProgressText(progressText.formatted(integer, list.size()),
-                                            "%s -> %s".formatted(request.from(), request.to()));
-                                });
-                            });
-                })
-                .doAfterTerminate(() -> uiAsyncAction(() -> progressLayout.setVisible(false)))
-                .ignoreElements()
-                .andThen(receiptService.updateSent(receipt))
+        sendEmailReceipts.sendEmails(receipt)
                 .andThen(refreshData())
                 .subscribeOn(Schedulers.io())
                 .subscribe(completableObserver());
@@ -487,6 +470,9 @@ public class ReceiptView extends BaseVerticalLayout {
                 countText);
         toolbar.addClassName("toolbar");
         toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+
+        emailAptReceiptDialog.addListener(EmailAptReceiptDialog.SendEmailsEvent.class, e -> sendEmails(e.getObj()));
+
         return toolbar;
     }
 

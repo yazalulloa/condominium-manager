@@ -80,3 +80,23 @@ a[highlight] {
  .v-drag-over-target.card {
      outline: 1px solid lightgreen;
  }
+
+.email-apt-receipt-dialog {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  flex-basis: auto;
+}
+
+.card {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  flex-basis: auto;
+  justify-content: space-between;
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius);
+  box-shadow: var(--lumo-box-shadow-xs);
+  padding: calc(var(--lumo-space-s) * 1) var(--lumo-space-m);
+
+}

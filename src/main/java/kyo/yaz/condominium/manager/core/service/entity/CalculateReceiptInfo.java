@@ -42,6 +42,122 @@ public class CalculateReceiptInfo {
                 .flatMap(receiptService::save);
     }
 
+    public Receipt calculate(Receipt receipt, Building building, List<Apartment> apartments) {
+        final var expenses = receipt.expenses().stream()
+                .filter(expense -> !expense.description().equals("DIFERENCIA DE ALIQUOTA"))
+                .filter(expense -> !expense.reserveFund())
+                .collect(Collectors.toCollection(LinkedList::new));
+
+        final var totalCommonExpensePair = ConvertUtil.pair(expenses,
+                r -> r.type() == Expense.Type.COMMON && !r.reserveFund(), receipt.rate().rate());
+        final var totalCommonExpensesBeforeReserveFund = totalCommonExpensePair.getFirst();
+
+
+        final var debtReceiptsAmount = receipt.debts().stream().map(Debt::receipts)
+                .reduce(Integer::sum)
+                .orElse(0);
+
+        final var debtTotal = receipt.debts().stream().map(Debt::amount)
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO);
+
+
+        final var reserveFundTotals = Optional.ofNullable(building.reserveFunds())
+                .orElseGet(Collections::emptyList)
+                .stream()
+                .filter(reserveFund -> reserveFund.active() && DecimalUtil.greaterThanZero(reserveFund.pay()))
+                .map(reserveFund -> {
+
+                    final var amount = reserveFund.type() == ReserveFund.Type.FIXED_PAY ? reserveFund.pay() :
+                            DecimalUtil.percentageOf(reserveFund.pay(), totalCommonExpensesBeforeReserveFund);
+
+                    return Receipt.ReserveFundTotal.builder()
+                            .name(reserveFund.name())
+                            .fund(reserveFund.fund())
+                            .amount(amount)
+                            .type(reserveFund.type())
+                            .expenseType(reserveFund.expenseType())
+                            .pay(reserveFund.pay())
+                            .addToExpenses(reserveFund.addToExpenses())
+                            .build();
+                })
+                .toList();
+
+        final var totalCommonExpenses = reserveFundTotals.stream()
+                .filter(ReserveFundTotal::addToExpenses)
+                .filter(res -> res.expenseType() == Expense.Type.COMMON)
+                .map(Receipt.ReserveFundTotal::amount)
+                .reduce(BigDecimal::add)
+                .orElse(BigDecimal.ZERO)
+                .add(totalCommonExpensesBeforeReserveFund);
+
+        reserveFundTotals.stream().filter(ReserveFundTotal::addToExpenses).map(fund -> {
+            final var isFixedPay = fund.type() == ReserveFund.Type.FIXED_PAY;
+            return Expense.builder()
+                    .description(fund.name() + " " + fund.pay() + (isFixedPay ? "" : "%"))
+                    .amount(fund.amount())
+                    .currency(totalCommonExpensePair.getSecond())
+                    .type(fund.expenseType())
+                    .reserveFund(true)
+                    .build();
+        }).forEach(expenses::add);
+
+        final var aliquotDifference = aliquotDifference(apartments, totalCommonExpenses);
+
+        expenses.add(Expense.builder()
+                .description("DIFERENCIA DE ALIQUOTA")
+                .amount(aliquotDifference)
+                .currency(totalCommonExpensePair.getSecond())
+                .type(Expense.Type.UNCOMMON)
+                .build());
+
+        final var totalUnCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == Expense.Type.UNCOMMON,
+                receipt.rate().rate());
+
+        final var totalUnCommonExpenses = totalUnCommonExpensePair.getFirst();
+
+        final var equalsToZero = DecimalUtil.equalsToZero(totalUnCommonExpenses);
+        final var unCommonPay =
+                equalsToZero ? BigDecimal.ZERO : totalUnCommonExpenses
+                        .divide(BigDecimal.valueOf(apartments.size()), MathContext.DECIMAL128);
+
+        final var aptTotals = apartments.stream()
+                .map(apartment -> {
+
+                    final var extraCharges = extraCharges(apartment.apartmentId().number(), building.extraCharges(),
+                            receipt.extraCharges());
+
+                    final var amounts = totalAptPay(unCommonPay, building, receipt.rate().rate(), totalCommonExpenses,
+                            apartment.amountToPay(), extraCharges);
+
+                    return Receipt.AptTotal.builder()
+                            .number(apartment.apartmentId().number())
+                            .name(apartment.name())
+                            //.amount(amounts.get(Currency.USD))
+                            .amounts(amounts)
+                            .extraCharges(extraCharges)
+                            .build();
+
+                })
+                .collect(Collectors.toCollection(LinkedList::new));
+
+
+        return receipt.toBuilder()
+                .expenses(expenses)
+                .totalCommonExpenses(totalCommonExpenses)
+                .totalCommonExpensesCurrency(totalCommonExpensePair.getSecond())
+                .totalUnCommonExpenses(totalUnCommonExpenses)
+                .totalUnCommonExpensesCurrency(totalUnCommonExpensePair.getSecond())
+                .totalDebt(debtTotal)
+                .debtReceiptsAmount(debtReceiptsAmount)
+                .createdAt(Optional.ofNullable(receipt.createdAt()).orElseGet(DateUtil::nowZonedWithUTC))
+                .updatedAt(receipt.createdAt() != null ? DateUtil.nowZonedWithUTC() : null)
+                .aptTotals(aptTotals)
+                .reserveFundTotals(reserveFundTotals)
+                .build();
+
+    }
+
     public Single<Receipt> calculate(Receipt receipt) {
         final var nextSequence = Maybe.fromOptional(Optional.ofNullable(receipt.id()))
                 .switchIfEmpty(sequenceService.nextSequence(Sequence.Type.RECEIPT));
@@ -52,118 +168,9 @@ public class CalculateReceiptInfo {
 
         return Single.zip(nextSequence, apartmentsByBuilding, buildingSingle, (id, apartments, building) -> {
 
-            final var expenses = receipt.expenses().stream()
-                    .filter(expense -> !expense.description().equals("DIFERENCIA DE ALIQUOTA"))
-                    .filter(expense -> !expense.reserveFund())
-                    .collect(Collectors.toCollection(LinkedList::new));
-
-            final var totalCommonExpensePair = ConvertUtil.pair(expenses,
-                    r -> r.type() == Expense.Type.COMMON && !r.reserveFund(), receipt.rate().rate());
-            final var totalCommonExpensesBeforeReserveFund = totalCommonExpensePair.getFirst();
-
-
-            final var debtReceiptsAmount = receipt.debts().stream().map(Debt::receipts)
-                    .reduce(Integer::sum)
-                    .orElse(0);
-
-            final var debtTotal = receipt.debts().stream().map(Debt::amount)
-                    .reduce(BigDecimal::add)
-                    .orElse(BigDecimal.ZERO);
-
-
-            final var reserveFundTotals = Optional.ofNullable(building.reserveFunds())
-                    .orElseGet(Collections::emptyList)
-                    .stream()
-                    .filter(reserveFund -> reserveFund.active() && DecimalUtil.greaterThanZero(reserveFund.pay()))
-                    .map(reserveFund -> {
-
-                        final var amount = reserveFund.type() == ReserveFund.Type.FIXED_PAY ? reserveFund.pay() :
-                                DecimalUtil.percentageOf(reserveFund.pay(), totalCommonExpensesBeforeReserveFund);
-
-                        return Receipt.ReserveFundTotal.builder()
-                                .name(reserveFund.name())
-                                .fund(reserveFund.fund())
-                                .amount(amount)
-                                .type(reserveFund.type())
-                                .expenseType(reserveFund.expenseType())
-                                .pay(reserveFund.pay())
-                                .addToExpenses(reserveFund.addToExpenses())
-                                .build();
-                    })
-                    .toList();
-
-            final var totalCommonExpenses = reserveFundTotals.stream()
-                    .filter(ReserveFundTotal::addToExpenses)
-                    .filter(res -> res.expenseType() == Expense.Type.COMMON)
-                    .map(Receipt.ReserveFundTotal::amount)
-                    .reduce(BigDecimal::add)
-                    .orElse(BigDecimal.ZERO)
-                    .add(totalCommonExpensesBeforeReserveFund);
-
-            reserveFundTotals.stream().filter(ReserveFundTotal::addToExpenses).map(fund -> {
-                final var isFixedPay = fund.type() == ReserveFund.Type.FIXED_PAY;
-                return Expense.builder()
-                        .description(fund.name() + " " + fund.pay() + (isFixedPay ? "" : "%"))
-                        .amount(fund.amount())
-                        .currency(totalCommonExpensePair.getSecond())
-                        .type(fund.expenseType())
-                        .reserveFund(true)
-                        .build();
-            }).forEach(expenses::add);
-
-            final var aliquotDifference = aliquotDifference(apartments, totalCommonExpenses);
-
-            expenses.add(Expense.builder()
-                    .description("DIFERENCIA DE ALIQUOTA")
-                    .amount(aliquotDifference)
-                    .currency(totalCommonExpensePair.getSecond())
-                    .type(Expense.Type.UNCOMMON)
-                    .build());
-
-            final var totalUnCommonExpensePair = ConvertUtil.pair(expenses, r -> r.type() == Expense.Type.UNCOMMON,
-                    receipt.rate().rate());
-
-            final var totalUnCommonExpenses = totalUnCommonExpensePair.getFirst();
-
-            final var equalsToZero = DecimalUtil.equalsToZero(totalUnCommonExpenses);
-            final var unCommonPay =
-                    equalsToZero ?  BigDecimal.ZERO : totalUnCommonExpenses
-                            .divide(BigDecimal.valueOf(apartments.size()), MathContext.DECIMAL128) ;
-
-            final var aptTotals = apartments.stream()
-                    .map(apartment -> {
-
-                        final var extraCharges = extraCharges(apartment.apartmentId().number(), building.extraCharges(),
-                                receipt.extraCharges());
-
-                        final var amounts = totalAptPay(unCommonPay, building, receipt.rate().rate(), totalCommonExpenses,
-                                apartment.amountToPay(), extraCharges);
-
-                        return Receipt.AptTotal.builder()
-                                .number(apartment.apartmentId().number())
-                                .name(apartment.name())
-                                //.amount(amounts.get(Currency.USD))
-                                .amounts(amounts)
-                                .extraCharges(extraCharges)
-                                .build();
-
-                    })
-                    .collect(Collectors.toCollection(LinkedList::new));
-
-
-            return receipt.toBuilder()
+            return calculate(receipt, building, apartments)
+                    .toBuilder()
                     .id(id)
-                    .expenses(expenses)
-                    .totalCommonExpenses(totalCommonExpenses)
-                    .totalCommonExpensesCurrency(totalCommonExpensePair.getSecond())
-                    .totalUnCommonExpenses(totalUnCommonExpenses)
-                    .totalUnCommonExpensesCurrency(totalUnCommonExpensePair.getSecond())
-                    .totalDebt(debtTotal)
-                    .debtReceiptsAmount(debtReceiptsAmount)
-                    .createdAt(Optional.ofNullable(receipt.createdAt()).orElseGet(DateUtil::nowZonedWithUTC))
-                    .updatedAt(receipt.createdAt() != null ? DateUtil.nowZonedWithUTC() : null)
-                    .aptTotals(aptTotals)
-                    .reserveFundTotals(reserveFundTotals)
                     .build();
         });
     }

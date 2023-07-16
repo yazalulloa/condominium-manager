@@ -7,8 +7,11 @@ import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
 import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.DeleteDirAfterDelay;
 import kyo.yaz.condominium.manager.core.service.GetPdfItems;
+import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
+import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.CalculateReceiptInfo;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
+import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,8 @@ public class BuildReceiptPdfs implements GetPdfItems {
     private final CreatePdfReceiptService createPdfReceiptService;
     private final DeleteDirAfterDelay deleteDirAfterDelay;
     private final CalculateReceiptInfo calculateReceiptInfo;
+    private final BuildingService buildingService;
+    private final ApartmentService apartmentService;
     private String tempPath;
     private Consumer<Consumer<ProgressLayout>> plConsumer;
 
@@ -41,14 +46,39 @@ public class BuildReceiptPdfs implements GetPdfItems {
         this.plConsumer = plConsumer;
     }
 
+
     public Single<List<PdfReceiptItem>> pdfItems(Receipt receipt) {
         delete();
 
         tempPath = "tmp/" + UUID.randomUUID() + "/";
         final AtomicInteger i = new AtomicInteger(1);
 
-        return calculateReceiptInfo.calculate(receipt)
-                .flatMap(newReceipt -> createPdfReceiptService.pdfReceipts(tempPath, newReceipt))
+        final var apartmentsByBuilding = apartmentService.rxApartmentsByBuilding(receipt.buildingId());
+
+        final var buildingSingle = buildingService.get(receipt.buildingId());
+
+
+        return Single.zip(buildingSingle, apartmentsByBuilding, (building, apartments) -> {
+
+                    return pdfItems(receipt, building, apartments);
+
+
+                })
+                .flatMap(s -> s);
+    }
+
+    @Override
+    public Single<List<PdfReceiptItem>> pdfItems(Receipt receipt, Building building, List<Apartment> apartments) {
+        delete();
+
+        tempPath = "tmp/" + UUID.randomUUID() + "/";
+        final AtomicInteger i = new AtomicInteger(1);
+
+        return Single.fromCallable(() -> {
+                    final var receiptCalculated = calculateReceiptInfo.calculate(receipt, building, apartments);
+
+                    return createPdfReceiptService.pdfReceipts(tempPath, receiptCalculated, building, apartments);
+                })
                 .observeOn(Schedulers.io())
                 .flatMap(list -> {
 

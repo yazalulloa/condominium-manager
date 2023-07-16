@@ -2,6 +2,8 @@ package kyo.yaz.condominium.manager.ui.views.util;
 
 public class AppUtil {
 
+    public static final String DFLT_EMAIL_SUBJECT = "AVISO DE COBRO";
+
     public static Runnable emptyRunnable() {
         return () -> {
         };

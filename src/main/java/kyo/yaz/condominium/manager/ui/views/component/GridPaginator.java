@@ -51,7 +51,7 @@ public class GridPaginator extends Div implements HasValue.ValueChangeListener<A
     }
 
     private void calculatePages() {
-        log.info("Calculating pages");
+        //log.info("Calculating pages");
 
         final var pageSize = itemsPerPageComBox.getValue();
         final var oldNumberOfPages = numberOfPages;

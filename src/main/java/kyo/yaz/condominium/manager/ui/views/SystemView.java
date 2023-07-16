@@ -55,13 +55,14 @@ public class SystemView extends BaseVerticalLayout {
 
     private void init() {
 
+
         refreshRateSystemInfoComboBox.addValueChangeListener(e -> {
             final var value = e.getValue();
             final var oldValue = e.getOldValue();
 
-            logger().info("value changed");
+            //logger().info("value changed");
             if (!Objects.equals(value, oldValue)) {
-                logger().info("value changed after equals");
+                //logger().info("value changed after equals");
                 systemInfo();
             }
 
@@ -78,6 +79,7 @@ public class SystemView extends BaseVerticalLayout {
         paragraphs.add(pair(SystemUtil::usableSpaceStr));
         paragraphs.add(pair(SystemUtil::totalSpaceStr));
         paragraphs.add(pair(SystemUtil::usedSpaceStr));
+
 
         add(refreshRateSystemInfoComboBox);
         paragraphs.stream().map(Pair::getFirst)
@@ -104,7 +106,7 @@ public class SystemView extends BaseVerticalLayout {
     private void systemInfo() {
         final var value = refreshRateSystemInfoComboBox.getValue();
         loadSystemInfo()
-                .doOnComplete(() -> logger().info("Refreshing {}", value))
+                //.doOnComplete(() -> logger().info("Refreshing {}", value))
                 .delay(value, TimeUnit.SECONDS)
                 .doOnError(throwable -> logger().error("Failed to load system info", throwable))
                 .onErrorComplete()
@@ -115,7 +117,7 @@ public class SystemView extends BaseVerticalLayout {
 
     private Completable loadSystemInfo() {
         return Completable.fromAction(() -> {
-            logger().info("Loading system info");
+            //  logger().info("Loading system info");
             final var runnable = paragraphs.stream()
                     .map(pair -> {
                         final var component = pair.getFirst();
@@ -125,7 +127,6 @@ public class SystemView extends BaseVerticalLayout {
                     .toList();
 
             uiAsyncAction(runnable);
-
 
         });
     }

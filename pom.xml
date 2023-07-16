@@ -18,7 +18,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <vaadin.version>24.1.2</vaadin.version>
-    <!--<vaadin.version>23.3.2</vaadin.version>-->
     <vertx.version>4.4.4</vertx.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <lombok.version>1.18.28</lombok.version>
@@ -394,7 +393,7 @@
     <dependency>
       <groupId>org.xerial.snappy</groupId>
       <artifactId>snappy-java</artifactId>
-      <version>1.1.10.1</version>
+      <version>1.1.10.2</version>
     </dependency>
 
     <dependency>

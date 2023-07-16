@@ -28,6 +28,7 @@ public class Labels {
     public static final String REQUIRED = "Requerido";
     public static final String DEACTIVATED = "Desactivado";
     public static final String DOWNLOAD = "Descargar";
+    public static final String SEND_EMAIL_NOW = "Enviar recibos ahora";
     public static final String SEND_EMAIL = "Enviar recibos";
     public static final String EDIT = "Editar";
     public static final String RESERVE_FUNDS_TITLE = "Fondos de reserva";

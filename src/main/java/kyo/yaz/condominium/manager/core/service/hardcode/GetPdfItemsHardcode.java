@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.reactivex.rxjava3.core.Single;
 import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
 import kyo.yaz.condominium.manager.core.service.GetPdfItems;
+import kyo.yaz.condominium.manager.persistence.entity.Apartment;
+import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
@@ -36,6 +38,11 @@ public class GetPdfItemsHardcode implements GetPdfItems {
                         .collect(Collectors.toCollection(LinkedList::new));
             }
         });
+    }
+
+    @Override
+    public Single<List<PdfReceiptItem>> pdfItems(Receipt receipt, Building building, List<Apartment> apartments) {
+        return pdfItems(receipt);
     }
 
     @Override

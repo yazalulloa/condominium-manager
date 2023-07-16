@@ -14,6 +14,10 @@ public class StringUtil {
     private StringUtil() {
     }
 
+    public static String trim(String value) {
+        return value == null ? null : value.trim();
+    }
+
     public static Optional<String> trimFilter(String str) {
         return Optional.ofNullable(str)
                 .map(String::trim)
@@ -47,5 +51,16 @@ public class StringUtil {
         final var decode = Base64.getUrlDecoder().decode(str);
         final var decompress = decompress(decode);
         return new String(decompress, StandardCharsets.UTF_8);
+    }
+
+    public static boolean isNotEmpty(String value) {
+        return !isEmpty(value);
+    }
+
+    public static boolean isEmpty(String value) {
+        return Optional.ofNullable(value)
+                .map(String::trim)
+                .map(String::isEmpty)
+                .orElse(false);
     }
 }
