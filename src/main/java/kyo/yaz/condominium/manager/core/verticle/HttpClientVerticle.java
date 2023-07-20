@@ -35,6 +35,8 @@ public class HttpClientVerticle extends AbstractVerticle {
 
     public static final String SEND = "http-send-request";
 
+    public static final String REQUEST_COUNT = "http-request-count";
+
     private static final AtomicLong COUNTER = new AtomicLong(0);
     private final HttpLogging httpLogging = new HttpLogging();
     private WebClient webClient;
@@ -52,6 +54,8 @@ public class HttpClientVerticle extends AbstractVerticle {
                 .setVerifyHost(false);
 
         trustAll = WebClient.create(vertx, trustAllWebClientOptions);
+
+        vertx.eventBus().consumer(REQUEST_COUNT, m -> m.reply(COUNTER.get()));
         vertx.eventBus().<HttpClientRequest>consumer(SEND, m -> {
             sendHttpClientRequest(m.body())
                     .onComplete(ar -> {

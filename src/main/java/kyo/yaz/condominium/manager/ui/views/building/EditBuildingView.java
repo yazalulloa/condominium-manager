@@ -4,7 +4,6 @@ import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.Hr;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -21,6 +20,7 @@ import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.EmailConfigService;
 import kyo.yaz.condominium.manager.ui.MainLayout;
 import kyo.yaz.condominium.manager.ui.views.base.ScrollPanel;
+import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.extracharges.ExtraChargesView;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -35,11 +35,13 @@ import java.util.Optional;
 @Route(value = "buildings/:building_id", layout = MainLayout.class)
 public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver {
 
+    private final ProgressLayout progressLayout = new ProgressLayout();
     private final BuildingForm form = new BuildingForm();
     private final ReserveFundView reserveFundView;
     private final ExtraChargesView extraChargesView = new ExtraChargesView();
     private final Button saveBtn = new Button(Labels.SAVE);
     private final Button cancelBtn = new Button(Labels.CANCEL);
+    private final HorizontalLayout buttonsLayout = createButtonsLayout();
     private final BuildingService buildingService;
     private final ApartmentService apartmentService;
     private final EmailConfigService emailConfigService;
@@ -53,6 +55,7 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
         this.buildingService = buildingService;
         this.apartmentService = apartmentService;
         this.emailConfigService = emailConfigService;
+        init();
     }
 
     @Override
@@ -62,7 +65,7 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
     }
 
     private void init() {
-        addClassName("edit-building-view");
+        getContent().addClassName("edit-building-view");
 
         configureListeners();
         extraChargesView.init();
@@ -73,7 +76,15 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
     private void addContent() {
 
         extraChargesView.setVisible(extraChargesVisible);
-        add(form, new Hr(), createButtonsLayout(), new Hr(), extraChargesView, new Hr(), reserveFundView, new Hr());
+        add(progressLayout, form, buttonsLayout, extraChargesView, reserveFundView);
+    }
+
+    private void hide(boolean hide) {
+        progressLayout.setVisible(!hide);
+        form.setVisible(hide);
+        buttonsLayout.setVisible(hide);
+        extraChargesView.setVisible(hide && extraChargesVisible);
+        reserveFundView.setVisible(hide);
     }
 
     @Override
@@ -84,7 +95,11 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
     }
 
     private void initData() {
+        //final var buildingParam = VaadinSession.getCurrent().getAttribute("building");
 
+        progressLayout.setProgressText("Cargando datos del edificio");
+        progressLayout.progressBar().setIndeterminate(true);
+        hide(false);
 
         final var aptNumbersSingle = Maybe.fromOptional(Optional.ofNullable(buildingIdParam))
                 .flatMapSingle(apartmentService::aptNumbers)
@@ -106,12 +121,14 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
                         reserveFundView.setItems(ConvertUtil.toList(building.reserveFunds(), ReserveFundMapper::to));
                         extraChargesVisible = !list.isEmpty();
 
-                        init();
+                        //init();
+                        hide(true);
                     };
                 })
                 .defaultIfEmpty(() -> {
                     extraChargesVisible = false;
-                    init();
+                    //init();
+                    hide(true);
                 })
                 .doOnSuccess(this::uiAsyncAction)
                 .subscribeOn(Schedulers.io())

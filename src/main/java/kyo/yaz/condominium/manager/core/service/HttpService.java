@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 
 public interface HttpService {
 
+  Single<Long> requestCount();
   Single<HttpClientResponse> send(HttpClientRequest request);
 
   default Single<HttpClientResponse> get(String url) {

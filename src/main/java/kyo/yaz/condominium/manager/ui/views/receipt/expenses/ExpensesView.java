@@ -105,14 +105,18 @@ public class ExpensesView extends BaseDiv {
     private DragDropDiv<ExpenseViewItem> card(ExpenseViewItem item) {
 
         final var card = new DragDropDiv<>(item);
-        card.addClassName("card");
-        final var body = new Div(new Span(item.getDescription()), new Span(ConvertUtil.format(item.getAmount(), item.getCurrency())),
+        card.addClassName("base-card");
+
+        final var header = new Div(new Span(item.getDescription()));
+        header.addClassName("header");
+
+        final var body = new Div(new Span(ConvertUtil.format(item.getAmount(), item.getCurrency())),
                 new Span(translationProvider.translate(item.getType().name())));
         body.addClassName("body");
 
         final var buttons = new Div(editBtn(new Button(), item), copyBtn(new Button(), item), deleteBtn(new Button(), item));
         buttons.addClassName("buttons");
-        card.add(body, buttons);
+        card.add(header, body, buttons);
 
         return card;
     }

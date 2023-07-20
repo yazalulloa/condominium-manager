@@ -15,6 +15,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouteParameters;
+import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -70,6 +71,7 @@ public class BuildingView extends BaseVerticalLayout {
         setSizeFull();
         configureGrid();
         add(getToolbar(), progressLayout, grid);
+        saveInSession(null);
     }
 
     private HorizontalLayout getToolbar() {
@@ -90,7 +92,7 @@ public class BuildingView extends BaseVerticalLayout {
         grid.addClassNames(LumoUtility.Border.TOP, LumoUtility.BorderColor.CONTRAST_10);
         grid.addComponentColumn(this::createCard);
 
-        grid.addItemDoubleClickListener(e -> editEntity(e.getItem().id()));
+        grid.addItemDoubleClickListener(e -> editEntity(e.getItem()));
     }
 
     private Component createCard(Building building) {
@@ -116,7 +118,7 @@ public class BuildingView extends BaseVerticalLayout {
         editBuildingIcon.addClassName("icon");
         editBuildingIcon.setColor("#13b931");
         final var editBtn = new Button(editBuildingIcon);
-        editBtn.addClickListener(v -> editEntity(building.id()));
+        editBtn.addClickListener(v -> editEntity(building));
 
         final var card = new Div();
         card.addClassName("card");
@@ -219,9 +221,18 @@ public class BuildingView extends BaseVerticalLayout {
         editEntity("new");
     }
 
+    private void editEntity(Building building) {
+        saveInSession(building);
+        editEntity(building.id());
+    }
+
     private void editEntity(String id) {
         grid.asSingleSelect().clear();
         ui(ui -> ui.navigate(EditBuildingView.class, new RouteParameters("building_id", id)));
         //editEntity(Apartment.builder().build());
+    }
+
+    private void saveInSession(Building building) {
+        VaadinSession.getCurrent().setAttribute("building", building);
     }
 }

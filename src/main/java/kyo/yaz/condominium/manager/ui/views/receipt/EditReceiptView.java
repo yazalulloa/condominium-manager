@@ -23,8 +23,8 @@ import kyo.yaz.condominium.manager.core.mapper.ExpenseMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
-import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
 import kyo.yaz.condominium.manager.core.service.entity.CalculateReceiptInfo;
+import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.persistence.domain.Expense.Type;
 import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
@@ -85,10 +85,11 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
         this.calculateReceiptInfo = calculateReceiptInfo;
         this.receiptForm = receiptForm;
         this.debtsView = debtsView;
+        init();
     }
 
     private void init() {
-        addClassName("edit-receipt-view");
+        getContent().addClassName("edit-receipt-view");
         receiptForm.init();
         debtsView.init();
         extraChargesView.init();
@@ -161,10 +162,11 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
             if (receiptId == null) {
                 final var value = event.getValue();
 
-                if (value == null) {
-                    debtsView.setVisible(false);
-                    extraChargesView.setVisible(false);
-                } else {
+                debtsView.setVisible(false);
+                extraChargesView.setVisible(false);
+
+                if (value != null) {
+
                     setAptNumbers(value)
                             .doOnSuccess(this::uiAsyncAction)
                             .ignoreElement()
@@ -194,6 +196,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
         final var listSingle = apartmentService.aptNumbers(buildingId);
 
         return Single.zip(buildingSingle, listSingle, (building, list) -> {
+            logger().info("setAptNumbers called");
             return () -> {
                 this.building = building;
 
@@ -234,28 +237,31 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                 .map(Building::reserveFunds)
                 .filter(CollectionUtils::isNotEmpty);
 
-        fundList.ifPresent(reserveFunds -> {
-            reserveFundsDiv.setVisible(true);
-            reserveFundsDiv.removeAll();
+        Optional.ofNullable(building)
+                .map(Building::reserveFunds)
+                .filter(CollectionUtils::isNotEmpty)
+                .ifPresent(reserveFunds -> {
+                    reserveFundsDiv.setVisible(true);
+                    reserveFundsDiv.removeAll();
 
-            reserveFunds.forEach(reserveFund -> {
-                final var reserveFundPay = reserveFund.pay();
-                if (reserveFund.active() && DecimalUtil.greaterThanZero(reserveFundPay)) {
+                    reserveFunds.forEach(reserveFund -> {
+                        final var reserveFundPay = reserveFund.pay();
+                        if (reserveFund.active() && DecimalUtil.greaterThanZero(reserveFundPay)) {
 
-                    final var isFixedPay = reserveFund.type() == ReserveFund.Type.FIXED_PAY;
-                    final var total = expensesView.totalCommon();
-                    final var amountToPay = isFixedPay ? reserveFundPay :
-                            DecimalUtil.greaterThanZero(total) ? DecimalUtil.percentageOf(reserveFundPay,
-                                    total) : total;
+                            final var isFixedPay = reserveFund.type() == ReserveFund.Type.FIXED_PAY;
+                            final var total = expensesView.totalCommon();
+                            final var amountToPay = isFixedPay ? reserveFundPay :
+                                    DecimalUtil.greaterThanZero(total) ? DecimalUtil.percentageOf(reserveFundPay,
+                                            total) : total;
 
-                    final var amountToPayStr = "Monto a pagar: " + amountToPay;
-                    final var last = isFixedPay ? amountToPayStr : "Porcentaje: " + reserveFundPay + "% " + amountToPayStr;
-                    reserveFundsDiv.add(new Paragraph(reserveFund.name() + ": " + reserveFund.fund() + " " + last));
-                }
+                            final var amountToPayStr = "Monto a pagar: " + amountToPay;
+                            final var last = isFixedPay ? amountToPayStr : "Porcentaje: " + reserveFundPay + "% " + amountToPayStr;
+                            reserveFundsDiv.add(new Paragraph(reserveFund.name() + ": " + reserveFund.fund() + " " + last));
+                        }
 
-            });
+                    });
 
-        });
+                });
 
         final var totalUnCommon = new AtomicReference<>(expensesView.totalUnCommon());
         final var totalCommon = new AtomicReference<>(expensesView.totalCommon());
@@ -316,6 +322,15 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                 .orElse(null);
     }
 
+    private void initializeReceiptInfo() {
+        //debtsView.setItems(ConvertUtil.toList(receipt.debts(), DebtMapper::to));
+        expensesView.setItems(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
+        extraChargesView.setItems(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
+
+        receiptForm.setItem(ConvertUtil.formItem(receipt));
+        receiptForm.buildingComboBox().setEnabled(receipt.createdAt() == null);
+        receiptForm.buildingComboBox().setValue(receipt.buildingId());
+    }
 
     private Maybe<Runnable> initReceipt() {
 
@@ -323,13 +338,9 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                 .flatMapSingle(this::setAptNumbers)
                 .map(runnable -> {
                     return () -> {
-                        //debtsView.setItems(ConvertUtil.toList(receipt.debts(), DebtMapper::to));
-                        expensesView.setItems(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
-                        extraChargesView.setItems(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
-
-                        receiptForm.setItem(ConvertUtil.formItem(receipt));
-                        receiptForm.buildingComboBox().setEnabled(receipt.createdAt() == null);
-                        receiptForm.buildingComboBox().setValue(receipt.buildingId());
+                        if (receiptForm.buildingComboBox().getValue() == null) {
+                            initializeReceiptInfo();
+                        }
 
                         runnable.run();
                     };
@@ -338,8 +349,17 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
 
     private void initData() {
 
-        final var setBuildingIdSingle = buildingService.buildingIds()
-                .map(buildingIds -> (Runnable) () -> receiptForm.buildingComboBox().setItems(buildingIds));
+        Optional.ofNullable(receipt)
+                .map(Receipt::buildingId)
+                .ifPresent(buildingId -> {
+                    receiptForm.buildingComboBox().setItems(buildingId);
+                    initializeReceiptInfo();
+                });
+
+        final var setBuildingIdSingle = Maybe.fromOptional(Optional.ofNullable(receipt))
+                .map(r -> AppUtil.emptyRunnable())
+                .switchIfEmpty(buildingService.buildingIds()
+                        .map(buildingIds -> (Runnable) () -> receiptForm.buildingComboBox().setItems(buildingIds)));
 
         final var loadFromId = Maybe.fromOptional(Optional.ofNullable(receiptId))
                 .flatMap(receiptService::find)
@@ -354,7 +374,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                 .switchIfEmpty(Single.fromCallable(AppUtil::emptyRunnable));
 
         Single.zip(setBuildingIdSingle, receiptSingle,
-                        (setBuildingId, setReceipt) -> List.of(this::init, setBuildingId, setReceipt, this::loadReserveFunds))
+                        (setBuildingId, setReceipt) -> List.of(/*this::init,*/ setBuildingId, setReceipt, this::loadReserveFunds))
                 .doOnSuccess(this::uiAsyncAction)
                 .ignoreElement()
                 .subscribeOn(Schedulers.io())

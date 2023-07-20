@@ -211,6 +211,14 @@ public class RateView extends BaseVerticalLayout {
 
     private Completable newRate() {
 
+      /*  return Flowable.range(0, 10)
+                .map(i -> saveNewBcvRate.saveNewRate())
+                .toList()
+                .toFlowable()
+                .flatMap(Single::merge)
+                .reduce(Boolean::logicalOr)*/
+
+
         return saveNewBcvRate.saveNewRate()
                 .doOnSuccess(bool -> logger().info("NEW_RATE_SAVED {}", bool))
                 .doOnSuccess(bool -> asyncNotification(bool ? "Nueva tasa de cambio encontrada" : "Tasa ya guardada"))

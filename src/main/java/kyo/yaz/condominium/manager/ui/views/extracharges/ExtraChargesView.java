@@ -80,15 +80,18 @@ public class ExtraChargesView extends BaseDiv {
     private DragDropDiv<ExtraChargeViewItem> card(ExtraChargeViewItem item) {
 
         final var card = new DragDropDiv<>(item);
-        card.addClassName("card");
+        card.addClassName("base-card");
 
-        final var body = new Div(new Span(item.getAptNumber()), new Span(item.getName()), new Span(item.getDescription()),
+        final var header = new Div(new Span(item.getAptNumber()), new Span(item.getName()));
+        header.addClassName("header");
+
+        final var body = new Div( new Span(item.getDescription()),
                 new Span(ConvertUtil.format(item.getAmount(), item.getCurrency())));
         body.addClassName("body");
 
         final var buttons = new Div(editBtn(new Button(), item), copyBtn(new Button(), item), deleteBtn(new Button(), item));
         buttons.addClassName("buttons");
-        card.add(body, buttons);
+        card.add(header, body, buttons);
 
         return card;
     }

@@ -7,6 +7,7 @@ import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.core.service.entity.SequenceService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
 import kyo.yaz.condominium.manager.core.util.DecimalUtil;
+import kyo.yaz.condominium.manager.core.vertx.VertxHandler;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.persistence.entity.Sequence;
 import lombok.RequiredArgsConstructor;
@@ -20,14 +21,19 @@ public class SaveNewBcvRate {
 
     private final SequenceService sequenceService;
     private final RateService rateService;
-    private final GetBcvUsdRate getBcvUsdRate;
+    //private final GetBcvUsdRate getBcvUsdRate;
+    private final BcvGetDocumentQueue bcvGetDocumentQueue;
     private final NotificationService notificationService;
+    private final VertxHandler vertxHandler;
 
+    private Maybe<Rate> getNewRate() {
+        return vertxHandler.maybe(bcvGetDocumentQueue::getNewRate);
+    }
 
     public Single<Boolean> saveNewRate() {
 
-        return getBcvUsdRate.newRate()
-                .flatMap(rate -> {
+        return getNewRate()
+                .flatMapSingle(rate -> {
 
                     final var saveRate = sequenceService.nextSequence(Sequence.Type.RATES)
                             .<Rate>map(id -> rate.toBuilder()
@@ -48,8 +54,7 @@ public class SaveNewBcvRate {
                                                 && lastRate.source() == rate.source();
 
                                         if (!isSameRate) {
-                                            log.info("LAST RATE IS DIFFERENT \nOLD: {}\nNEW: {}", Json.encodePrettily(lastRate),
-                                                    Json.encodePrettily(rate));
+                                            //log.info("LAST RATE IS DIFFERENT \nOLD: {}\nNEW: {}", Json.encodePrettily(lastRate), Json.encodePrettily(rate));
                                         }
 
                                         return isSameRate;
@@ -63,7 +68,7 @@ public class SaveNewBcvRate {
 
                         if (lastIsSame || exists) {
                             if (!lastIsSame) {
-                                log.info("HASH IS ALREADY SAVED");
+                                //log.info("HASH IS ALREADY SAVED");
                             }
 
                             return Single.just(false);
@@ -71,7 +76,8 @@ public class SaveNewBcvRate {
 
                         return saveRate;
                     }).flatMap(s -> s);
-                });
+                })
+                .defaultIfEmpty(false);
 
     }
 }

@@ -29,6 +29,12 @@ public class HttpServiceImpl implements HttpService {
 
   private final VertxHandler handler;
 
+  @Override
+  public Single<Long> requestCount() {
+    return handler.get(HttpClientVerticle.REQUEST_COUNT);
+  }
+
+  @Override
   public Single<HttpClientResponse> send(HttpClientRequest request) {
 
     final var timeoutTime = Optional.of(request.timeoutTime())

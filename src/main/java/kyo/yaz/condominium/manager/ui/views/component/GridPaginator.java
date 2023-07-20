@@ -51,7 +51,7 @@ public class GridPaginator extends Div implements HasValue.ValueChangeListener<A
     }
 
     private void calculatePages() {
-        //log.info("Calculating pages");
+        log.info("Calculating pages");
 
         final var pageSize = itemsPerPageComBox.getValue();
         final var oldNumberOfPages = numberOfPages;
@@ -155,7 +155,10 @@ public class GridPaginator extends Div implements HasValue.ValueChangeListener<A
             }
         });
 
-        itemsPerPageComBox.addValueChangeListener(o -> calculatePages());
+        itemsPerPageComBox.addValueChangeListener(o -> {
+            calculatePages();
+            run();
+        });
         setPageComboBoxListener();
 
         add(itemsPerPageComBox, firstPage, previousPage, pageComboBox, nextPage, lastPage);
@@ -184,11 +187,17 @@ public class GridPaginator extends Div implements HasValue.ValueChangeListener<A
         pageComboBoxRegistration = pageComboBox.addValueChangeListener(this);
     }
 
+    private void run() {
+        if (runnable != null) {
+            runnable.run();
+        }
+    }
+
     @Override
     public void valueChanged(AbstractField.ComponentValueChangeEvent<ComboBox<Integer>, Integer> event) {
         if (event.getValue() != null) {
             log.info("runnable {}", event.getValue());
-            runnable.run();
+            run();
         }
     }
 }

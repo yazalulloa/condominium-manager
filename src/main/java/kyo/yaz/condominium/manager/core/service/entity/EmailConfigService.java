@@ -122,7 +122,7 @@ public class EmailConfigService implements MongoService<EmailConfig> {
               throwable instanceof ExecutionException && throwable.getCause() instanceof TokenResponseException;
 
           if (isInvalidToken) {
-            log.info("CHECK_ERROR\n{}", throwable.getMessage());
+            log.info("CHECK_ERROR \n{}", throwable.getMessage());
           } else {
             log.info("CHECK_ERROR", throwable);
           }

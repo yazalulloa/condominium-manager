@@ -82,7 +82,7 @@ public class DebtsView extends BaseDiv {
     private DragDropDiv<DebtViewItem> card(DebtViewItem item) {
 
         final var card = new DragDropDiv<>(item);
-        card.addClassName("card");
+        card.addClassName("base-card");
         final var header = new Div(new Span(item.getAptNumber()), new Span(item.getName()));
         header.addClassName("header");
         final var body = new Div(new Span("Recibos: %s".formatted(item.getReceipts())),

@@ -6,11 +6,6 @@ import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.shared.communication.PushMode;
 import com.vaadin.flow.theme.Theme;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import kyo.yaz.condominium.manager.core.util.EnvUtil;
 import kyo.yaz.condominium.manager.core.util.FileUtil;
 import kyo.yaz.condominium.manager.core.util.NetworkUtil;
@@ -19,9 +14,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
-import org.springframework.scheduling.annotation.EnableScheduling;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * The entry point of the Spring Boot application.
@@ -31,8 +30,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableMongoRepositories()
+@EnableCaching
 @ComponentScan(basePackages = {
-    "kyo.yaz.condominium.manager"
+        "kyo.yaz.condominium.manager"
 })
 @ServletComponentScan
 @Theme(value = "condominium_manager")
@@ -44,23 +44,18 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Slf4j
 public class Application extends SpringBootServletInitializer implements AppShellConfigurator {
 
-  public static void main(String[] args) throws IOException {
-    EnvUtil.saveAppStartedAt();
-    NetworkUtil.showPublicIp();
+    public static void main(String[] args) throws IOException {
+        EnvUtil.saveAppStartedAt();
+        NetworkUtil.showPublicIp();
 
-    Files.createDirectories(Paths.get("config"));
-    FileUtil.writeEnvToFile("APPLICATION_FILE", "config/application.yml");
-    FileUtil.writeEnvToFile("VERTICLES_FILE", "config/verticles.yml");
+        Files.createDirectories(Paths.get("config"));
+        FileUtil.writeEnvToFile("APPLICATION_FILE", "config/application.yml");
+        FileUtil.writeEnvToFile("VERTICLES_FILE", "config/verticles.yml");
 
-    if (EnvUtil.isShowDir()) {
-      FileUtil.showDir();
+        if (EnvUtil.isShowDir()) {
+            FileUtil.showDir();
+        }
+
+        SpringApplication.run(Application.class, args);
     }
-
-    SpringApplication.run(Application.class, args);
-  }
-
-  @Override
-  public void onStartup(ServletContext servletContext) throws ServletException {
-    super.onStartup(servletContext);
-  }
 }

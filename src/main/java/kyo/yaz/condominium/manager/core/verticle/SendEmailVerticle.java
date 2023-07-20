@@ -67,7 +67,7 @@ public class SendEmailVerticle extends BaseVerticle {
 
                     return statusCode == 200;
                 })
-                .retryWhen(RetryWithDelay.retry(3, 500, TimeUnit.MILLISECONDS));
+                .retryWhen(RetryWithDelay.retry(3, 1, TimeUnit.SECONDS));
     }
 
     private Single<Gmail> gmailSingle(EmailConfig emailConfig) {

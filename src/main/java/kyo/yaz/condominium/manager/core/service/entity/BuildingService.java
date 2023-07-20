@@ -12,6 +12,8 @@ import kyo.yaz.condominium.manager.core.service.paging.WriteEntityToFile;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.repository.BuildingRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import java.util.List;
 
 @Service("BUILDINGS")
 @RequiredArgsConstructor
+@Slf4j
 public class BuildingService implements MongoService<Building> {
 
     private final ObjectMapper objectMapper;
@@ -40,6 +43,7 @@ public class BuildingService implements MongoService<Building> {
     public Completable delete(Building entity) {
         return RxJava3Adapter.monoToCompletable(repository.delete(entity));
     }
+
 
     public Single<List<String>> buildingIds() {
         final var mono = repository.getIds()

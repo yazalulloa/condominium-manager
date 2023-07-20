@@ -1,4 +1,4 @@
-.extra-charges-view .card {
+/*.extra-charges-view .card {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
@@ -32,7 +32,7 @@
             gap: 16px;
        }
 
-}
+}*/
 
 .extra-charge-form {
    width: 30em
