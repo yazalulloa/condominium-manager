@@ -58,12 +58,7 @@ public class BuildReceiptPdfs implements GetPdfItems {
         final var buildingSingle = buildingService.get(receipt.buildingId());
 
 
-        return Single.zip(buildingSingle, apartmentsByBuilding, (building, apartments) -> {
-
-                    return pdfItems(receipt, building, apartments);
-
-
-                })
+        return Single.zip(buildingSingle, apartmentsByBuilding, (building, apartments) -> pdfItems(receipt, building, apartments))
                 .flatMap(s -> s);
     }
 
@@ -143,4 +138,5 @@ public class BuildReceiptPdfs implements GetPdfItems {
             plConsumer.accept(consumer);
         }
     }
+
 }

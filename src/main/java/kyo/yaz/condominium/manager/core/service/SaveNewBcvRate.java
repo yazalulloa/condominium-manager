@@ -3,6 +3,7 @@ package kyo.yaz.condominium.manager.core.service;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.Json;
+import kyo.yaz.condominium.manager.core.domain.BcvUsdRateResult;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.core.service.entity.SequenceService;
 import kyo.yaz.condominium.manager.core.util.DateUtil;
@@ -26,24 +27,36 @@ public class SaveNewBcvRate {
     private final NotificationService notificationService;
     private final VertxHandler vertxHandler;
 
-    private Maybe<Rate> getNewRate() {
-        return vertxHandler.maybe(bcvGetDocumentQueue::getNewRate);
+    private Single<BcvUsdRateResult> getNewRate() {
+        return vertxHandler.single(bcvGetDocumentQueue::getNewRate);
     }
 
-    public Single<Boolean> saveNewRate() {
+    public Single<BcvUsdRateResult> saveNewRate() {
 
         return getNewRate()
-                .flatMapSingle(rate -> {
+                .flatMap(result -> {
 
-                    final var saveRate = sequenceService.nextSequence(Sequence.Type.RATES)
+
+                    if (result.state() != BcvUsdRateResult.State.NEW_RATE) {
+                        return Single.just(result);
+                    }
+
+                    final var rate = result.rate();
+
+                    final var newRateSingle = sequenceService.nextSequence(Sequence.Type.RATES)
                             .<Rate>map(id -> rate.toBuilder()
                                     .id(id)
                                     .createdAt(DateUtil.nowZonedWithUTC())
                                     .build())
                             .flatMap(rateService::save)
+                            .map(r -> new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE, r))
+                            .cache();
+
+                    final var saveRate = newRateSingle
+                            .map(BcvUsdRateResult::rate)
                             .map(r -> "Nueva tasa añadida\n%s\nFecha de la tasa: %s".formatted(r.rate(), r.dateOfRate()))
                             .flatMapCompletable(notificationService::sendNewRate)
-                            .toSingleDefault(true);
+                            .andThen(newRateSingle);
 
 
                     final var lastSingle = rateService.last(rate.fromCurrency(), rate.toCurrency())
@@ -54,30 +67,29 @@ public class SaveNewBcvRate {
                                                 && lastRate.source() == rate.source();
 
                                         if (!isSameRate) {
-                                            //log.info("LAST RATE IS DIFFERENT \nOLD: {}\nNEW: {}", Json.encodePrettily(lastRate), Json.encodePrettily(rate));
+                                            log.info("LAST RATE IS DIFFERENT \nOLD: {}\nNEW: {}", Json.encodePrettily(lastRate), Json.encodePrettily(rate));
                                         }
 
-                                        return isSameRate;
+                                        return new BcvUsdRateResult(BcvUsdRateResult.State.SAME_RATE);
                                     }
                             )
-                            .defaultIfEmpty(false);
+                            .defaultIfEmpty(new BcvUsdRateResult(BcvUsdRateResult.State.RATE_NOT_IN_DB));
 
                     final var existSingle = rateService.exists(rate.hash());
 
-                    return Single.zip(lastSingle, existSingle, (lastIsSame, exists) -> {
+                    return Single.zip(lastSingle, existSingle, (lastResult, exists) -> {
 
-                        if (lastIsSame || exists) {
-                            if (!lastIsSame) {
-                                //log.info("HASH IS ALREADY SAVED");
-                            }
+                        if (lastResult.state() == BcvUsdRateResult.State.SAME_RATE) {
+                            return Single.just(lastResult);
+                        }
 
-                            return Single.just(false);
+                        if (exists) {
+                            return Single.just(new BcvUsdRateResult(BcvUsdRateResult.State.HASH_SAVED));
                         }
 
                         return saveRate;
                     }).flatMap(s -> s);
-                })
-                .defaultIfEmpty(false);
+                });
 
     }
 }

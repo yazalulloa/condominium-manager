@@ -1,6 +1,7 @@
 package kyo.yaz.condominium.manager.core.parser;
 
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.domain.HttpClientResponse;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Component;
@@ -14,12 +15,15 @@ import java.util.zip.CRC32;
 @Component
 public class BcvUsdRateParser {
 
-    public Rate parse(String html) {
+    public Rate parse(HttpClientResponse httpResponse) {
 
-        final var document = Jsoup.parse(html);
+        final var html = httpResponse.body().toString();
+
         final var crc32 = new CRC32();
         crc32.update(ByteBuffer.wrap(html.getBytes(StandardCharsets.UTF_8)));
         final var hash = crc32.getValue();
+
+        final var document = Jsoup.parse(html);
 
         final var dolar = document.getElementById("dolar");
 
@@ -44,6 +48,10 @@ public class BcvUsdRateParser {
         final var rate = new BigDecimal(valDolar);
         final var dateOfRate = ZonedDateTime.parse(date).toLocalDate();
 
+
+        final var etag = httpResponse.headers().get("etag");
+        final var lastModified = httpResponse.headers().get("last-modified");
+
         return Rate.builder()
                 .fromCurrency(Currency.USD)
                 .toCurrency(Currency.VED)
@@ -51,6 +59,8 @@ public class BcvUsdRateParser {
                 .dateOfRate(dateOfRate)
                 .source(Rate.Source.BCV)
                 .hash(hash)
+                .etag(etag)
+                .lastModified(lastModified)
                 .build();
     }
 

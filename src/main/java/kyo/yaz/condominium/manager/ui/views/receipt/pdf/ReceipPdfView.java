@@ -19,17 +19,17 @@ import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.vertx.core.Vertx;
 import jakarta.annotation.security.PermitAll;
 import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
-import kyo.yaz.condominium.manager.core.service.GetPdfItems;
 import kyo.yaz.condominium.manager.core.util.StringUtil;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.ui.views.base.BaseDiv;
 import kyo.yaz.condominium.manager.ui.views.component.LazyComponent;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.receipt.ReceiptView;
-import kyo.yaz.condominium.manager.ui.views.receipt.service.DownloadReceiptZipService;
+import kyo.yaz.condominium.manager.ui.views.receipt.service.GetPdfReceipts;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,16 +45,19 @@ public class ReceipPdfView extends BaseDiv {
     private final VerticalLayout progressContainer = new VerticalLayout();
     private final ProgressLayout progressLayout = new ProgressLayout();
     private final Anchor downloadAnchor = new Anchor();
-    private final GetPdfItems getPdfItems;
-    private final DownloadReceiptZipService downloadReceiptZipService;
+
+    private final Vertx vertx;
     private final TranslationProvider translationProvider;
+    private final GetPdfReceipts getPdfReceipts;
+
+    private Runnable detachRunnable;
     private H5 title;
 
     @Autowired
-    public ReceipPdfView(GetPdfItems getPdfItems, DownloadReceiptZipService downloadReceiptZipService, TranslationProvider translationProvider) {
-        this.getPdfItems = getPdfItems;
-        this.downloadReceiptZipService = downloadReceiptZipService;
+    public ReceipPdfView(Vertx vertx, TranslationProvider translationProvider, GetPdfReceipts getPdfReceipts) {
+        this.vertx = vertx;
         this.translationProvider = translationProvider;
+        this.getPdfReceipts = getPdfReceipts;
         init();
     }
 
@@ -79,6 +82,9 @@ public class ReceipPdfView extends BaseDiv {
         progressContainer.setSizeFull();
         progressContainer.setMargin(true);
 
+        getPdfReceipts.asyncSubject()
+                .subscribe(observerShowError(state -> uiAsyncAction(() -> progressLayout.setState(state))));
+
         add(horizontalLayout, progressContainer);
     }
 
@@ -90,8 +96,11 @@ public class ReceipPdfView extends BaseDiv {
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
+        if (detachRunnable != null) {
+            detachRunnable.run();
+        }
+
         super.onDetach(detachEvent);
-        getPdfItems.delete();
     }
 
     public void initData() {
@@ -106,19 +115,18 @@ public class ReceipPdfView extends BaseDiv {
         progressLayout.setProgressText("Creando archivos");
         progressLayout.progressBar().setIndeterminate(true);
         progressLayout.setVisible(true);
-        downloadReceiptZipService.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
-        getPdfItems.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
 
-        getPdfItems.pdfItems(receipt)
+        getPdfReceipts.pdfItems(receipt)
                 .observeOn(Schedulers.io())
                 .subscribe(singleObserver(list -> {
+
+                    detachRunnable = () -> vertx.runOnContext(v -> list.forEach(item -> vertx.fileSystem().delete(item.path().toString())));
                     final var tabSheet = new TabSheet();
                     tabSheet.setSizeFull();
 
                     list.forEach(item -> tabSheet.add(item.id(), lazyComponent(item)));
 
-                    final var zipPath = downloadReceiptZipService.zipPath(receipt, list);
-                    final var filePath = StringUtil.compressStr(zipPath);
+                    final var filePath = StringUtil.compressStr(getPdfReceipts.zipPath(receipt, list));
 
                     final var month = translationProvider.translate(receipt.month().name());
                     final var titleText = "Recibo de Pago PDF %s %s %s %s".formatted(receipt.buildingId(), month, receipt.date(), receipt.id());

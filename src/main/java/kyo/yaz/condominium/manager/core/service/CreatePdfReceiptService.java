@@ -38,7 +38,7 @@ public class CreatePdfReceiptService {
     private final GetReceiptName getReceiptName;
 
 
-    public Single<List<CreatePdfReceipt>> createFiles(Long receiptId) {
+/*    public Single<List<CreatePdfReceipt>> createFiles(Long receiptId) {
 
         return receiptService.get(receiptId)
                 .flatMap(this::createFiles);
@@ -54,14 +54,14 @@ public class CreatePdfReceiptService {
                         createPdfReceipt.building().name(),
                         Optional.ofNullable(createPdfReceipt.apartment()).map(Apartment::emails).orElse(null)))
                 .toList(LinkedList::new)
-                /*.reduceWith(LinkedHashMap::new, (map, item) -> {
+                *//*.reduceWith(LinkedHashMap::new, (map, item) -> {
                     map.put(item.id(), item);
                     return map;
-                })*/
+                })*//*
                 ;
-    }
+    }*/
 
-    public Single<List<CreatePdfReceipt>> pdfReceipts(String tempPath, Receipt receipt) {
+   /* public Single<List<CreatePdfReceipt>> pdfReceipts(String tempPath, Receipt receipt) {
         return Single.defer(() -> {
 
             final var buildingSingle = buildingService.get(receipt.buildingId());
@@ -70,7 +70,7 @@ public class CreatePdfReceiptService {
 
             return Single.zip(buildingSingle, apartmentsByBuilding, (building, apartments) -> pdfReceipts(tempPath, receipt, building, apartments));
         });
-    }
+    }*/
 
     public List<CreatePdfReceipt> pdfReceipts(String tempPath, Receipt receipt, Building building, List<Apartment> apartments) throws IOException {
 
@@ -104,12 +104,12 @@ public class CreatePdfReceiptService {
         return list;
     }
 
-    public Single<LinkedList<CreatePdfReceipt>> createFiles(Receipt receipt, boolean shouldDeleteAfter) {
+    /*public Single<LinkedList<CreatePdfReceipt>> createFiles(Receipt receipt, boolean shouldDeleteAfter) {
         return createFiles(receipt, shouldDeleteAfter, () -> {
         });
-    }
+    }*/
 
-    public Single<LinkedList<CreatePdfReceipt>> createFiles(Receipt receipt, boolean shouldDeleteAfter,
+   /* public Single<LinkedList<CreatePdfReceipt>> createFiles(Receipt receipt, boolean shouldDeleteAfter,
                                                             Runnable pdfCreated) {
 
         final var tempPath = "tmp/" + UUID.randomUUID() + "/";
@@ -125,13 +125,13 @@ public class CreatePdfReceiptService {
                         deleteDirAfterDelay.deleteDir(tempPath);
                     }
                 });
-    }
+    }*/
 
-    public Single<LinkedList<CreatePdfReceipt>> createFiles(Receipt receipt) {
+   /* public Single<LinkedList<CreatePdfReceipt>> createFiles(Receipt receipt) {
         return createFiles(receipt, true);
-    }
+    }*/
 
-    public Single<String> zip(Receipt receipt) {
+  /*  public Single<String> zip(Receipt receipt) {
         return createFiles(receipt)
                 .map(list -> {
 
@@ -147,5 +147,5 @@ public class CreatePdfReceiptService {
                 })
                 .doAfterSuccess(deleteDirAfterDelay::deleteDir);
 
-    }
+    }*/
 }

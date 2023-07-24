@@ -23,7 +23,6 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.component.upload.receivers.FileBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -48,7 +47,7 @@ import kyo.yaz.condominium.manager.ui.views.component.GridPaginator;
 import kyo.yaz.condominium.manager.ui.views.component.ProgressLayout;
 import kyo.yaz.condominium.manager.ui.views.domain.EmailAptReceiptRequest;
 import kyo.yaz.condominium.manager.ui.views.receipt.pdf.ReceipPdfView;
-import kyo.yaz.condominium.manager.ui.views.receipt.service.DownloadReceiptZipService;
+import kyo.yaz.condominium.manager.ui.views.receipt.service.GetPdfReceipts;
 import kyo.yaz.condominium.manager.ui.views.util.ConvertUtil;
 import kyo.yaz.condominium.manager.ui.views.util.IconUtil;
 import kyo.yaz.condominium.manager.ui.views.util.Labels;
@@ -83,25 +82,24 @@ public class ReceiptView extends BaseVerticalLayout {
     private final LoadCsvReceipt loadCsvReceipt;
     private final ProgressLayout progressLayout = new ProgressLayout();
     private final SendEmailReceipts sendEmailReceipts;
-    private final DownloadReceiptZipService downloadReceiptZipService;
     private final TranslationProvider translationProvider;
     private final EmailAptReceiptDialog emailAptReceiptDialog;
+    private final GetPdfReceipts getPdfReceipts;
 
     @Autowired
     public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt,
                        SendEmailReceipts sendEmailReceipts,
-                       DownloadReceiptZipService downloadReceiptZipService, TranslationProvider translationProvider,
-                       EmailAptReceiptDialog emailAptReceiptDialog) {
+                       TranslationProvider translationProvider,
+                       EmailAptReceiptDialog emailAptReceiptDialog, GetPdfReceipts getPdfReceipts) {
         super();
         this.buildingService = buildingService;
         this.receiptService = receiptService;
         this.loadCsvReceipt = loadCsvReceipt;
         this.sendEmailReceipts = sendEmailReceipts;
-        this.downloadReceiptZipService = downloadReceiptZipService;
         this.translationProvider = translationProvider;
         this.emailAptReceiptDialog = emailAptReceiptDialog;
+        this.getPdfReceipts = getPdfReceipts;
 
-        downloadReceiptZipService.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
         sendEmailReceipts.setPlConsumer(c -> uiAsyncAction(() -> c.accept(progressLayout)));
         init();
     }
@@ -116,20 +114,22 @@ public class ReceiptView extends BaseVerticalLayout {
         addClassName("receipt-view");
         setSizeFull();
 
-        configureGrid();
         VaadinSession.getCurrent().setAttribute("receipt", null);
 
-        //progressLayout.setWidth(90, Unit.PERCENTAGE);
+        // GRID CONFIGURATION
 
-        add(getToolbar(), progressLayout, grid, gridPaginator);
-    }
-
-
-    private void configureGrid() {
         grid.addClassNames("apartments-grid");
 
         grid.addComponentColumn(this::card);
-        grid.setItemDetailsRenderer(createPersonDetailsRenderer());
+        grid.setItemDetailsRenderer(new ComponentRenderer<>(receipt -> {
+
+            final var rate = receipt.rate();
+
+            return new Div(new Span(
+                    "%s %s %s %s %s".formatted(Labels.Receipt.RATE_LABEL, rate.rate(), rate.source(), rate.dateOfRate(),
+                            rate.createdAt())));
+        }));
+        //grid.setItemDetailsRenderer(createPersonDetailsRenderer());
 
         final var contextMenu = grid.addContextMenu();
 
@@ -169,20 +169,79 @@ public class ReceiptView extends BaseVerticalLayout {
         grid.addItemDoubleClickListener(selection -> {
             editEntity(selection.getItem());
         });
-    }
 
-    private Renderer<Receipt> createPersonDetailsRenderer() {
+        // TOOLBAR CONFIGURATION
 
-        return new ComponentRenderer<>(Div::new, (div, receipt) -> {
-            final var rate = receipt.rate();
-
-            div.add(new Span(
-                    "%s %s %s %s %s".formatted(Labels.Receipt.RATE_LABEL, rate.rate(), rate.source(), rate.dateOfRate(),
-                            rate.createdAt())));
+        filterText.setPlaceholder("Buscar");
+        filterText.setClearButtonVisible(true);
+        filterText.setValueChangeMode(ValueChangeMode.LAZY);
+        filterText.addValueChangeListener(e -> {
+            if (!gridPaginator.goToFirstPage()) {
+                updateGrid();
+            }
         });
+        addEntityButton.setDisableOnClick(true);
+        addEntityButton.addClickListener(click -> addEntity());
+
+        buildingComboBox.setPlaceholder(Labels.Apartment.BUILDING_LABEL);
+        buildingComboBox.setClearButtonVisible(true);
+        buildingComboBox.setAllowCustomValue(false);
+        buildingComboBox.setAutoOpen(true);
+        buildingComboBox.addValueChangeListener(o -> {
+            if (!gridPaginator.goToFirstPage()) {
+                updateGrid();
+            }
+        });
+
+        monthsPicker.setPlaceholder(Labels.Receipt.MONTH_LABEL);
+        monthsPicker.setClearButtonVisible(true);
+        monthsPicker.setAllowCustomValue(false);
+        monthsPicker.setAutoOpen(true);
+        monthsPicker.setItemLabelGenerator(m -> this.translationProvider.translate(m.name()));
+        monthsPicker.addValueChangeListener(o -> {
+            if (!gridPaginator.goToFirstPage()) {
+                updateGrid();
+            }
+        });
+
+        final var toolbar = new HorizontalLayout(filterText, buildingComboBox, monthsPicker, addEntityButton, upload(), countText);
+        toolbar.addClassName("toolbar");
+        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+
+        emailAptReceiptDialog.addListener(EmailAptReceiptDialog.SendEmailsEvent.class, e -> sendEmails(e.getObj()));
+
+        getPdfReceipts.asyncSubject()
+                .subscribe(observerShowError(state -> uiAsyncAction(() -> progressLayout.setState(state))));
+
+        add(toolbar, progressLayout, grid, gridPaginator);
     }
 
-    private MenuBar menuBar(Receipt receipt) {
+
+    private Component card(Receipt receipt) {
+        final var div = new Div();
+        div.addClassName("card");
+
+        final var array = Stream.of(receipt.id(), receipt.buildingId(), receipt.year(),
+                        translationProvider.translate(receipt.month().name()), receipt.date())
+                .map(Objects::toString)
+                .map(Span::new)
+                .toArray(Span[]::new);
+        final var header = new Div(array);
+        header.addClassName("header");
+
+        div.add(header);
+        div.add(cardBody(receipt));
+
+        final var deleteBtn = new Button(IconUtil.trash());
+        deleteBtn.addClickListener(v -> deleteReceipt(receipt));
+
+        // download file with servlet
+        final var anchor = new Anchor("/file-download?name=" + "test");
+        anchor.getElement().setAttribute("download", true);
+        anchor.add(new Button(new Icon(VaadinIcon.DOWNLOAD_ALT)));
+
+        // MENU BAR
+
         final var menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
         final var menuItem = menuBar.addItem("•••");
@@ -193,7 +252,13 @@ public class ReceiptView extends BaseVerticalLayout {
         final var editMenu = subMenu.addItem(Labels.EDIT, e -> editEntity(receipt));
         editMenu.addComponentAsFirst(createIcon(VaadinIcon.EDIT));
 
-        final var sendEmailMenu = subMenu.addItem(Labels.SEND_EMAIL, e -> sendEmails(receipt));
+        final var sendEmailNowMenu = subMenu.addItem(Labels.SEND_EMAIL_NOW, e -> sendEmails(receipt));
+        sendEmailNowMenu.addComponentAsFirst(createIcon(VaadinIcon.ENVELOPE));
+
+        final var sendEmailMenu = subMenu.addItem(Labels.SEND_EMAIL, e -> {
+            emailAptReceiptDialog.setReceipt(receipt);
+            emailAptReceiptDialog.open();
+        });
         sendEmailMenu.addComponentAsFirst(createIcon(VaadinIcon.ENVELOPE));
 
         final var copyMenu = subMenu.addItem(Labels.COPY, e -> copyReceipt(receipt));
@@ -205,45 +270,13 @@ public class ReceiptView extends BaseVerticalLayout {
         final var viewPdfsMenu = subMenu.addItem(Labels.VIEW_PDFS, e -> viewPdfs(receipt));
         viewPdfsMenu.addComponentAsFirst(createIcon(VaadinIcon.FILE));
 
-        return menuBar;
-    }
-
-    private Component card(Receipt receipt) {
-        final var div = new Div();
-        div.addClassName("card");
-        div.add(cardHeader(receipt));
-        div.add(cardBody(receipt));
-
-        final var deleteBtn = new Button(IconUtil.trash());
-        deleteBtn.addClickListener(v -> deleteReceipt(receipt));
-
-        // download file with servlet
-        final var anchor = new Anchor("/file-download?name=" + "test");
-        anchor.getElement().setAttribute("download", true);
-        anchor.add(new Button(new Icon(VaadinIcon.DOWNLOAD_ALT)));
-
-        final var buttons = new Div(deleteBtn, menuBar(receipt), newDownloadBtn(receipt)/*, anchor*/);
+        final var buttons = new Div(deleteBtn, menuBar, getPdfReceipts.fileDownloader(receipt)/*, anchor*/);
         buttons.addClassName("buttons");
 
         div.add(buttons);
         return div;
     }
 
-    private Component cardHeader(Receipt receipt) {
-
-        final var array = Stream.of(receipt.id(), receipt.buildingId(), receipt.year(),
-                        translationProvider.translate(receipt.month().name()), receipt.date())
-                .map(Objects::toString)
-                .map(Span::new)
-                .toArray(Span[]::new);
-        final var div = new Div(array);
-        div.addClassName("header");
-        return div;
-    }
-
-    private Component newDownloadBtn(Receipt receipt) {
-        return downloadReceiptZipService.fileDownloader(receipt);
-    }
 
     private Component cardBody(Receipt receipt) {
         final var div = new Div();
@@ -433,48 +466,6 @@ public class ReceiptView extends BaseVerticalLayout {
         return upload;
     }
 
-    private HorizontalLayout getToolbar() {
-        filterText.setPlaceholder("Buscar");
-        filterText.setClearButtonVisible(true);
-        filterText.setValueChangeMode(ValueChangeMode.LAZY);
-        filterText.addValueChangeListener(e -> {
-            if (!gridPaginator.goToFirstPage()) {
-                updateGrid();
-            }
-        });
-        addEntityButton.setDisableOnClick(true);
-        addEntityButton.addClickListener(click -> addEntity());
-
-        buildingComboBox.setPlaceholder(Labels.Apartment.BUILDING_LABEL);
-        buildingComboBox.setClearButtonVisible(true);
-        buildingComboBox.setAllowCustomValue(false);
-        buildingComboBox.setAutoOpen(true);
-        buildingComboBox.addValueChangeListener(o -> {
-            if (!gridPaginator.goToFirstPage()) {
-                updateGrid();
-            }
-        });
-
-        monthsPicker.setPlaceholder(Labels.Receipt.MONTH_LABEL);
-        monthsPicker.setClearButtonVisible(true);
-        monthsPicker.setAllowCustomValue(false);
-        monthsPicker.setAutoOpen(true);
-        monthsPicker.setItemLabelGenerator(m -> this.translationProvider.translate(m.name()));
-        monthsPicker.addValueChangeListener(o -> {
-            if (!gridPaginator.goToFirstPage()) {
-                updateGrid();
-            }
-        });
-
-        final var toolbar = new HorizontalLayout(filterText, buildingComboBox, monthsPicker, addEntityButton, upload(),
-                countText);
-        toolbar.addClassName("toolbar");
-        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-
-        emailAptReceiptDialog.addListener(EmailAptReceiptDialog.SendEmailsEvent.class, e -> sendEmails(e.getObj()));
-
-        return toolbar;
-    }
 
     private void saveReceiptInSession(Receipt receipt) {
         VaadinSession.getCurrent().setAttribute("receipt", receipt);

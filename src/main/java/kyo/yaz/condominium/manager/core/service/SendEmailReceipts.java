@@ -115,7 +115,7 @@ public class SendEmailReceipts {
                 .ignoreElements();
     }
 
-    public Single<List<Single<ReceiptEmailRequest>>> sendV2(EmailAptReceiptRequest request, List<PdfReceiptItem> list) {
+    private Single<List<Single<ReceiptEmailRequest>>> sendV2(EmailAptReceiptRequest request, List<PdfReceiptItem> list) {
 
         return emailConfigService.get(request.building().emailConfig())
                 .flatMap(emailConfig -> {

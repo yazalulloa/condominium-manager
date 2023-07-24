@@ -5,6 +5,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.shared.Registration;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.CompletableObserver;
+import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.core.SingleObserver;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.functions.Action;
@@ -32,6 +33,19 @@ public abstract class BaseDiv extends Div {
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
         compositeDisposable.dispose();
+    }
+
+    protected <T> Observer<T> observerShowError(
+            @NonNull Consumer<? super T> onNext) {
+        return observer(onNext, this::showError, () -> {
+        });
+    }
+
+    protected <T> Observer<T> observer(
+            @NonNull Consumer<? super T> onNext,
+            @NonNull Consumer<? super Throwable> onError,
+            @NonNull Action onComplete) {
+        return RxUtil.observer(compositeDisposable::add, onNext, onError, onComplete);
     }
 
     protected CompletableObserver completableObserver() {

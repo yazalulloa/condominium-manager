@@ -169,8 +169,6 @@ public class FileUtil {
             new UnitSizeTuple("KB", ONE_KB_BI)
     };
 
-    // See https://issues.apache.org/jira/browse/IO-226 - should the rounding be changed?
-
 
     private record UnitSizeTuple(String unit,
                                  BigDecimal size) {
@@ -182,8 +180,7 @@ public class FileUtil {
         Objects.requireNonNull(size, "size");
 
         for (UnitSizeTuple(String unit, BigDecimal divisor) : UNIT_SIZE_TUPLES) {
-            if (!DecimalUtil.greaterThan(divisor, size)) {
-
+            if (DecimalUtil.lessThan(divisor, size)) {
                 final var quotient = size.divide(divisor, 4, RoundingMode.HALF_UP);
                 if (DecimalUtil.greaterThan(quotient, BigDecimal.ONE)) {
                     return quotient + " " + unit;
@@ -192,41 +189,7 @@ public class FileUtil {
         }
 
         return size + " bytes";
-
- /* final String displaySize;
-    if (size.divide(ONE_EB_BI, RoundingMode.HALF_UP).compareTo(BigDecimal.ZERO) > 0) {
-      displaySize = size.divide(ONE_EB_BI, 2, RoundingMode.HALF_UP) + " EB";
-    } else if (size.divide(ONE_PB_BI, RoundingMode.HALF_UP).compareTo(BigDecimal.ZERO) > 0) {
-      displaySize = size.divide(ONE_PB_BI, RoundingMode.HALF_UP) + " PB";
-    } else if (size.divide(ONE_TB_BI, RoundingMode.HALF_UP).compareTo(BigDecimal.ZERO) > 0) {
-      displaySize = size.divide(ONE_TB_BI, RoundingMode.HALF_UP) + " TB";
-    } else if (size.divide(ONE_GB_BI, RoundingMode.HALF_UP).compareTo(BigDecimal.ZERO) > 0) {
-      displaySize = size.divide(ONE_GB_BI, RoundingMode.HALF_UP) + " GB";
-    } else if (size.divide(ONE_MB_BI, RoundingMode.HALF_UP).compareTo(BigDecimal.ZERO) > 0) {
-      displaySize = size.divide(ONE_MB_BI, RoundingMode.HALF_UP) + " MB";
-    } else if (size.divide(ONE_KB_BI, RoundingMode.HALF_UP).compareTo(BigDecimal.ZERO) > 0) {
-      displaySize = size.divide(ONE_KB_BI, RoundingMode.HALF_UP) + " KB";
-    } else {
-      displaySize = size + " bytes";
     }
-    return displaySize;*/
-    }
-
-    /**
-     * Returns a human-readable version of the file size, where the input represents a specific number of bytes.
-     * <p>
-     * If the size is over 1GB, the size is returned as the number of whole GB, i.e. the size is rounded down to the
-     * nearest GB boundary.
-     * </p>
-     * <p>
-     * Similarly for the 1MB and 1KB boundaries.
-     * </p>
-     *
-     * @param size the number of bytes
-     * @return a human-readable display value (includes units - EB, PB, TB, GB, MB, KB or bytes)
-     * @see <a href="https://issues.apache.org/jira/browse/IO-226">IO-226 - should the rounding be changed?</a>
-     */
-    // See https://issues.apache.org/jira/browse/IO-226 - should the rounding be changed?
     public static String byteCountToDisplaySize(final long size) {
         return byteCountToDisplaySize(BigDecimal.valueOf(size));
     }

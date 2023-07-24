@@ -4,6 +4,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
+import kyo.yaz.condominium.manager.ui.views.domain.ProgressState;
 
 public class ProgressLayout extends Div {
 
@@ -50,5 +51,20 @@ public class ProgressLayout extends Div {
 
     public void setSubText(String text) {
         progressBarSubLabel.setText(text);
+    }
+
+    public void setState(ProgressState state) {
+
+        progressBar.setIndeterminate(state.indeterminate());
+
+        if (!state.indeterminate()) {
+            progressBar.setValue(state.value());
+            progressBar.setMax(state.max());
+            progressBar.setMin(state.min());
+        }
+
+        setProgressText(state.text(), state.endText(), state.subText());
+
+        setVisible(state.visible());
     }
 }

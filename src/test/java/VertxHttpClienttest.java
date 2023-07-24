@@ -6,14 +6,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
-public class VertxHttpClient {
+public class VertxHttpClienttest {
 
     @Test
     void test(Vertx vertx, VertxTestContext testContext) {
 
         final var httpClientOptions = new HttpClientOptions()
                 .setTrustAll(true)
-                .setVerifyHost(false);
+                .setVerifyHost(false)
+                ;
 
         final var client = vertx.createHttpClient(httpClientOptions);
 

@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.1.1</version>
+    <version>3.1.2</version>
   </parent>
 
   <dependencyManagement>
@@ -192,7 +192,7 @@
     <dependency>
       <groupId>io.github.bonigarcia</groupId>
       <artifactId>webdrivermanager</artifactId>
-      <version>5.4.0</version>
+      <version>5.4.1</version>
       <scope>test</scope>
     </dependency>
 
@@ -364,7 +364,7 @@
     <dependency>
       <groupId>de.flapdoodle.embed</groupId>
       <artifactId>de.flapdoodle.embed.mongo</artifactId>
-      <version>4.7.0</version>
+      <version>4.7.1</version>
       <scope>test</scope>
     </dependency>
 
@@ -391,19 +391,19 @@
     <dependency>
       <groupId>com.github.luben</groupId>
       <artifactId>zstd-jni</artifactId>
-      <version>1.5.5-4</version>
+      <version>1.5.5-5</version>
     </dependency>
 
     <dependency>
       <groupId>org.xerial.snappy</groupId>
       <artifactId>snappy-java</artifactId>
-      <version>1.1.10.2</version>
+      <version>1.1.10.3</version>
     </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.10.0-M1</version>
+      <version>5.10.0</version>
       <scope>compile</scope>
     </dependency>
 
