@@ -68,6 +68,7 @@ public class SaveNewBcvRate {
 
                                         if (!isSameRate) {
                                             log.info("LAST RATE IS DIFFERENT \nOLD: {}\nNEW: {}", Json.encodePrettily(lastRate), Json.encodePrettily(rate));
+                                            return new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE);
                                         }
 
                                         return new BcvUsdRateResult(BcvUsdRateResult.State.SAME_RATE);

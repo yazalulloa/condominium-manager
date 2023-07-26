@@ -50,7 +50,7 @@ public class GetPdfReceipts {
         return asyncSubject;
     }
 
-    public Single<Vector<PdfReceiptItem>> pdfItems(Receipt receipt) {
+    public Single<Collection<PdfReceiptItem>> pdfItems(Receipt receipt) {
         final var apartmentsByBuilding = apartmentService.rxApartmentsByBuilding(receipt.buildingId());
 
         final var buildingSingle = buildingService.get(receipt.buildingId());
@@ -63,7 +63,7 @@ public class GetPdfReceipts {
         });
     }
 
-    private Vector<PdfReceiptItem> pdfItems(Receipt receipt, Building building, List<Apartment> apartments) throws IOException {
+    private Collection<PdfReceiptItem> pdfItems(Receipt receipt, Building building, List<Apartment> apartments) throws IOException {
         String tempPath = "tmp/" + UUID.randomUUID() + "/";
         asyncSubject.onNext(ReceiptPdfProgressState.ofIndeterminate("Calculando..."));
         final var receiptCalculated = calculateReceiptInfo.calculate(receipt, building, apartments);
@@ -73,7 +73,7 @@ public class GetPdfReceipts {
         var counter = 0;
 
         updateState("Creando archivos ", 0, pdfReceipts.size());
-        final var vector = new Vector<PdfReceiptItem>(pdfReceipts.size());
+        final var items = new ArrayList<PdfReceiptItem>(pdfReceipts.size());
 
         for (CreatePdfReceipt pdfReceipt : pdfReceipts) {
             pdfReceipt.createPdf();
@@ -96,10 +96,10 @@ public class GetPdfReceipts {
                     pdfReceipt.building().name(),
                     Optional.ofNullable(pdfReceipt.apartment()).map(Apartment::emails).orElse(null));
 
-            vector.add(item);
+            items.add(item);
         }
 
-        return vector;
+        return items;
     }
 
     private void updateState(String title, int value, int max) {
