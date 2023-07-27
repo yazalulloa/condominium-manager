@@ -71,6 +71,10 @@ public class SaveNewBcvRate {
                                             return new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE);
                                         }
 
+                                        if (rate.dateOfRate().isBefore(lastRate.dateOfRate())) {
+                                            return new BcvUsdRateResult(BcvUsdRateResult.State.OLD_RATE);
+                                        }
+
                                         return new BcvUsdRateResult(BcvUsdRateResult.State.SAME_RATE);
                                     }
                             )

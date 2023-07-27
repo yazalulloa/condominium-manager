@@ -15,7 +15,7 @@ COPY frontend ./frontend
 # COPY package-lock.json .
 # COPY tsconfig.json .
 # RUN --mount=type=cache,target=/root/.m2,target=/root/.vaadin mvn package -Pproduction -Dvaadin.force.production.build=true
-RUN --mount=type=cache,target=/root/.m2 --mount=type=cache,target=/root/.vaadin mvn package -Pproduction -Dvaadin.force.production.build=true
+RUN --mount=type=cache,target=/root/.m2 --mount=type=cache,target=/root/.vaadin --mount=type=cache,target=/root/.npm mvn package -Pproduction -Dvaadin.force.production.build=true
 
 # native:compile
 # FROM eclipse-temurin:17-jdk-alpine

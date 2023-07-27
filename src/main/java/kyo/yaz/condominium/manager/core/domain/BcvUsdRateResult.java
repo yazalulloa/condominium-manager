@@ -10,6 +10,7 @@ public record BcvUsdRateResult(State state, Rate rate) {
 
     public enum State {
         NEW_RATE,
+        OLD_RATE,
         SAME_RATE,
         RATE_NOT_IN_DB,
         ETAG_IS_SAME,
