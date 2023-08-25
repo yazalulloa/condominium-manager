@@ -6,7 +6,6 @@ import kyo.yaz.condominium.manager.persistence.repository.base.ReactiveRepositor
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 
 public interface RateRepository extends ReactiveMongoRepository<Rate, Long>, ReactiveRepository<Rate>,
-        RateCustomRepository {
-
+    RateCustomRepository {
 
 }

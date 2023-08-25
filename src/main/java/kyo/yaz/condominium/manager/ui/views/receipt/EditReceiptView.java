@@ -327,7 +327,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
         expensesView.setItems(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
         extraChargesView.setItems(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
 
-        receiptForm.setItem(ConvertUtil.formItem(receipt));
+        receiptForm.setItem(new ReceiptFormItem(receipt.buildingId(), receipt.year(), receipt.month(), receipt.rate(), receipt.date()));
         receiptForm.buildingComboBox().setEnabled(receipt.createdAt() == null);
         receiptForm.buildingComboBox().setValue(receipt.buildingId());
     }

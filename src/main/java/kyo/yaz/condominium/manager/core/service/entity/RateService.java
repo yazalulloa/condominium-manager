@@ -168,4 +168,9 @@ public class RateService implements MongoService<Rate> {
     public Completable upload(String fileName) {
         return PagingJsonFile.pagingJsonFile(30, fileName, objectMapper, Rate.class, c -> save(c).ignoreElement());
     }
+
+    public Completable updateHashesAndEtags(Rate rate) {
+        final var mono = repository.updateHashesAndEtags(rate.id(), rate.hashes(), rate.etags());
+        return RxJava3Adapter.monoToCompletable(mono);
+    }
 }

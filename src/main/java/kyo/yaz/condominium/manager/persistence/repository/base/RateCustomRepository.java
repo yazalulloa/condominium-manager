@@ -1,5 +1,6 @@
 package kyo.yaz.condominium.manager.persistence.repository.base;
 
+import java.util.Set;
 import kyo.yaz.condominium.manager.persistence.domain.request.RateQueryRequest;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import reactor.core.publisher.Flux;
@@ -18,5 +19,5 @@ public interface RateCustomRepository {
 
     Stream<Rate> stream(RateQueryRequest request);
 
-
+    Mono<Rate> updateHashesAndEtags(long id, Set<Long> hashes, Set<String> etags);
 }

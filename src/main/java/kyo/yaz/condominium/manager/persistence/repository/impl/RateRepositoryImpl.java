@@ -1,15 +1,19 @@
 package kyo.yaz.condominium.manager.persistence.repository.impl;
 
+import java.util.Set;
 import kyo.yaz.condominium.manager.persistence.domain.request.RateQueryRequest;
+import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import kyo.yaz.condominium.manager.persistence.repository.base.RateCustomRepository;
 import kyo.yaz.condominium.manager.persistence.util.QueryUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -125,8 +129,18 @@ public class RateRepositoryImpl implements RateCustomRepository {
         return mongoTemplate.stream(query, Rate.class);
     }
 
+  @Override
+  public Mono<Rate> updateHashesAndEtags(long id, Set<Long> hashes, Set<String> etags) {
 
-    private Flux<Rate> find(Query query) {
+    final var query = new Query().addCriteria(Criteria.where("id").is(id));
+    final var update = new Update().set("hashes", hashes).set("etags", etags);
+    final var options = new FindAndModifyOptions().returnNew(true).upsert(false);
+
+    return template.findAndModify(query, update, options, Rate.class);
+  }
+
+
+  private Flux<Rate> find(Query query) {
         return template.find(query, Rate.class);
     }
 }

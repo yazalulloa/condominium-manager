@@ -56,7 +56,7 @@ public class VerticleConfigDeployer {
 
   private CompositeFuture deployVerticles(JsonObject config) {
 
-    final List<Future> futures = verticles.stream()
+    final List<Future<?>> futures = verticles.stream()
         .map(verticleRecord -> {
           final var jsonObject = config.getJsonObject(verticleRecord.configKey());
 
@@ -93,6 +93,6 @@ public class VerticleConfigDeployer {
         })
         .collect(Collectors.toList());
 
-    return CompositeFuture.all(futures);
+    return Future.all(futures);
   }
 }

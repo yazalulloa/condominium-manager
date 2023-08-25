@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import java.util.Set;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -62,7 +63,13 @@ public class Rate {
     private final Long hash;
 
     @JsonProperty
+    private final Set<Long> hashes;
+
+    @JsonProperty
     private final String etag;
+
+    @JsonProperty
+    private final Set<String> etags;
 
     @JsonProperty
     private final String lastModified;

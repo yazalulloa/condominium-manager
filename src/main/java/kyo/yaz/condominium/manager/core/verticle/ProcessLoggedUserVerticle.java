@@ -31,6 +31,7 @@ public class ProcessLoggedUserVerticle extends BaseVerticle {
     vertx.eventBus().<User>consumer(ADDRESS, message -> {
 
       final var user = message.body();
+      log.info("USER {}", user.toString());
       final var completable = userService.maybe(user.id())
           .map(old -> {
 

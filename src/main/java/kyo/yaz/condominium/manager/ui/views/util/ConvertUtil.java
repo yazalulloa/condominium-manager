@@ -38,10 +38,6 @@ public class ConvertUtil {
     }
 
 
-    public static ReceiptFormItem formItem(Receipt receipt) {
-        return new ReceiptFormItem(receipt.buildingId(), receipt.year(), receipt.month(), receipt.rate(), receipt.date());
-    }
-
     public static <T, S> List<T> toList(Collection<S> collection, Function<S, T> function) {
 
         if (collection == null) {

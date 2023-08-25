@@ -27,4 +27,5 @@ class SaveNewBcvRateTest {
                 .assertComplete()
                 .assertNoErrors();
     }
+
 }
