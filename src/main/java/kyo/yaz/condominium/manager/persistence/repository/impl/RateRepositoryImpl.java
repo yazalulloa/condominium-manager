@@ -70,11 +70,11 @@ public class RateRepositoryImpl implements RateCustomRepository {
                 .filter(s -> !s.isEmpty())
                 .map(set -> {
 
-                    final var list = set.stream()
-                            .map(str -> Criteria.where("hash").is(str))
-                            .collect(Collectors.toList());
+                    /*final var list = set.stream()
+                            .map(str -> Criteria.where("hashes").in(str))
+                            .collect(Collectors.toList());*/
 
-                    return new Criteria().orOperator(list);
+                    return Criteria.where("hashes").in(set);
 
                 })
                 .ifPresent(criteriaList::add);

@@ -2,6 +2,7 @@ package kyo.yaz.condominium.manager.core.service.entity;
 
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.json.Json;
 import java.util.Optional;
 import java.util.Set;
@@ -132,6 +133,19 @@ class RateServiceTest {
             .toList()
             .flatMap(service::save)
             .ignoreElement())
+        .test();
+
+    testObserver.await(5, TimeUnit.MINUTES);
+
+    testObserver
+        .assertComplete()
+        .assertNoErrors();
+  }
+
+  @Test
+  void exists() throws InterruptedException {
+    final var testObserver = service.exists(123123L)
+        .doOnSuccess(System.out::println)
         .test();
 
     testObserver.await(5, TimeUnit.MINUTES);
