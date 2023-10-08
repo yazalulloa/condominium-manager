@@ -60,6 +60,11 @@ public class SaveNewBcvRate {
           final var lastSingle = rateService.last(rate.fromCurrency(), rate.toCurrency())
               .switchIfEmpty(Maybe.fromAction(() -> log.info("LAST RATE NOT FOUND")))
               .flatMapSingle(lastRate -> {
+
+                    if (rate.dateOfRate().isBefore(lastRate.dateOfRate())) {
+                      return Single.just(new BcvUsdRateResult(BcvUsdRateResult.State.OLD_RATE));
+                    }
+
                     final var isSameRate = DecimalUtil.equalsTo(lastRate.rate(), rate.rate())
                         && lastRate.dateOfRate().isEqual(rate.dateOfRate())
                         && lastRate.source() == rate.source();
@@ -68,10 +73,6 @@ public class SaveNewBcvRate {
                       log.info("LAST RATE IS DIFFERENT \nOLD: {}\nNEW: {}", Json.encodePrettily(lastRate),
                           Json.encodePrettily(rate));
                       return Single.just(new BcvUsdRateResult(BcvUsdRateResult.State.NEW_RATE));
-                    }
-
-                    if (rate.dateOfRate().isBefore(lastRate.dateOfRate())) {
-                      return Single.just(new BcvUsdRateResult(BcvUsdRateResult.State.OLD_RATE));
                     }
 
                     final var areThereNewEtags = lastRate.etags().addAll(rate.etags());

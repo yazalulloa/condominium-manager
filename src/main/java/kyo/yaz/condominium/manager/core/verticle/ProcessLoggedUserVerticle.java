@@ -31,7 +31,14 @@ public class ProcessLoggedUserVerticle extends BaseVerticle {
     vertx.eventBus().<User>consumer(ADDRESS, message -> {
 
       final var user = message.body();
-      log.info("USER {}", user.toString());
+      //log.info("USER {}", user.toString());
+
+      final var userSavedSingle = Single.fromCallable(() ->
+          userService.save(user)
+              .ignoreElement()
+          //    .doOnComplete(() -> log.info("USER_SAVED"))
+      );
+
       final var completable = userService.maybe(user.id())
           .map(old -> {
 
@@ -41,16 +48,16 @@ public class ProcessLoggedUserVerticle extends BaseVerticle {
                       .createdAt(old.createdAt())
                       .build())
                   .ignoreElement()
-                  .doOnComplete(() -> log.info("USER_UPDATED"));
+                  //.doOnComplete(() -> log.info("USER_UPDATED"))
+                  ;
             }
 
-            log.info("USER_NOT_UPDATED");
+          //  log.info("USER_NOT_UPDATED");
 
             return Completable.complete();
 
           })
-          .switchIfEmpty(Single.fromCallable(() -> userService.save(user)
-              .ignoreElement().doOnComplete(() -> log.info("USER_SAVED"))))
+          .switchIfEmpty(userSavedSingle)
           .flatMapCompletable(c -> c);
 
       subscribe(completable);

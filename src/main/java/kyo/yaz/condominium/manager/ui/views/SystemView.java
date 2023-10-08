@@ -30,6 +30,7 @@ import kyo.yaz.condominium.manager.core.domain.FileResponse;
 import kyo.yaz.condominium.manager.core.service.HttpService;
 import kyo.yaz.condominium.manager.core.service.LogService;
 import kyo.yaz.condominium.manager.core.service.entity.EntityDownloader;
+import kyo.yaz.condominium.manager.core.util.EnvUtil;
 import kyo.yaz.condominium.manager.core.util.SystemUtil;
 import kyo.yaz.condominium.manager.core.util.ZipUtility;
 import kyo.yaz.condominium.manager.ui.MainLayout;
@@ -92,6 +93,7 @@ public class SystemView extends BaseVerticalLayout {
 
     });
 
+    paragraphs.add(pair(() -> "STARTED AT: " + EnvUtil.getAppStartedAtZonedDateTime()));
     paragraphs.add(pair(SystemUtil::ipStr));
     paragraphs.add(pair(() -> "HTTP REQUEST COUNT %s".formatted(httpService.requestCount().blockingGet())));
     paragraphs.add(pair(SystemUtil::processorsStr));

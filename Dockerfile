@@ -1,5 +1,6 @@
 # FROM maven:3.8.7-eclipse-temurin-17-focal as build
-FROM maven:3.9.1-amazoncorretto-20-debian as build
+FROM maven:3.9.4-amazoncorretto-21-debian as build
+# FROM vegardit/graalvm-maven:21.0.0 as build
 
 WORKDIR /app
 COPY pom.xml .
@@ -19,7 +20,8 @@ RUN --mount=type=cache,target=/root/.m2 --mount=type=cache,target=/root/.vaadin 
 
 # native:compile
 # FROM eclipse-temurin:17-jdk-alpine
-FROM eclipse-temurin:20.0.1_9-jre-alpine
+# FROM eclipse-temurin:20.0.1_9-jre-alpine
+FROM amazoncorretto:21.0.0-alpine3.18
 # FROM openjdk:17-alpine
 WORKDIR /app
 RUN mkdir -p config

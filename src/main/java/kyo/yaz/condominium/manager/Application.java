@@ -21,6 +21,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * The entry point of the Spring Boot application.
@@ -31,10 +33,12 @@ import java.nio.file.Paths;
 @SpringBootApplication
 @EnableMongoRepositories()
 @EnableCaching
+@EnableAsync
+@EnableScheduling
 @ComponentScan(basePackages = {
         "kyo.yaz.condominium.manager"
 })
-@ServletComponentScan
+//@ServletComponentScan
 @Theme(value = "condominium_manager")
 @Push(PushMode.AUTOMATIC)
 @PWA(name = "Condominium Manager", shortName = "CM")

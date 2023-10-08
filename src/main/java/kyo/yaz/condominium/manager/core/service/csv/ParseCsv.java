@@ -39,6 +39,8 @@ public class ParseCsv {
     monthsMap.put("JUN", Month.JUNE);
     monthsMap.put("JUL", Month.JULY);
     monthsMap.put("AUG", Month.AUGUST);
+    monthsMap.put("AGO", Month.AUGUST);
+    monthsMap.put("AGOS", Month.AUGUST);
     monthsMap.put("SEP", Month.SEPTEMBER);
     monthsMap.put("OCT", Month.OCTOBER);
     monthsMap.put("NOV", Month.NOVEMBER);

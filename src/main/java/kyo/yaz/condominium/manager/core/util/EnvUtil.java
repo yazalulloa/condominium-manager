@@ -1,6 +1,7 @@
 package kyo.yaz.condominium.manager.core.util;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -52,6 +53,12 @@ public class EnvUtil {
 
   public static String addEnvInfo(String msg) {
     return addEnvInfo(msg, true);
+  }
+
+  public static ZonedDateTime getAppStartedAtZonedDateTime() {
+    return Optional.ofNullable(getAppStartedAt())
+        .map(millis -> Instant.ofEpochMilli(millis).atZone(DateUtil.VE_ZONE))
+        .orElse(null);
   }
 
   public static String addEnvInfo(String msg, boolean addTimeUp) {

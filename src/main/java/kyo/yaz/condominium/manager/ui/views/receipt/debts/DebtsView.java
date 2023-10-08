@@ -204,7 +204,7 @@ public class DebtsView extends BaseDiv {
             receipts += debt.getReceipts();
         }*/
 
-        totalSpan.setText("Deuda total: %s".formatted(total));
+        totalSpan.setText("Deuda total: %s".formatted(currency.format(total)));
         receiptNumberSpan.setText("Recibos: %s".formatted(receipts));
     }
 }

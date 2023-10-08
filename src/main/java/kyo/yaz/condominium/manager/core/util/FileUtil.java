@@ -179,7 +179,9 @@ public class FileUtil {
 
         Objects.requireNonNull(size, "size");
 
-        for (UnitSizeTuple(String unit, BigDecimal divisor) : UNIT_SIZE_TUPLES) {
+        for (UnitSizeTuple tuple : UNIT_SIZE_TUPLES) {
+            final var unit = tuple.unit();
+            final var divisor = tuple.size();
             if (DecimalUtil.lessThan(divisor, size)) {
                 final var quotient = size.divide(divisor, 4, RoundingMode.HALF_UP);
                 if (DecimalUtil.greaterThan(quotient, BigDecimal.ONE)) {
@@ -187,6 +189,15 @@ public class FileUtil {
                 }
             }
         }
+
+       /* for (UnitSizeTuple(String unit, BigDecimal divisor) : UNIT_SIZE_TUPLES) {
+            if (DecimalUtil.lessThan(divisor, size)) {
+                final var quotient = size.divide(divisor, 4, RoundingMode.HALF_UP);
+                if (DecimalUtil.greaterThan(quotient, BigDecimal.ONE)) {
+                    return quotient + " " + unit;
+                }
+            }
+        }*/
 
         return size + " bytes";
     }
