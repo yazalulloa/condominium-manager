@@ -15,18 +15,18 @@
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <vaadin.version>24.1.10</vaadin.version>
-    <vertx.version>4.4.5</vertx.version>
+    <vaadin.version>24.2.1</vaadin.version>
+    <vertx.version>4.4.6</vertx.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <lombok.version>1.18.30</lombok.version>
-    <poi.version>5.2.3</poi.version>
+    <poi.version>5.2.4</poi.version>
     <version.light-4j>2.1.18</version.light-4j>
   </properties>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.1.4</version>
+    <version>3.1.5</version>
   </parent>
 
   <dependencyManagement>
@@ -84,13 +84,13 @@
     <dependency>
       <groupId>org.vaadin.addons.componentfactory</groupId>
       <artifactId>vcf-pdf-viewer</artifactId>
-      <version>2.7.2</version>
+      <version>2.8.0</version>
     </dependency>
 
     <dependency>
       <groupId>in.virit</groupId>
       <artifactId>viritin</artifactId>
-      <version>2.1.4</version>
+      <version>2.2.0</version>
     </dependency>
 
     <dependency>
@@ -190,14 +190,14 @@
     <dependency>
       <groupId>io.github.bonigarcia</groupId>
       <artifactId>webdrivermanager</artifactId>
-      <version>5.5.3</version>
+      <version>5.6.0</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-test</artifactId>
-      <version>3.5.10</version>
+      <version>3.5.11</version>
       <scope>test</scope>
     </dependency>
 
@@ -230,7 +230,7 @@
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
-      <version>1.16.1</version>
+      <version>1.16.2</version>
     </dependency>
 
     <!-- <dependency>
@@ -337,7 +337,7 @@
     <dependency>
       <groupId>com.google.apis</groupId>
       <artifactId>google-api-services-gmail</artifactId>
-      <version>v1-rev20230918-2.0.0</version>
+      <version>v1-rev20231023-2.0.0</version>
     </dependency>
 
     <dependency>
@@ -362,14 +362,14 @@
     <dependency>
       <groupId>de.flapdoodle.embed</groupId>
       <artifactId>de.flapdoodle.embed.mongo</artifactId>
-      <version>4.9.2</version>
+      <version>4.9.3</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>com.itextpdf</groupId>
-      <artifactId>itext7-core</artifactId>
-      <version>8.0.1</version>
+      <artifactId>itext-core</artifactId>
+      <version>8.0.2</version>
       <type>pom</type>
     </dependency>
 
@@ -388,13 +388,13 @@
     <dependency>
       <groupId>com.github.luben</groupId>
       <artifactId>zstd-jni</artifactId>
-      <version>1.5.5-5</version>
+      <version>1.5.5-8</version>
     </dependency>
 
     <dependency>
       <groupId>org.xerial.snappy</groupId>
       <artifactId>snappy-java</artifactId>
-      <version>1.1.10.4</version>
+      <version>1.1.10.5</version>
     </dependency>
 
     <dependency>
@@ -408,6 +408,7 @@
 
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -416,9 +417,9 @@
           <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
           <release>${maven.compiler.release}</release>
-<!--          <compilerArgs>-->
-<!--            <arg>&#45;&#45;enable-preview</arg>-->
-<!--          </compilerArgs>-->
+          <compilerArgs>
+            <arg>--enable-preview</arg>
+          </compilerArgs>
           <annotationProcessorPaths>
             <path>
               <groupId>org.mapstruct</groupId>
@@ -559,6 +560,7 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
+
   </repositories>
 
   <pluginRepositories>
@@ -582,6 +584,52 @@
     <profile>
       <!-- Production mode is activated using -Pproduction -->
       <id>production</id>
+      <properties>
+        <vaadin.productionMode>true</vaadin.productionMode>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+
+      <dependencies>
+        <dependency>
+          <groupId>com.vaadin</groupId>
+          <artifactId>vaadin-core</artifactId>
+          <exclusions>
+            <exclusion>
+              <groupId>com.vaadin</groupId>
+              <artifactId>vaadin-dev-server</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.vaadin</groupId>
+              <artifactId>vaadin-board</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+
+
+      </dependencies>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-maven-plugin</artifactId>
+            <version>${vaadin.version}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>build-frontend</goal>
+                </goals>
+                <phase>compile</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <!-- Production mode is activated using -Pnative -->
+      <id>native</id>
       <properties>
         <vaadin.productionMode>true</vaadin.productionMode>
         <maven.test.skip>true</maven.test.skip>

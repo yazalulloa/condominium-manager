@@ -1,8 +1,8 @@
 version: '3'
 services:
   cmy:
-    container_name: cmy
-    image: cmy:latest
+    container_name: condominium-manager-spring-vaadin
+    image: condominium-manager-spring-vaadin:latest
     restart: always
     ports:
       - "8090:8090"
