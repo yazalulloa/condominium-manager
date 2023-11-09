@@ -101,7 +101,7 @@ public class ReserveFundView extends BaseDiv {
         .orElse("");
 
     final var addToExpenses = new Span(new Span(Labels.ReserveFund.ADD_TO_EXPENSES_LABEL + ": "),
-        IconUtil.checkMarkOrCross(Optional.ofNullable(item.getAddToExpenses()).orElse(true)));
+        IconUtil.checkMarkOrCross(Optional.ofNullable(item.getAddToExpenses()).orElse(false)));
 
     final var body = new Div(new Span(item.getName()), new Span(item.getFund().toString()), isActive,
         new Span(Labels.ReserveFund.TYPE_LABEL + ": " + translationProvider.translate(type)),
@@ -109,6 +109,12 @@ public class ReserveFundView extends BaseDiv {
         new Span(ReserveFund.EXPENSE_TYPE_LABEL + ": %s".formatted(
             translationProvider.translate(Optional.ofNullable(item.getExpenseType()).orElse(Type.COMMON).name()))),
         addToExpenses);
+
+    Optional.ofNullable(item.getExpense())
+        .map(BigDecimal::toString)
+        .map(str -> "Gastos: " + str)
+        .map(Span::new)
+        .ifPresent(body::add);
 
     body.addClassName("body");
 

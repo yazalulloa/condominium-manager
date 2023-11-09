@@ -178,12 +178,12 @@ public class ViewUtil {
     }
 
     public static ComboBox<ReserveFund.Type> reserveFundTypeComboBox(String label) {
-        return enumComboBox(label, ReserveFund.Type.values, ReserveFund.Type.PERCENTAGE);
+        return enumComboBox(label, ReserveFund.Type.VALUES, ReserveFund.Type.PERCENTAGE);
 
     }
 
     public static ComboBox<ReserveFund.Type> reserveFundTypeComboBox(String label, ReserveFund.Type defaultValue) {
-        return enumComboBox(label, ReserveFund.Type.values, defaultValue);
+        return enumComboBox(label, ReserveFund.Type.VALUES, defaultValue);
 
     }
 

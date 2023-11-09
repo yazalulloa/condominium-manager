@@ -403,7 +403,6 @@ public class ReceiptView extends BaseVerticalLayout {
     upload.setI18n(i18n);
 
     upload.addSucceededListener(event -> {
-      final var inputStream = buffer.getInputStream();
 
       final var dialog = new Dialog();
 
@@ -436,7 +435,7 @@ public class ReceiptView extends BaseVerticalLayout {
         progressLayout.progressBar().setIndeterminate(true);
         progressLayout.setVisible(true);
 
-        loadCsvReceipt.load(buildingId, inputStream)
+        loadCsvReceipt.load(buildingId, buffer.getFileData().getFile())
             .subscribeOn(Schedulers.io())
             .subscribe(singleObserver(receipt -> {
 

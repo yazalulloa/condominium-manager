@@ -17,7 +17,7 @@ public abstract class CreatePdfReceipt {
             try (final var pdf = new PdfDocument(writer)) {
                 try (final var document = new Document(pdf)) {
 
-                    document.setMargins(24, 24, 24, 24);
+                    document.setMargins(18, 18, 18, 18);
                     document.setFontSize(10);
                     addContent(document);
                 }

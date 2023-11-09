@@ -1,10 +1,14 @@
 package kyo.yaz.condominium.manager.core.service.csv;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,17 +19,25 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import javax.xml.parsers.ParserConfigurationException;
 import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.util.DecimalUtil;
 import kyo.yaz.condominium.manager.core.util.PoiUtil;
+import kyo.yaz.condominium.manager.core.util.poi.PoiProcessor;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
 import kyo.yaz.condominium.manager.ui.views.util.AppUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.xml.sax.SAXException;
 
+@Slf4j
 public class ParseCsv {
 
   private static final Map<String, Month> monthsMap = new HashMap<String, Month>();
@@ -176,7 +188,10 @@ public class ParseCsv {
       }
     }
 
-    return extraCharges.stream().sorted(Comparator.comparing(ExtraCharge::aptNumber))
+    return extraCharges.stream().sorted(Comparator
+            .comparing(ExtraCharge::description)
+            .thenComparing(ExtraCharge::aptNumber)
+        )
         .collect(Collectors.toCollection(LinkedList::new));
   }
 
@@ -195,13 +210,16 @@ public class ParseCsv {
         .orElseGet(Collections::emptySet);
   }
 
-  public CsvReceipt csvReceipt(InputStream inputStream) throws IOException {
-    try (final var workbook = new XSSFWorkbook(inputStream)) {
+  public CsvReceipt csvReceipt(File file) throws IOException {
+    CsvReceipt csvReceipt = null;
+    boolean possibleExtraChargesSheet = false;
+    try (final var workbook = new XSSFWorkbook(new FileInputStream(file))) {
 
       final var numberOfSheets = workbook.getNumberOfSheets();
 
       final var expensesSheet = workbook.getSheetAt(0);
       final var debtsSheet = workbook.getSheetAt(1);
+      possibleExtraChargesSheet = numberOfSheets > 2 && workbook.getSheetAt(2) != null;
       final var reserveFundSheet = numberOfSheets > 3 ? workbook.getSheetAt(3) : null;
 
       final var extraChargesSheet = numberOfSheets > 4 ? workbook.getSheetAt(4) : null;
@@ -212,7 +230,7 @@ public class ParseCsv {
           .map(this::extraCharges)
           .orElseGet(Collections::emptyList);
 
-      return CsvReceipt.builder()
+      csvReceipt = CsvReceipt.builder()
           .expenses(expenses)
           .debts(debts)
           .extraCharges(extraCharges)
@@ -220,6 +238,97 @@ public class ParseCsv {
 
 
     }
+
+    if (csvReceipt.extraCharges().isEmpty() && possibleExtraChargesSheet) {
+      try {
+        final var extraCharges = extraCharges(new FileInputStream(file));
+        csvReceipt = csvReceipt.toBuilder()
+            .extraCharges(extraCharges)
+            .build();
+      } catch (Exception e) {
+        log.info("Error in extraCharges", e);
+      }
+    }
+
+    return csvReceipt;
+  }
+
+  public List<ExtraCharge> extraCharges(InputStream inputStream)
+      throws OpenXML4JException, IOException, ParserConfigurationException, SAXException {
+    final var list = new ArrayList<ExtraChargeKey>();
+
+    final var afterDesc = new AtomicBoolean(false);
+    final var poiProcessor = new PoiProcessor(
+        inputStream, 0, Set.of(2), poiPage -> {
+
+      for (kyo.yaz.condominium.manager.core.util.poi.Row initRow : poiPage.rows()) {
+        final var cellIterator = initRow.cells().values().iterator();
+
+        while (cellIterator.hasNext()) {
+          final var initCell = cellIterator.next();
+          final var cellValue = initCell.value();
+          final var cellColumn = initCell.column();
+
+          if (cellValue.equals("APTO") || cellValue.equals("MONTO")) {
+            afterDesc.set(true);
+            break;
+          }
+
+          if (!afterDesc.get()) {
+            list.stream().filter(key -> key.columnAddr.equals(cellColumn))
+                .findFirst()
+                .ifPresent(extraChargeKey -> {
+
+                  if (afterDesc.get()) {
+                    extraChargeKey.addExtraCharge(cellValue, null);
+                  } else {
+                    list.remove(extraChargeKey);
+                  }
+
+                });
+
+            if (!afterDesc.get()) {
+              list.add(new ExtraChargeKey(cellColumn, cellValue));
+            }
+          } else {
+            list.stream().filter(key -> key.columnAddr.equals(cellColumn))
+                .findFirst()
+                .ifPresent(extraChargeKey -> {
+
+                  final var amount = DecimalUtil.valueOf(cellIterator.next().value().replace(",", ""));
+                  extraChargeKey.addExtraCharge(cellValue, amount);
+                });
+          }
+
+        }
+
+      }
+    }
+    );
+
+    poiProcessor.streamFile();
+    return list.stream().map(ExtraChargeKey::extraCharges).flatMap(Collection::stream)
+        .sorted(Comparator
+            .comparing(ExtraCharge::description)
+            .thenComparing(ExtraCharge::aptNumber))
+        .toList();
+  }
+
+  public record ExtraChargeKey(String columnAddr, String description, List<ExtraCharge> extraCharges) {
+
+    public ExtraChargeKey(String columnAddr, String description) {
+      this(columnAddr, description, new ArrayList<>());
+    }
+
+    public void addExtraCharge(String aptNumber, BigDecimal amount) {
+      extraCharges().add(ExtraCharge.builder()
+          .aptNumber(aptNumber)
+          .description(description())
+          .amount(amount)
+          .currency(Currency.VED)
+          .build());
+    }
+
   }
 
 }

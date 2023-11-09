@@ -1,6 +1,7 @@
 package kyo.yaz.condominium.manager.core.service.csv;
 
 import io.reactivex.rxjava3.core.Single;
+import java.io.File;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
@@ -20,10 +21,10 @@ public class LoadCsvReceipt {
   private final RateService rateService;
 
 
-  public Single<Receipt> load(String buildingId, InputStream inputStream) {
+  public Single<Receipt> load(String buildingId, File file) {
     return Single.defer(() -> {
 
-      final var csvReceipt = new ParseCsv().csvReceipt(inputStream);
+      final var csvReceipt = new ParseCsv().csvReceipt(file);
 
       final var buildingMono = buildingService.get(buildingId);
 

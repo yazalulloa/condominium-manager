@@ -114,6 +114,8 @@ public class Receipt {
 
         @JsonProperty
         private final BigDecimal fund;
+        @JsonProperty
+        private final BigDecimal expense;
 
         @JsonProperty
         private final BigDecimal amount;

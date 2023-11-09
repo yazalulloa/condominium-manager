@@ -20,7 +20,7 @@ public class VertxHttpClienttest {
 
         final var requestOptions = new RequestOptions()
                 .setMethod(HttpMethod.GET)
-                .setAbsoluteURI("https://www.bcv.org.ve/");
+                .setAbsoluteURI("https://www.bcv.org.ve");
 
         client.request(requestOptions)
                 .flatMap(request -> {

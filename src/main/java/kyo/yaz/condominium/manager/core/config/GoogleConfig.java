@@ -17,23 +17,23 @@ import org.springframework.context.annotation.Lazy;
 @ConfigurationPropertiesScan
 public class GoogleConfig {
 
-    @Bean
-    public JsonFactory providesJsonFactory() {
-        return GsonFactory.getDefaultInstance();
-    }
+  @Bean
+  public JsonFactory providesJsonFactory() {
+    return GsonFactory.getDefaultInstance();
+  }
 
-    @Bean
-    public HttpTransport providesHttpTransport() {
-        try {
-                return GoogleNetHttpTransport.newTrustedTransport();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+  @Bean
+  public HttpTransport providesHttpTransport() {
+    try {
+      return GoogleNetHttpTransport.newTrustedTransport();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
+  }
 
-    @Bean
-    public GooglePublicKeysManager providesGooglePublicKeysManager(HttpTransport transport, JsonFactory jsonFactory) {
-        return new GooglePublicKeysManager(transport, jsonFactory);
-    }
+  @Bean
+  public GooglePublicKeysManager providesGooglePublicKeysManager(HttpTransport transport, JsonFactory jsonFactory) {
+    return new GooglePublicKeysManager(transport, jsonFactory);
+  }
 
 }

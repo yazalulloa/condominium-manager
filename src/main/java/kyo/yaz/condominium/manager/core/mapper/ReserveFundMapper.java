@@ -14,17 +14,33 @@ public interface ReserveFundMapper {
     return MAPPER.map(item);
   }
 
-  static ReserveFundViewItem to(ReserveFund ReserveFund) {
-    return MAPPER.map(ReserveFund);
+  static ReserveFundViewItem to(ReserveFund reserveFund) {
+    return MAPPER.map(reserveFund);
   }
 
-  default ReserveFund map(ReserveFundViewItem item) {
-    return new ReserveFund(item.getName(), item.getFund(), item.getPay(), item.getActive(), item.getType(),
-        item.getExpenseType(), item.getAddToExpenses());
-  }
+   default ReserveFund map(ReserveFundViewItem item) {
+    return ReserveFund.builder()
+        .name(item.getName())
+        .fund(item.getFund())
+        .expense(item.getExpense())
+        .pay(item.getPay())
+        .active(item.getActive())
+        .type(item.getType())
+        .expenseType(item.getExpenseType())
+        .addToExpenses(item.getAddToExpenses())
+        .build();
+   }
 
-  default ReserveFundViewItem map(ReserveFund item) {
-    return new ReserveFundViewItem(item.name(), item.fund(), item.pay(), item.active(), item.type(), item.expenseType(),
-        item.addToExpenses());
-  }
+   default ReserveFundViewItem map(ReserveFund item) {
+    return ReserveFundViewItem.builder()
+        .name(item.getName())
+        .fund(item.getFund())
+        .expense(item.getExpense())
+        .pay(item.getPay())
+        .active(item.getActive())
+        .type(item.getType())
+        .expenseType(item.getExpenseType())
+        .addToExpenses(item.getAddToExpenses())
+        .build();
+   }
 }

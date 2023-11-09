@@ -18,6 +18,7 @@ import kyo.yaz.condominium.manager.core.service.HttpLogging;
 import kyo.yaz.condominium.manager.core.vertx.VertxUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -45,11 +46,10 @@ public class HttpClientVerticle extends AbstractVerticle {
     @Override
     public void start() {
 
-        ;
 
         webClient = WebClient.create(vertx, new WebClientOptions(config()));
 
-        final var trustAllWebClientOptions = new WebClientOptions(config())
+        final var trustAllWebClientOptions = new WebClientOptions()
                 .setTrustAll(true)
                 .setVerifyHost(false);
 

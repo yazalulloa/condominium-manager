@@ -245,10 +245,10 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                     reserveFundsDiv.removeAll();
 
                     reserveFunds.forEach(reserveFund -> {
-                        final var reserveFundPay = reserveFund.pay();
-                        if (reserveFund.active() && DecimalUtil.greaterThanZero(reserveFundPay)) {
+                        final var reserveFundPay = reserveFund.getPay();
+                        if (reserveFund.getActive() && DecimalUtil.greaterThanZero(reserveFundPay)) {
 
-                            final var isFixedPay = reserveFund.type() == ReserveFund.Type.FIXED_PAY;
+                            final var isFixedPay = reserveFund.getType() == ReserveFund.Type.FIXED_PAY;
                             final var total = expensesView.totalCommon();
                             final var amountToPay = isFixedPay ? reserveFundPay :
                                     DecimalUtil.greaterThanZero(total) ? DecimalUtil.percentageOf(reserveFundPay,
@@ -256,7 +256,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
 
                             final var amountToPayStr = "Monto a pagar: " + amountToPay;
                             final var last = isFixedPay ? amountToPayStr : "Porcentaje: " + reserveFundPay + "% " + amountToPayStr;
-                            reserveFundsDiv.add(new Paragraph(reserveFund.name() + ": " + reserveFund.fund() + " " + last));
+                            reserveFundsDiv.add(new Paragraph(reserveFund.getName() + ": " + reserveFund.getFund() + " " + last));
                         }
 
                     });
@@ -268,17 +268,17 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
 
         fundList.stream()
                 .flatMap(Collection::stream)
-                .filter(reserveFund -> reserveFund.active() && DecimalUtil.greaterThanZero(reserveFund.pay())
-                        && reserveFund.addToExpenses())
+                .filter(reserveFund -> reserveFund.getActive() && DecimalUtil.greaterThanZero(reserveFund.getPay())
+                        && reserveFund.getAddToExpenses())
                 .forEach(reserveFund -> {
 
                     final var total = expensesView.totalCommon();
 
-                    final var pay = reserveFund.type() == ReserveFund.Type.FIXED_PAY ? reserveFund.pay()
+                    final var pay = reserveFund.getType() == ReserveFund.Type.FIXED_PAY ? reserveFund.getPay()
                             : DecimalUtil.greaterThanZero(total) ? DecimalUtil.percentageOf(
-                            reserveFund.pay(), total) : total;
+                            reserveFund.getPay(), total) : total;
 
-                    if (reserveFund.expenseType() == Type.UNCOMMON) {
+                    if (reserveFund.getExpenseType() == Type.UNCOMMON) {
                         totalUnCommon.set(totalUnCommon.get().add(pay));
 
                     } else {

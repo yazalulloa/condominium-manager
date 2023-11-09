@@ -13,23 +13,15 @@ import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ReserveFund;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized
 @Builder(toBuilder = true)
-@ToString
-@Getter
-@Setter
+@Data
+@AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode
 public class ReserveFundViewItem {
 
   @NotBlank
@@ -41,14 +33,18 @@ public class ReserveFundViewItem {
   @JsonProperty
   private BigDecimal fund;
 
+  @Digits(integer = 19, fraction = 2)
+  @JsonProperty
+  private BigDecimal expense;
+
   @Min(0)
   @NotNull
   @JsonProperty
   private BigDecimal pay;
 
-  @Builder.Default
+  @NotNull
   @JsonProperty
-  private Boolean active = true;
+  private Boolean active;
 
   @NotNull
   @JsonProperty
@@ -59,8 +55,6 @@ public class ReserveFundViewItem {
   private Expense.Type expenseType;
 
   @NotNull
-  @Builder.Default
   @JsonProperty
-  private Boolean addToExpenses = true;
-
+  private Boolean addToExpenses;
 }

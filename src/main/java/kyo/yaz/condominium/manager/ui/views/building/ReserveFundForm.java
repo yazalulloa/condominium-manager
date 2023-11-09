@@ -35,6 +35,9 @@ public class ReserveFundForm extends BaseForm {
   private final BigDecimalField fundField = new BigDecimalField(Labels.ReserveFund.FUND_LABEL);
   @PropertyId("pay")
   private final BigDecimalField payField = new BigDecimalField(Labels.ReserveFund.PAY_LABEL);
+
+  @PropertyId("expense")
+  private final BigDecimalField expenseField = new BigDecimalField(Labels.ReserveFund.EXPENSE_LABEL);
   @PropertyId("active")
   private final Checkbox activeField = new Checkbox(Labels.ReserveFund.ACTIVE_LABEL);
   @PropertyId("type")
@@ -51,7 +54,7 @@ public class ReserveFundForm extends BaseForm {
 
   private final TranslationProvider translationProvider;
 
-  private ReserveFundViewItem item;
+  private transient ReserveFundViewItem item;
 
   public ReserveFundForm(TranslationProvider translationProvider) {
     this.translationProvider = translationProvider;
@@ -71,6 +74,7 @@ public class ReserveFundForm extends BaseForm {
         fundField,
         typeComboBox,
         payField,
+        expenseField,
         activeField,
         expenseTypeComboBox,
         addToExpensesField,
@@ -131,7 +135,7 @@ public class ReserveFundForm extends BaseForm {
         .build();
   }
 
-  private static abstract class ReserveFundFormEvent extends ViewEvent<ReserveFundForm, ReserveFundViewItem> {
+  private abstract static class ReserveFundFormEvent extends ViewEvent<ReserveFundForm, ReserveFundViewItem> {
 
     protected ReserveFundFormEvent(ReserveFundForm source, ReserveFundViewItem obj) {
       super(source, obj);
