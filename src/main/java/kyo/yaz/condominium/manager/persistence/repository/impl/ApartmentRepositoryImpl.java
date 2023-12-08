@@ -104,7 +104,7 @@ public class ApartmentRepositoryImpl implements ApartmentCustomRepository {
         return find(request)
                 .collectList()
                 .doOnSuccess(list -> {
-                    log.info("LIST: " + list.size());
+                   // log.info("LIST: " + list.size());
                 });
     }
 
@@ -115,7 +115,7 @@ public class ApartmentRepositoryImpl implements ApartmentCustomRepository {
         Optional.ofNullable(request.page())
                 .ifPresent(query::with);
 
-        log.info("QUERY: " + query);
+       // log.info("QUERY: " + query);
 
         return template.find(query, Apartment.class);
     }

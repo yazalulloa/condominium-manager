@@ -81,7 +81,7 @@ public class EmailConfigRepositoryImpl implements EmailConfigCustomRepository {
         return find(request)
                 .collectList()
                 .doOnSuccess(list -> {
-                    log.info("LIST: " + list.size());
+                   // log.info("LIST: " + list.size());
                 });
     }
 
@@ -92,7 +92,7 @@ public class EmailConfigRepositoryImpl implements EmailConfigCustomRepository {
         Optional.ofNullable(request.page())
                 .ifPresent(query::with);
 
-        log.info("QUERY: " + query);
+        //log.info("QUERY: " + query);
 
         return find(query);
     }

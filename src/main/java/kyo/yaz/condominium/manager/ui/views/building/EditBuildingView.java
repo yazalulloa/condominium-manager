@@ -113,8 +113,8 @@ public class EditBuildingView extends ScrollPanel implements BeforeEnterObserver
 
         Maybe.zip(buildingMaybe, aptNumbersSingle, emailConfigsSingle, (building, list, emailConfigs) -> {
                     return (Runnable) () -> {
-                        extraChargesView.setItems(ConvertUtil.toList(building.extraCharges(), ExtraChargeMapper::to));
                         extraChargesView.setApartments(list);
+                        extraChargesView.setItems(ConvertUtil.toList(building.extraCharges(), ExtraChargeMapper::to));
 
                         form.setEmailConfigs(emailConfigs);
                         form.setBuilding(BuildingMapper.to(building));

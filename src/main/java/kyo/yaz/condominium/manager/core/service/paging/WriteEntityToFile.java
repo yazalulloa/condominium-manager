@@ -10,9 +10,12 @@ import java.nio.file.Paths;
 import java.util.zip.GZIPOutputStream;
 import kyo.yaz.condominium.manager.core.domain.FileResponse;
 import kyo.yaz.condominium.manager.core.util.RxUtil;
+import kyo.yaz.condominium.manager.core.util.SystemUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 
+@Slf4j
 @RequiredArgsConstructor
 public class WriteEntityToFile<T> {
 
@@ -23,7 +26,8 @@ public class WriteEntityToFile<T> {
 
     return Single.defer(() -> {
 
-      final var temPath = "tmp/" + System.currentTimeMillis() + "/";
+      final var timestamp = System.currentTimeMillis();
+      final var temPath = "tmp/" + timestamp + "/";
       Files.createDirectories(Paths.get(temPath));
       final var tempFileName = temPath + fileName;
 
@@ -33,6 +37,8 @@ public class WriteEntityToFile<T> {
 
       jsonGenerator.writeStartArray();
 
+      log.info("START WRITING FILE {}", fileName);
+
       return RxUtil.paging(pagingProcessor, collection -> Observable.fromIterable(collection)
               .doOnNext(obj -> mapper.writeValue(jsonGenerator, obj))
               .ignoreElements())
@@ -40,6 +46,7 @@ public class WriteEntityToFile<T> {
           .doOnTerminate(jsonGenerator::close)
           .doOnTerminate(gzipOutputStream::close)
           .doOnTerminate(fileOutputStream::close)
+          .doOnTerminate(() -> log.info("END WRITING FILE {} {}ms", fileName, System.currentTimeMillis() - timestamp))
           .toSingleDefault(FileResponse.builder()
               .fileName(fileName)
               .path(tempFileName)

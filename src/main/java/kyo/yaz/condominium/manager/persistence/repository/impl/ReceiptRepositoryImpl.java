@@ -29,7 +29,7 @@ public class ReceiptRepositoryImpl implements ReceiptCustomRepository {
     return find(request)
         .collectList()
         .doOnSuccess(list -> {
-          log.info("LIST: " + list.size());
+          //log.info("LIST: " + list.size());
         });
   }
 
@@ -37,7 +37,7 @@ public class ReceiptRepositoryImpl implements ReceiptCustomRepository {
   public Flux<Receipt> find(ReceiptQueryRequest request) {
     final var query = query(request);
 
-    log.info("QUERY: " + query);
+    //log.info("QUERY: " + query);
     return template.find(query, Receipt.class);
   }
 

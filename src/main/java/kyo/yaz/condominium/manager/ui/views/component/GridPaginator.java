@@ -51,7 +51,7 @@ public class GridPaginator extends Div implements HasValue.ValueChangeListener<A
     }
 
     private void calculatePages() {
-        log.info("Calculating pages");
+        //log.info("Calculating pages");
 
         final var pageSize = itemsPerPageComBox.getValue();
         final var oldNumberOfPages = numberOfPages;
@@ -196,7 +196,7 @@ public class GridPaginator extends Div implements HasValue.ValueChangeListener<A
     @Override
     public void valueChanged(AbstractField.ComponentValueChangeEvent<ComboBox<Integer>, Integer> event) {
         if (event.getValue() != null) {
-            log.info("runnable {}", event.getValue());
+            //log.info("runnable {}", event.getValue());
             run();
         }
     }

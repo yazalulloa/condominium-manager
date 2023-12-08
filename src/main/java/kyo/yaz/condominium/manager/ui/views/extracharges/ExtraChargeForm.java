@@ -78,6 +78,10 @@ public class ExtraChargeForm extends BaseForm {
         aptComboBox.setItems(apartments);
     }
 
+    public List<Apartment> getApartments() {
+        return apartments;
+    }
+
     public ExtraChargeViewItem defaultItem() {
         return ExtraChargeViewItem.builder()
                 .amount(BigDecimal.ZERO)

@@ -226,6 +226,7 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
                 debtsView.setItems(debtViewItems);
                 debtsView.setVisible(true);
                 extraChargesView.setApartments(list);
+                extraChargesView.setItems(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
                 extraChargesView.setVisible(true);
                 loadReserveFunds();
             };
@@ -325,7 +326,6 @@ public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver 
     private void initializeReceiptInfo() {
         //debtsView.setItems(ConvertUtil.toList(receipt.debts(), DebtMapper::to));
         expensesView.setItems(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
-        extraChargesView.setItems(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
 
         receiptForm.setItem(new ReceiptFormItem(receipt.buildingId(), receipt.year(), receipt.month(), receipt.rate(), receipt.date()));
         receiptForm.buildingComboBox().setEnabled(receipt.createdAt() == null);

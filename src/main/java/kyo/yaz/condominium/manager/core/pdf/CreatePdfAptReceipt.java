@@ -187,8 +187,8 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
         addCell.accept(previousReserveFund);
         if (thereIsReserveFundExpense) {
           final var expense = Optional.ofNullable(fund.expense())
+              .map(d -> d.multiply(BigDecimal.valueOf(-1)))
               .map(reserveFundCurrency::format)
-              .map(s -> "- " + s)
               .orElse("");
 
           addCell.accept(expense);

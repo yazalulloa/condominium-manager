@@ -15,6 +15,12 @@ public class DragDropList<S, T extends DragDropDiv<S>> extends Div {
     private final List<T> components = new LinkedList<>();
 
 
+    @Override
+    public void removeAll() {
+        super.removeAll();
+        components.clear();
+    }
+
     public void addComponent(T component) {
         components.add(component);
         setListeners(component);

@@ -2,6 +2,7 @@ package kyo.yaz.condominium.manager.core.service.telegram;
 
 import io.vertx.core.json.Json;
 import java.util.concurrent.TimeUnit;
+import kyo.yaz.condominium.manager.core.service.BackupService;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +16,13 @@ class TelegramSendEntityBackupsTest {
   @Autowired
   private TelegramSendEntityBackups backups;
 
+  @Autowired
+  BackupService backupService;
+
   @Test
   void all() throws InterruptedException {
 
-    final var single = backups.allGz();
+    final var single = backupService.allGz();
 
     final var testObserver = single.map(Json::encode)
         .doOnSuccess(System.out::println)
