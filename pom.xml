@@ -15,8 +15,8 @@
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <vaadin.version>24.2.5</vaadin.version>
-    <vertx.version>4.5.0</vertx.version>
+    <vaadin.version>24.3.3</vaadin.version>
+    <vertx.version>4.5.1</vertx.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
     <lombok.version>1.18.30</lombok.version>
     <poi.version>5.2.5</poi.version>
@@ -26,7 +26,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.2.0</version>
+    <version>3.2.2</version>
   </parent>
 
   <dependencyManagement>
@@ -84,13 +84,13 @@
     <dependency>
       <groupId>org.vaadin.addons.componentfactory</groupId>
       <artifactId>vcf-pdf-viewer</artifactId>
-      <version>2.8.0</version>
+      <version>2.8.1</version>
     </dependency>
 
     <dependency>
       <groupId>in.virit</groupId>
       <artifactId>viritin</artifactId>
-      <version>2.3.1</version>
+      <version>2.5.6</version>
     </dependency>
 
     <dependency>
@@ -190,14 +190,14 @@
     <dependency>
       <groupId>io.github.bonigarcia</groupId>
       <artifactId>webdrivermanager</artifactId>
-      <version>5.6.2</version>
+      <version>5.6.3</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-test</artifactId>
-      <version>3.6.0</version>
+      <version>3.6.2</version>
       <scope>test</scope>
     </dependency>
 
@@ -220,17 +220,11 @@
       <version>${mapstruct.version}</version>
     </dependency>
 
-    <!--  <dependency>
-          <groupId>org.inferred</groupId>
-          <artifactId>freebuilder</artifactId>
-          <version>2.8.0</version>
-          <optional>true</optional>
-      </dependency>-->
 
     <dependency>
       <groupId>org.jsoup</groupId>
       <artifactId>jsoup</artifactId>
-      <version>1.17.1</version>
+      <version>1.17.2</version>
     </dependency>
 
     <!-- <dependency>
@@ -325,19 +319,19 @@
     <dependency>
       <groupId>com.google.http-client</groupId>
       <artifactId>google-http-client-jackson2</artifactId>
-      <version>1.43.3</version>
+      <version>1.44.1</version>
     </dependency>
 
     <dependency>
       <groupId>com.google.oauth-client</groupId>
       <artifactId>google-oauth-client-jetty</artifactId>
-      <version>1.34.1</version>
+      <version>1.35.0</version>
     </dependency>
 
     <dependency>
       <groupId>com.google.apis</groupId>
       <artifactId>google-api-services-gmail</artifactId>
-      <version>v1-rev20231106-2.0.0</version>
+      <version>v1-rev20231218-2.0.0</version>
     </dependency>
 
     <dependency>
@@ -362,7 +356,7 @@
     <dependency>
       <groupId>de.flapdoodle.embed</groupId>
       <artifactId>de.flapdoodle.embed.mongo</artifactId>
-      <version>4.11.1</version>
+      <version>4.12.2</version>
       <scope>test</scope>
     </dependency>
 
@@ -650,8 +644,6 @@
             </exclusion>
           </exclusions>
         </dependency>
-
-
       </dependencies>
 
       <build>
@@ -666,6 +658,20 @@
                   <goal>build-frontend</goal>
                 </goals>
                 <phase>compile</phase>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+                <phase>package</phase>
               </execution>
             </executions>
           </plugin>

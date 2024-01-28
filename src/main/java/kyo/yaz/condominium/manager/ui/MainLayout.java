@@ -11,6 +11,8 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.sidenav.SideNav;
+import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -19,8 +21,6 @@ import kyo.yaz.condominium.manager.core.config.domain.UserSession;
 import kyo.yaz.condominium.manager.core.service.ProcessLoggedUser;
 import kyo.yaz.condominium.manager.core.util.MyIconsIcons;
 import kyo.yaz.condominium.manager.persistence.entity.User;
-import kyo.yaz.condominium.manager.ui.appnav.AppNav;
-import kyo.yaz.condominium.manager.ui.appnav.AppNavItem;
 import kyo.yaz.condominium.manager.ui.views.RateView;
 import kyo.yaz.condominium.manager.ui.views.SystemView;
 import kyo.yaz.condominium.manager.ui.views.UserView;
@@ -72,12 +72,27 @@ public class MainLayout extends AppLayout {
     appName.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
     Header header = new Header(appName);
 
-    Scroller scroller = new Scroller(createNavigation());
+    Scroller scroller = new Scroller(createNavigationV2());
 
     addToDrawer(header, scroller, createFooter());
   }
 
-  private AppNav createNavigation() {
+  private SideNav createNavigationV2() {
+    final var nav = new SideNav();
+
+    nav.addItem(new SideNavItem(BuildingView.PAGE_TITLE, BuildingView.class, VaadinIcon.BUILDING.create()));
+    nav.addItem(new SideNavItem(RateView.PAGE_TITLE, RateView.class, VaadinIcon.COIN_PILES.create()));
+    nav.addItem(new SideNavItem(ApartmentView.PAGE_TITLE, ApartmentView.class, VaadinIcon.USER.create()));
+    nav.addItem(new SideNavItem(ReceiptView.PAGE_TITLE, ReceiptView.class, VaadinIcon.FILE_TEXT.create()));
+    nav.addItem(new SideNavItem(EmailConfigView.PAGE_TITLE, EmailConfigView.class, VaadinIcon.ENVELOPE.create()));
+    nav.addItem(new SideNavItem(UserView.PAGE_TITLE, UserView.class, VaadinIcon.USERS.create()));
+    nav.addItem(
+        new SideNavItem(TelegramChatView.PAGE_TITLE, TelegramChatView.class, MyIconsIcons.ICONS8_TELEGRAM.create()));
+    nav.addItem(new SideNavItem(SystemView.PAGE_TITLE, SystemView.class, VaadinIcon.INFO.create()));
+    return nav;
+  }
+
+  /*private AppNav createNavigation() {
 
     return new AppNav()
         .addItem(new AppNavItem(BuildingView.PAGE_TITLE, BuildingView.class, VaadinIcon.BUILDING.create()))
@@ -91,7 +106,7 @@ public class MainLayout extends AppLayout {
         .addItem(new AppNavItem(SystemView.PAGE_TITLE, SystemView.class, VaadinIcon.INFO.create()))
         ;
 
-  }
+  }*/
 
   private Footer createFooter() {
     final var layout = new Footer();
