@@ -48,11 +48,10 @@ public class ReflectionUtil {
 
   public static <T> Class<T> parameterizedType(Class<?> clazz, int index) {
     final var genericSuperclass = clazz.getGenericSuperclass();
-    if (!(genericSuperclass instanceof ParameterizedType)) {
+    if (!(genericSuperclass instanceof ParameterizedType type)) {
       return parameterizedType((Class<?>) genericSuperclass, index);
     }
 
-    ParameterizedType type = (ParameterizedType) genericSuperclass;
     Type[] arguments = type.getActualTypeArguments();
     Class<T> argument = (Class<T>) arguments[index];
     return argument;

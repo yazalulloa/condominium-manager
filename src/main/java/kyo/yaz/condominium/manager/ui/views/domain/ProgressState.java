@@ -2,19 +2,19 @@ package kyo.yaz.condominium.manager.ui.views.domain;
 
 public interface ProgressState {
 
-    String text();
+  String text();
 
-    String endText();
+  String endText();
 
-    String subText();
+  String subText();
 
-    boolean indeterminate();
+  boolean indeterminate();
 
-    double min();
+  double min();
 
-    double max();
+  double max();
 
-    double value();
+  double value();
 
-    boolean visible();
+  boolean visible();
 }

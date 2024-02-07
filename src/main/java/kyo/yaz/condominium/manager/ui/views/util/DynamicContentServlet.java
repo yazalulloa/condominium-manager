@@ -1,14 +1,5 @@
 package kyo.yaz.condominium.manager.ui.views.util;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.*;
-import java.nio.file.Files;
-
 //@WebServlet(urlPatterns = "/image", name = "DynamicContentServlet", asyncSupported = true)
 //public class DynamicContentServlet extends HttpServlet {
 //    private static final int ARBITARY_SIZE = 2048;

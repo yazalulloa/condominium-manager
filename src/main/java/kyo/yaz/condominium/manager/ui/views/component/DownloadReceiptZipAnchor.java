@@ -1,17 +1,5 @@
 package kyo.yaz.condominium.manager.ui.views.component;
 
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.function.SerializableBiConsumer;
-import com.vaadin.flow.server.StreamResource;
-import kyo.yaz.condominium.manager.persistence.entity.Receipt;
-import kyo.yaz.condominium.manager.ui.views.actions.DownloadReceiptZipAction;
-
-import java.io.FileInputStream;
-
 /*public class DownloadReceiptZipAnchor implements SerializableBiConsumer<Anchor, Receipt> {
 
     private final DownloadReceiptZipAction<Receipt> action;

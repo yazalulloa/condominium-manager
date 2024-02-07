@@ -2,16 +2,14 @@ package kyo.yaz.condominium.manager.core.service.csv;
 
 import io.reactivex.rxjava3.core.Single;
 import java.io.File;
+import java.time.LocalDate;
+import java.util.stream.Collectors;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.io.InputStream;
-import java.time.LocalDate;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,14 +30,13 @@ public class LoadCsvReceipt {
 
       return Single.zip(buildingMono, rateMono, (building, rate) -> {
 
-
         final var debtList = csvReceipt.debts().stream()
             .map(debt -> {
               final var aptNumber = debt.aptNumber();
               return debt.toBuilder()
-                      .aptNumber(buildingId.equals("MARACAIBO") && aptNumber.length() == 1 ? "0" + aptNumber : aptNumber)
-                      .previousPaymentAmountCurrency(debt.previousPaymentAmount() != null ? building.debtCurrency() : null)
-                      .build();
+                  .aptNumber(buildingId.equals("MARACAIBO") && aptNumber.length() == 1 ? "0" + aptNumber : aptNumber)
+                  .previousPaymentAmountCurrency(debt.previousPaymentAmount() != null ? building.debtCurrency() : null)
+                  .build();
             })
             .collect(Collectors.toList());
 

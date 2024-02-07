@@ -1,8 +1,8 @@
 package kyo.yaz.condominium.manager.core.component;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
-import kyo.yaz.condominium.manager.ui.views.LoginView;
 import kyo.yaz.condominium.manager.core.controller.TelegramController;
+import kyo.yaz.condominium.manager.ui.views.LoginView;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;

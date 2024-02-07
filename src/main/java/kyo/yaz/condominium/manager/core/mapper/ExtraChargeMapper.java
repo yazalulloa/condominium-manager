@@ -8,19 +8,19 @@ import org.mapstruct.factory.Mappers;
 @Mapper
 public interface ExtraChargeMapper {
 
-    ExtraChargeMapper MAPPER = Mappers.getMapper(ExtraChargeMapper.class);
+  ExtraChargeMapper MAPPER = Mappers.getMapper(ExtraChargeMapper.class);
 
-    static ExtraCharge to(ExtraChargeViewItem item) {
-        return MAPPER.map(item);
-    }
+  static ExtraCharge to(ExtraChargeViewItem item) {
+    return MAPPER.map(item);
+  }
 
-    static ExtraChargeViewItem to(ExtraCharge ExtraCharge) {
-        return MAPPER.map(ExtraCharge);
-    }
+  static ExtraChargeViewItem to(ExtraCharge ExtraCharge) {
+    return MAPPER.map(ExtraCharge);
+  }
 
-    ExtraCharge map(ExtraChargeViewItem item);
+  ExtraCharge map(ExtraChargeViewItem item);
 
-    default ExtraChargeViewItem map(ExtraCharge item) {
-        return new ExtraChargeViewItem(item.aptNumber(), item.name(), item.description(), item.amount(), item.currency());
-    }
+  default ExtraChargeViewItem map(ExtraCharge item) {
+    return new ExtraChargeViewItem(item.aptNumber(), item.name(), item.description(), item.amount(), item.currency());
+  }
 }

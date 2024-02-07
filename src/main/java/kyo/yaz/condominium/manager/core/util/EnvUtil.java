@@ -88,7 +88,7 @@ public class EnvUtil {
           final var currentTimeMillis = System.currentTimeMillis();
 
           final var timeUp = currentTimeMillis - millis;
-          //log.info("STARTED AT {} CURRENT: {} DIFFERENCE {}", millis, currentTimeMillis, timeUp);
+          log.info("STARTED AT {} CURRENT: {} DIFFERENCE {}", millis, currentTimeMillis, timeUp);
           final var duration = DurationFormatUtils.formatDuration(timeUp, "HH:mm:ss", false);
 
           return "\nFecha de inicio %s\nTIME UP %s".formatted(dateTime, duration);

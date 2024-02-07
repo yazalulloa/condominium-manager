@@ -14,10 +14,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 class TelegramSendEntityBackupsTest {
 
   @Autowired
-  private TelegramSendEntityBackups backups;
-
-  @Autowired
   BackupService backupService;
+  @Autowired
+  private TelegramSendEntityBackups backups;
 
   @Test
   void all() throws InterruptedException {

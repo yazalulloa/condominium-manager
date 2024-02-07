@@ -2,13 +2,11 @@ package kyo.yaz.condominium.manager.core.util.poi;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Set;
 import java.util.function.Consumer;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
-import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.util.XMLHelper;
 import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
@@ -46,7 +44,8 @@ public record PoiProcessor(
             final var sheetSource = new InputSource(stream);
 
             final var sheetParser = XMLHelper.newXMLReader();
-            final var handler = new XSSFSheetXMLHandler(styles, null, sharedStringsTable, sheetHandler, formatter, false);
+            final var handler = new XSSFSheetXMLHandler(styles, null, sharedStringsTable, sheetHandler, formatter,
+                false);
             sheetParser.setContentHandler(handler);
             sheetParser.parse(sheetSource);
             sheetHandler.executeConsumer();

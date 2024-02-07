@@ -34,8 +34,8 @@ public class ProcessLoggedUserVerticle extends BaseVerticle {
       //log.info("USER {}", user.toString());
 
       final var userSavedSingle = Single.fromCallable(() ->
-          userService.save(user)
-              .ignoreElement()
+              userService.save(user)
+                  .ignoreElement()
           //    .doOnComplete(() -> log.info("USER_SAVED"))
       );
 
@@ -52,7 +52,7 @@ public class ProcessLoggedUserVerticle extends BaseVerticle {
                   ;
             }
 
-          //  log.info("USER_NOT_UPDATED");
+            //  log.info("USER_NOT_UPDATED");
 
             return Completable.complete();
 

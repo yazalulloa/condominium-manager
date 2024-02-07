@@ -32,6 +32,13 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
+import java.time.Month;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 import kyo.yaz.condominium.manager.core.domain.Paging;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.service.SendEmailReceipts;
@@ -54,10 +61,6 @@ import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import kyo.yaz.condominium.manager.ui.views.util.ViewUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Month;
-import java.util.*;
-import java.util.stream.Stream;
-
 @PageTitle(ReceiptView.PAGE_TITLE)
 @PermitAll
 @Route(value = "receipts", layout = MainLayout.class)
@@ -77,15 +80,13 @@ public class ReceiptView extends BaseVerticalLayout {
   private final Button addEntityButton = new Button(Labels.Receipt.ADD_BUTTON_LABEL);
   private final BuildingService buildingService;
   private final DeleteDialog deleteDialog = new DeleteDialog();
-  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
-  private final ReceiptService receiptService;
+  private final ReceiptService receiptService;  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
   private final LoadCsvReceipt loadCsvReceipt;
   private final ProgressLayout progressLayout = new ProgressLayout();
   private final SendEmailReceipts sendEmailReceipts;
   private final TranslationProvider translationProvider;
   private final EmailAptReceiptDialog emailAptReceiptDialog;
   private final GetPdfReceipts getPdfReceipts;
-
   @Autowired
   public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt,
       SendEmailReceipts sendEmailReceipts,
@@ -216,7 +217,6 @@ public class ReceiptView extends BaseVerticalLayout {
     add(toolbar, progressLayout, grid, gridPaginator);
   }
 
-
   private Component card(Receipt receipt) {
     final var div = new Div();
     div.addClassName("card");
@@ -277,7 +277,6 @@ public class ReceiptView extends BaseVerticalLayout {
     return div;
   }
 
-
   private Component cardBody(Receipt receipt) {
     final var div = new Div();
     div.addClassName("body");
@@ -335,7 +334,6 @@ public class ReceiptView extends BaseVerticalLayout {
     saveReceiptInSession(newItem);
     editEntity("copy");
   }
-
 
   private void sendEmails(EmailAptReceiptRequest request) {
     uiAsyncAction(() -> {
@@ -467,7 +465,6 @@ public class ReceiptView extends BaseVerticalLayout {
     return upload;
   }
 
-
   private void saveReceiptInSession(Receipt receipt) {
     VaadinSession.getCurrent().setAttribute("receipt", receipt);
   }
@@ -528,6 +525,8 @@ public class ReceiptView extends BaseVerticalLayout {
     grid.asSingleSelect().clear();
     ui(ui -> ui.navigate(EditReceiptView.class, new RouteParameters("receipt_id", id)));
   }
+
+
 
 
 }

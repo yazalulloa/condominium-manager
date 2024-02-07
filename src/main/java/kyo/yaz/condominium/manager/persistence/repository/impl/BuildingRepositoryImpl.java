@@ -1,5 +1,8 @@
 package kyo.yaz.condominium.manager.persistence.repository.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.repository.base.BuildingCustomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,56 +15,52 @@ import org.springframework.data.mongodb.core.query.Update;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 
 public class BuildingRepositoryImpl implements BuildingCustomRepository {
-    @Autowired
-    ReactiveMongoTemplate template;
 
-    @Override
-    public Mono<List<Building>> list(String filter, Pageable page) {
-        final var query = new Query().with(page);
+  @Autowired
+  ReactiveMongoTemplate template;
+
+  @Override
+  public Mono<List<Building>> list(String filter, Pageable page) {
+    final var query = new Query().with(page);
 //     query.fields().include("id").include("name");
-        final List<Criteria> criteria = new ArrayList<>();
-        Optional.ofNullable(filter)
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .ifPresent(str -> {
+    final List<Criteria> criteria = new ArrayList<>();
+    Optional.ofNullable(filter)
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .ifPresent(str -> {
 
-                    criteria.add(Criteria.where("id").is(str));
-                    criteria.add(Criteria.where("name").is(str));
-                    criteria.add(Criteria.where("rif").is(str));
-                });
+          criteria.add(Criteria.where("id").is(str));
+          criteria.add(Criteria.where("name").is(str));
+          criteria.add(Criteria.where("rif").is(str));
+        });
 
-
-        if (!criteria.isEmpty())
-            query.addCriteria(new Criteria().orOperator(criteria.toArray(new Criteria[0])));
-
-
-        return find(query).collectList();
+    if (!criteria.isEmpty()) {
+      query.addCriteria(new Criteria().orOperator(criteria.toArray(new Criteria[0])));
     }
 
-    @Override
-    public Mono<Building> updateAptCount(String id, long aptCount) {
-        final var query = new Query().addCriteria(Criteria.where("id").is(id));
-        final var update = new Update().set("amount_of_apts", aptCount);
-        final var options = new FindAndModifyOptions().returnNew(true).upsert(false);
+    return find(query).collectList();
+  }
 
-        return template.findAndModify(query, update, options, Building.class);
-    }
+  @Override
+  public Mono<Building> updateAptCount(String id, long aptCount) {
+    final var query = new Query().addCriteria(Criteria.where("id").is(id));
+    final var update = new Update().set("amount_of_apts", aptCount);
+    final var options = new FindAndModifyOptions().returnNew(true).upsert(false);
 
-    @Override
-    public Flux<String> getIds() {
-        final var query = new Query();
-        query.fields().include("_id");
-        return find(query)
-                .map(Building::id);
-    }
+    return template.findAndModify(query, update, options, Building.class);
+  }
 
-    private Flux<Building> find(Query query) {
-        return template.find(query, Building.class);
-    }
+  @Override
+  public Flux<String> getIds() {
+    final var query = new Query();
+    query.fields().include("_id");
+    return find(query)
+        .map(Building::id);
+  }
+
+  private Flux<Building> find(Query query) {
+    return template.find(query, Building.class);
+  }
 }

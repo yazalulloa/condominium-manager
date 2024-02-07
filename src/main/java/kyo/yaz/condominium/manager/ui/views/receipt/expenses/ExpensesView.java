@@ -33,13 +33,11 @@ public class ExpensesView extends BaseDiv {
   private final DragDropList<ExpenseViewItem, DragDropDiv<ExpenseViewItem>> expenses = new DragDropList<>();
 
   private final Button addBtn = new Button(Labels.ADD);
-
-  private BigDecimal totalCommon = BigDecimal.ZERO;
-  private BigDecimal totalUnCommon = BigDecimal.ZERO;
   private final Div amount = new Div();
-
   private final ExpenseForm form;
   private final TranslationProvider translationProvider;
+  private BigDecimal totalCommon = BigDecimal.ZERO;
+  private BigDecimal totalUnCommon = BigDecimal.ZERO;
 
   @Autowired
   public ExpensesView(ExpenseForm form, TranslationProvider translationProvider) {
@@ -203,13 +201,6 @@ public class ExpensesView extends BaseDiv {
     }
   }
 
-  public static class LoadExpensesEvent extends ViewEvent<ExpensesView, Void> {
-
-    public LoadExpensesEvent(ExpensesView source) {
-      super(source);
-    }
-  }
-
   private DragDropDiv<ExpenseViewItem> addExpense(ExpenseViewItem item) {
 
     final var card = card(item);
@@ -228,5 +219,12 @@ public class ExpensesView extends BaseDiv {
         .map(this::addExpense).forEach(expenses::addComponent);
     amount.setText(String.format("(%s)", expenses.components().size()));
     calculateTotal();
+  }
+
+  public static class LoadExpensesEvent extends ViewEvent<ExpensesView, Void> {
+
+    public LoadExpensesEvent(ExpensesView source) {
+      super(source);
+    }
   }
 }

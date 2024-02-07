@@ -1,7 +1,6 @@
 package kyo.yaz.condominium.manager.core.service;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
 import kyo.yaz.condominium.manager.core.verticle.ProcessLoggedUserVerticle;
 import kyo.yaz.condominium.manager.persistence.entity.User;
 import lombok.RequiredArgsConstructor;

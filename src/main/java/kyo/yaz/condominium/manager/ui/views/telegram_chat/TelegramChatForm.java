@@ -25,14 +25,12 @@ import org.springframework.stereotype.Component;
 public class TelegramChatForm extends BaseForm {
 
 
+  public final Binder<TelegramChat> binder = new BeanValidationBinder<>(TelegramChat.class);
   @PropertyId("notificationEvents")
   private final MultiSelectComboBox<NotificationEvent> notificationEventsComboBox = ViewUtil.enumMultiComboBox(
       Labels.TelegramChat.NOTIFICATION_LABEL, NotificationEvent.values);
-
-  public final Binder<TelegramChat> binder = new BeanValidationBinder<>(TelegramChat.class);
-  TelegramChat item = TelegramChat.builder().build();
-
   private final TranslationProvider translationProvider;
+  TelegramChat item = TelegramChat.builder().build();
 
   public TelegramChatForm(TranslationProvider translationProvider) {
     this.translationProvider = translationProvider;
@@ -44,7 +42,7 @@ public class TelegramChatForm extends BaseForm {
     notificationEventsComboBox.setItemLabelGenerator(e -> translationProvider.translate(e.name()));
 
     binder.forField(notificationEventsComboBox)
-            .bind(TelegramChat::notificationEvents, TelegramChat::notificationEvents);
+        .bind(TelegramChat::notificationEvents, TelegramChat::notificationEvents);
 
     add(
         notificationEventsComboBox,

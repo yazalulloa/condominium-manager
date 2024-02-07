@@ -1,6 +1,10 @@
 package kyo.yaz.condominium.manager.ui.views.base;
 
-import com.vaadin.flow.component.*;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEvent;
+import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.shared.Registration;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -16,94 +20,98 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class BaseHorizontalLayout extends HorizontalLayout {
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected final CompositeDisposable compositeDisposable = new CompositeDisposable();
+  protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ViewHelper viewHelper = new ViewHelper(this, logger);
+  protected final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
-    protected final Component component() {
-        return this;
-    }
+  private final ViewHelper viewHelper = new ViewHelper(this, logger);
 
-
-    protected final Logger logger() {
-        return logger;
-    }
+  protected final Component component() {
+    return this;
+  }
 
 
-    protected void onDetach(DetachEvent detachEvent) {
-        super.onDetach(detachEvent);
-        compositeDisposable.dispose();
-    }
+  protected final Logger logger() {
+    return logger;
+  }
 
-    protected CompletableObserver completableObserver() {
-        return completableObserver(() -> {
-        });
-    }
 
-    protected CompletableObserver completableObserver(@NonNull Action onComplete) {
-        return completableObserver(onComplete, this::showError);
+  protected void onDetach(DetachEvent detachEvent) {
+    super.onDetach(detachEvent);
+    compositeDisposable.dispose();
+  }
 
-    }
+  protected CompletableObserver completableObserver() {
+    return completableObserver(() -> {
+    });
+  }
 
-    protected CompletableObserver completableObserver(@NonNull Action onComplete, @NonNull Consumer<? super Throwable> onError) {
-        return RxUtil.completableObserver(compositeDisposable::add, onComplete, onError);
-    }
+  protected CompletableObserver completableObserver(@NonNull Action onComplete) {
+    return completableObserver(onComplete, this::showError);
 
-    protected <T> SingleObserver<T> singleObserver(@NonNull Consumer<? super T> onSuccess, @NonNull Consumer<? super Throwable> onError) {
-        return RxUtil.singleObserver(compositeDisposable::add, onSuccess, onError);
-    }
-    protected <T> SingleObserver<T> singleObserver(@NonNull Consumer<? super T> onSuccess) {
-        return RxUtil.singleObserver(compositeDisposable::add, onSuccess, this::showError);
-    }
+  }
 
-    protected void showError(Throwable throwable) {
-        viewHelper.showError(throwable);
-    }
+  protected CompletableObserver completableObserver(@NonNull Action onComplete,
+      @NonNull Consumer<? super Throwable> onError) {
+    return RxUtil.completableObserver(compositeDisposable::add, onComplete, onError);
+  }
 
-    protected void showError(Throwable throwable, String tag) {
-        viewHelper.showError(throwable, tag);
-    }
+  protected <T> SingleObserver<T> singleObserver(@NonNull Consumer<? super T> onSuccess,
+      @NonNull Consumer<? super Throwable> onError) {
+    return RxUtil.singleObserver(compositeDisposable::add, onSuccess, onError);
+  }
 
-    protected <T> Subscriber<T> subscriber(Runnable runnable) {
-        return viewHelper.subscriber(runnable);
-    }
+  protected <T> SingleObserver<T> singleObserver(@NonNull Consumer<? super T> onSuccess) {
+    return RxUtil.singleObserver(compositeDisposable::add, onSuccess, this::showError);
+  }
 
-    protected Subscriber<Void> emptySubscriber() {
-        return viewHelper.emptySubscriber("");
-    }
+  protected void showError(Throwable throwable) {
+    viewHelper.showError(throwable);
+  }
 
-    protected Subscriber<Void> emptySubscriber(String tag) {
-        return viewHelper.emptySubscriber(tag);
-    }
+  protected void showError(Throwable throwable, String tag) {
+    viewHelper.showError(throwable, tag);
+  }
 
-    protected void asyncNotification(String message) {
-        viewHelper.asyncNotification(message);
-    }
+  protected <T> Subscriber<T> subscriber(Runnable runnable) {
+    return viewHelper.subscriber(runnable);
+  }
 
-    protected void ui(java.util.function.Consumer<UI> uiConsumer) {
-        viewHelper.ui(uiConsumer);
-    }
+  protected Subscriber<Void> emptySubscriber() {
+    return viewHelper.emptySubscriber("");
+  }
 
-    protected void uiAsyncAction(Iterable<Runnable> runnable) {
-        viewHelper.uiAsyncAction(runnable);
-    }
+  protected Subscriber<Void> emptySubscriber(String tag) {
+    return viewHelper.emptySubscriber(tag);
+  }
 
-    protected void uiAsyncAction(Runnable... runnable) {
-        viewHelper.uiAsyncAction(runnable);
-    }
+  protected void asyncNotification(String message) {
+    viewHelper.asyncNotification(message);
+  }
 
-    protected void uiAsyncAction(Runnable runnable) {
-        viewHelper.uiAsyncAction(runnable);
-    }
+  protected void ui(java.util.function.Consumer<UI> uiConsumer) {
+    viewHelper.ui(uiConsumer);
+  }
 
-    protected <T extends Component> void navigate(Class<T> clazz) {
-        uiAsyncAction(() -> ui(ui -> ui.navigate(clazz)));
-    }
+  protected void uiAsyncAction(Iterable<Runnable> runnable) {
+    viewHelper.uiAsyncAction(runnable);
+  }
 
-    public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
-                                                                  ComponentEventListener<T> listener) {
-        return getEventBus().addListener(eventType, listener);
-    }
+  protected void uiAsyncAction(Runnable... runnable) {
+    viewHelper.uiAsyncAction(runnable);
+  }
+
+  protected void uiAsyncAction(Runnable runnable) {
+    viewHelper.uiAsyncAction(runnable);
+  }
+
+  protected <T extends Component> void navigate(Class<T> clazz) {
+    uiAsyncAction(() -> ui(ui -> ui.navigate(clazz)));
+  }
+
+  public <T extends ComponentEvent<?>> Registration addListener(Class<T> eventType,
+      ComponentEventListener<T> listener) {
+    return getEventBus().addListener(eventType, listener);
+  }
 }

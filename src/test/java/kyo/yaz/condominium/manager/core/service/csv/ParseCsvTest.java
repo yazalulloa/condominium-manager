@@ -1,10 +1,7 @@
 package kyo.yaz.condominium.manager.core.service.csv;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
-import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import org.junit.jupiter.api.Test;
 
 class ParseCsvTest {

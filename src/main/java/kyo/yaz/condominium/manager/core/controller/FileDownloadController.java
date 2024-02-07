@@ -1,24 +1,14 @@
 package kyo.yaz.condominium.manager.core.controller;
 
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Single;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import kyo.yaz.condominium.manager.core.domain.FileResponse;
-import kyo.yaz.condominium.manager.core.service.entity.EntityDownloader;
 import kyo.yaz.condominium.manager.core.util.StringUtil;
-import kyo.yaz.condominium.manager.core.util.ZipUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

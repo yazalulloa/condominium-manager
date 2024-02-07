@@ -8,11 +8,14 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.VerticleFactory;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import kyo.yaz.condominium.manager.core.service.HttpServiceImpl;
+import kyo.yaz.condominium.manager.core.service.VertxHttpService;
 import kyo.yaz.condominium.manager.core.verticle.HttpClientVerticle;
 import kyo.yaz.condominium.manager.core.verticle.ProcessLoggedUserVerticle;
 import kyo.yaz.condominium.manager.core.verticle.SendEmailVerticle;
@@ -46,7 +49,7 @@ public class VertxConfig {
     final var eventBus = vertx.eventBus();
     final var defaultJacksonMessageCodec = new DefaultJacksonMessageCodec();
     eventBus.registerCodec(defaultJacksonMessageCodec);
-    eventBus.codecSelector(body -> defaultJacksonMessageCodec.name());
+    eventBus.codecSelector(_ -> defaultJacksonMessageCodec.name());
 
     final var fileStore = new ConfigStoreOptions()
         .setType("file")
@@ -61,13 +64,13 @@ public class VertxConfig {
 
     Stream.of(ProcessLoggedUserVerticle.class)
         .map(Class::getName)
-        .map(name -> verticleFactory.prefix() + ":" + name)
+        .map(name -> STR."\{verticleFactory.prefix()}:\{name}")
         .forEach(verticle -> vertx.deployVerticle(verticle, new DeploymentOptions().setInstances(loopPoolSize)));
 
     final var verticleRecords = Set.of(
-        new VerticleRecord("telegram_config", verticleFactory.prefix() + ":" + TelegramVerticle.class.getName()),
-        new VerticleRecord("http_client_options", verticleFactory.prefix() + ":" + HttpClientVerticle.class.getName()),
-        new VerticleRecord("send_email_config", verticleFactory.prefix() + ":" + SendEmailVerticle.class.getName())
+        new VerticleRecord("telegram_config", STR."\{verticleFactory.prefix()}:\{TelegramVerticle.class.getName()}"),
+        //new VerticleRecord("http_client_options", STR."\{verticleFactory.prefix()}:\{HttpClientVerticle.class.getName()}"),
+        new VerticleRecord("send_email_config", STR."\{verticleFactory.prefix()}:\{SendEmailVerticle.class.getName()}")
     );
 
     final var deployer = VerticleConfigDeployer.builder()
@@ -80,7 +83,7 @@ public class VertxConfig {
         .build();
 
     deployer.loadConfig()
-        .onSuccess((f) -> log.info("Successfully deployed verticles"))
+        .onSuccess((_) -> log.info("Successfully deployed verticles"))
         .onFailure(t -> log.error("ERROR DEPLOYING VERTICLE", t));
 
     return vertx;
@@ -102,7 +105,17 @@ public class VertxConfig {
   }
 
   @Bean
-  public HttpServiceImpl httpService(VertxHandler vertxHandler) {
-    return new HttpServiceImpl(vertxHandler);
+  public HttpServiceImpl httpService(Vertx vertx, VertxHandler vertxHandler) {
+    final var config = new JsonObject();
+    final var webClient = WebClient.create(vertx, new WebClientOptions(config));
+
+    final var trustAllWebClientOptions = new WebClientOptions()
+        .setTrustAll(true)
+        .setVerifyHost(false);
+
+    final var trustAll = WebClient.create(vertx, trustAllWebClientOptions);
+
+    return new HttpServiceImpl(vertxHandler, new VertxHttpService(webClient, config),
+        new VertxHttpService(trustAll, config));
   }
 }

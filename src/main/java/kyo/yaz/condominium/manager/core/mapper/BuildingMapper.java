@@ -8,23 +8,23 @@ import org.mapstruct.factory.Mappers;
 @Mapper
 public interface BuildingMapper {
 
-    BuildingMapper MAPPER = Mappers.getMapper(BuildingMapper.class);
+  BuildingMapper MAPPER = Mappers.getMapper(BuildingMapper.class);
 
-    static Building to(BuildingViewItem item) {
-        return MAPPER.map(item);
-    }
+  static Building to(BuildingViewItem item) {
+    return MAPPER.map(item);
+  }
 
-    static BuildingViewItem to(Building building) {
-        return MAPPER.map(building);
-    }
+  static BuildingViewItem to(Building building) {
+    return MAPPER.map(building);
+  }
 
-    Building map(BuildingViewItem item);
+  Building map(BuildingViewItem item);
 
-    default BuildingViewItem map(Building item) {
-        return new BuildingViewItem(item.id(), item.name(), item.rif(),
-                item.mainCurrency(), item.debtCurrency(), item.currenciesToShowAmountToPay(),
-                item.fixedPay(), item.fixedPayAmount(),
-                item.roundUpPayments(), item.emailConfig(), item.createdAt(), item.updatedAt());
-    }
+  default BuildingViewItem map(Building item) {
+    return new BuildingViewItem(item.id(), item.name(), item.rif(),
+        item.mainCurrency(), item.debtCurrency(), item.currenciesToShowAmountToPay(),
+        item.fixedPay(), item.fixedPayAmount(),
+        item.roundUpPayments(), item.emailConfig(), item.createdAt(), item.updatedAt());
+  }
 }
 

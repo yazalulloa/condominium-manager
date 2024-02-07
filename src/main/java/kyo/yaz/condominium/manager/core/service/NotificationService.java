@@ -24,6 +24,7 @@ public class NotificationService {
   private final TranslationProvider translationProvider;
 
   public boolean sendAppStartup() {
+
     final var event = NotificationEvent.APP_STARTUP;
     final var msg = translationProvider.translate(event.name());
     return blocking(send(EnvUtil.addEnvInfo(msg, false), event));

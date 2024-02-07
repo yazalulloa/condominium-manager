@@ -2,7 +2,6 @@ package kyo.yaz.condominium.manager.core.service.entity;
 
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.json.Json;
 import java.util.Optional;
 import java.util.Set;

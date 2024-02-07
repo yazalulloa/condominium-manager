@@ -13,6 +13,7 @@ public enum MyIconsIcons implements IconFactory {
   }
 
   public static final class Icon extends com.vaadin.flow.component.icon.Icon {
+
     Icon(String icon) {
       super("my-icons-icons", icon);
     }

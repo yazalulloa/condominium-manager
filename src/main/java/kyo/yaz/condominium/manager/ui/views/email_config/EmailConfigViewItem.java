@@ -7,10 +7,13 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
-import lombok.extern.jackson.Jacksonized;
-
 import java.time.ZonedDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized
 @Builder(toBuilder = true)
@@ -22,41 +25,41 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 public class EmailConfigViewItem {
 
-    @NotBlank
-    @JsonProperty
-    private String id;
+  @NotBlank
+  @JsonProperty
+  private String id;
 
-    @Email
-    @NotBlank
-    @JsonProperty
-    private String from;
+  @Email
+  @NotBlank
+  @JsonProperty
+  private String from;
 
-    @NotBlank
-    @NotNull
-    @JsonProperty
-    private String config;
+  @NotBlank
+  @NotNull
+  @JsonProperty
+  private String config;
 
-    @NotBlank
-    @NotNull
-    @JsonProperty
-    private String storedCredential;
+  @NotBlank
+  @NotNull
+  @JsonProperty
+  private String storedCredential;
 
-    @NotNull
-    @JsonProperty
-    private Boolean active;
+  @NotNull
+  @JsonProperty
+  private Boolean active;
 
-    @JsonProperty
-    private Boolean isAvailable;
+  @JsonProperty
+  private Boolean isAvailable;
 
-    @JsonProperty
-    private String error;
+  @JsonProperty
+  private String error;
 
-    @JsonProperty
-    private ZonedDateTime createdAt;
+  @JsonProperty
+  private ZonedDateTime createdAt;
 
-    @JsonProperty
-    private ZonedDateTime updatedAt;
+  @JsonProperty
+  private ZonedDateTime updatedAt;
 
-    @JsonProperty
-    private ZonedDateTime lastCheckAt;
+  @JsonProperty
+  private ZonedDateTime lastCheckAt;
 }

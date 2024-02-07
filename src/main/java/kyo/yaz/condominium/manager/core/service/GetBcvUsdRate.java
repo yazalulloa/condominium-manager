@@ -2,10 +2,13 @@ package kyo.yaz.condominium.manager.core.service;
 
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpMethod;
-import kyo.yaz.condominium.manager.core.domain.*;
+import kyo.yaz.condominium.manager.core.domain.BcvUsdRateResult;
+import kyo.yaz.condominium.manager.core.domain.Currency;
+import kyo.yaz.condominium.manager.core.domain.HttpClientRequest;
+import kyo.yaz.condominium.manager.core.domain.HttpClientResponse;
+import kyo.yaz.condominium.manager.core.domain.HttpLogConfig;
 import kyo.yaz.condominium.manager.core.parser.BcvUsdRateParser;
 import kyo.yaz.condominium.manager.core.service.entity.RateService;
-import kyo.yaz.condominium.manager.persistence.entity.Rate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;

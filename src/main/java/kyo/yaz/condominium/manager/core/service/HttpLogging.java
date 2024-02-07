@@ -173,7 +173,7 @@ public class HttpLogging {
       }
 
       if (throwable != null) {
-        builder.append(requestCounter).append(direction).append("ERROR ").append(throwable.getClass().toString())
+        builder.append(requestCounter).append(direction).append("ERROR ").append(throwable.getClass())
             .append(" ")
             .append(throwable.getMessage())
             .append("\n");

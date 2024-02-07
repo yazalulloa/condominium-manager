@@ -20,8 +20,8 @@ import lombok.extern.jackson.Jacksonized;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class SendEmailRequest {
 
-    @JsonProperty
-    private final EmailConfig emailConfig;
-    @JsonProperty
-    private final String message;
+  @JsonProperty
+  private final EmailConfig emailConfig;
+  @JsonProperty
+  private final String message;
 }

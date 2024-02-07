@@ -18,6 +18,13 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import jakarta.annotation.security.PermitAll;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import kyo.yaz.condominium.manager.core.mapper.DebtMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExpenseMapper;
 import kyo.yaz.condominium.manager.core.mapper.ExtraChargeMapper;
@@ -43,342 +50,337 @@ import kyo.yaz.condominium.manager.ui.views.util.Labels;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
 @PageTitle(ReceiptView.PAGE_TITLE)
 @PermitAll
 @Route(value = "receipts/:receipt_id", layout = MainLayout.class)
 public class EditReceiptView extends ScrollPanel implements BeforeEnterObserver {
 
 
-    private final ExpensesView expensesView;
-    private final ExtraChargesView extraChargesView = new ExtraChargesView();
+  private final ExpensesView expensesView;
+  private final ExtraChargesView extraChargesView = new ExtraChargesView();
 
-    private final Paragraph commonExpensesTotal = new Paragraph();
-    private final Paragraph unCommonExpensesTotal = new Paragraph();
-    private final Paragraph commonExpensesTotalPlusReserveFund = new Paragraph();
-    private final Paragraph unCommonExpensesTotalPlusReserveFund = new Paragraph();
-    private final Div reserveFundsDiv = new Div();
-    private final ApartmentService apartmentService;
-    private final ReceiptService receiptService;
-    private final BuildingService buildingService;
-    private final CalculateReceiptInfo calculateReceiptInfo;
+  private final Paragraph commonExpensesTotal = new Paragraph();
+  private final Paragraph unCommonExpensesTotal = new Paragraph();
+  private final Paragraph commonExpensesTotalPlusReserveFund = new Paragraph();
+  private final Paragraph unCommonExpensesTotalPlusReserveFund = new Paragraph();
+  private final Div reserveFundsDiv = new Div();
+  private final ApartmentService apartmentService;
+  private final ReceiptService receiptService;
+  private final BuildingService buildingService;
+  private final CalculateReceiptInfo calculateReceiptInfo;
+  private final ReceiptForm receiptForm;
+  private final DebtsView debtsView;
+  private Long receiptId;
+  private Receipt receipt;
+  private Building building;
 
-    private Long receiptId;
-    private final ReceiptForm receiptForm;
-    private Receipt receipt;
-    private Building building;
+  @Autowired
+  public EditReceiptView(ExpensesView expensesView, ApartmentService apartmentService, ReceiptService receiptService,
+      BuildingService buildingService,
+      CalculateReceiptInfo calculateReceiptInfo, ReceiptForm receiptForm, DebtsView debtsView) {
+    super();
+    this.expensesView = expensesView;
+    this.apartmentService = apartmentService;
+    this.receiptService = receiptService;
+    this.buildingService = buildingService;
+    this.calculateReceiptInfo = calculateReceiptInfo;
+    this.receiptForm = receiptForm;
+    this.debtsView = debtsView;
+    init();
+  }
 
-    private final DebtsView debtsView;
+  private void init() {
+    getContent().addClassName("edit-receipt-view");
+    receiptForm.init();
+    debtsView.init();
+    extraChargesView.init();
+    expensesView.init();
+    addContent();
+  }
 
-    @Autowired
-    public EditReceiptView(ExpensesView expensesView, ApartmentService apartmentService, ReceiptService receiptService,
-                           BuildingService buildingService,
-                           CalculateReceiptInfo calculateReceiptInfo, ReceiptForm receiptForm, DebtsView debtsView) {
-        super();
-        this.expensesView = expensesView;
-        this.apartmentService = apartmentService;
-        this.receiptService = receiptService;
-        this.buildingService = buildingService;
-        this.calculateReceiptInfo = calculateReceiptInfo;
-        this.receiptForm = receiptForm;
-        this.debtsView = debtsView;
-        init();
-    }
+  @Override
+  protected void onAttach(AttachEvent attachEvent) {
+    super.onAttach(attachEvent);
+    initData();
+  }
 
-    private void init() {
-        getContent().addClassName("edit-receipt-view");
-        receiptForm.init();
-        debtsView.init();
-        extraChargesView.init();
-        expensesView.init();
-        addContent();
-    }
+  private HorizontalLayout createButtonsLayout() {
 
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        super.onAttach(attachEvent);
-        initData();
-    }
+    final var saveBtn = new Button(Labels.SAVE);
+    final var cancelBtn = new Button(Labels.CANCEL);
 
-    private HorizontalLayout createButtonsLayout() {
+    saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+    cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        final var saveBtn = new Button(Labels.SAVE);
-        final var cancelBtn = new Button(Labels.CANCEL);
+    saveBtn.addClickShortcut(Key.ENTER);
+    cancelBtn.addClickShortcut(Key.ESCAPE);
 
-        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+    receiptForm.binder().addStatusChangeListener(
+        e -> saveBtn.setEnabled(receiptForm.binder().isValid() && !expensesView.items().isEmpty()));
 
-        saveBtn.addClickShortcut(Key.ENTER);
-        cancelBtn.addClickShortcut(Key.ESCAPE);
+    receiptForm.addListener(ReceiptForm.SaveEvent.class, event -> {
+      final var formItem = event.getObj();
 
-        receiptForm.binder().addStatusChangeListener(
-                e -> saveBtn.setEnabled(receiptForm.binder().isValid() && !expensesView.items().isEmpty()));
+      final var build = Optional.ofNullable(receipt)
+          .map(Receipt::toBuilder)
+          .orElseGet(Receipt::builder)
+          .buildingId(formItem.getBuildingId())
+          .year(formItem.getYear())
+          .month(formItem.getMonth())
+          .date(formItem.getDate())
+          .expenses(ConvertUtil.toList(expensesView.items(), ExpenseMapper::to))
+          //.debts(ConvertUtil.toList(debts, DebtMapper::to))
+          .debts(ConvertUtil.toList(debtsView.debts(), DebtMapper::to))
+          .extraCharges(ConvertUtil.toList(extraChargesView.items(), ExtraChargeMapper::to))
+          .rate(formItem.getRate())
+          .build();
 
-        receiptForm.addListener(ReceiptForm.SaveEvent.class, event -> {
-            final var formItem = event.getObj();
+      calculateReceiptInfo.save(build)
+          .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
+          .subscribe(singleObserver(receipt -> {
+            logger().info("Navigating");
+            uiAsyncAction(this::navigateBack);
 
-            final var build = Optional.ofNullable(receipt)
-                    .map(Receipt::toBuilder)
-                    .orElseGet(Receipt::builder)
-                    .buildingId(formItem.getBuildingId())
-                    .year(formItem.getYear())
-                    .month(formItem.getMonth())
-                    .date(formItem.getDate())
-                    .expenses(ConvertUtil.toList(expensesView.items(), ExpenseMapper::to))
-                    //.debts(ConvertUtil.toList(debts, DebtMapper::to))
-                    .debts(ConvertUtil.toList(debtsView.debts(), DebtMapper::to))
-                    .extraCharges(ConvertUtil.toList(extraChargesView.items(), ExtraChargeMapper::to))
-                    .rate(formItem.getRate())
-                    .build();
+          }, this::showError));
+    });
 
-            calculateReceiptInfo.save(build)
-                    .subscribeOn(io.reactivex.rxjava3.schedulers.Schedulers.io())
-                    .subscribe(singleObserver(receipt -> {
-                        logger().info("Navigating");
-                        uiAsyncAction(this::navigateBack);
+    saveBtn.addClickListener(event -> receiptForm.validateAndSave());
 
-                    }, this::showError));
-        });
+    cancelBtn.addClickListener(event -> navigateBack());
 
-        saveBtn.addClickListener(event -> receiptForm.validateAndSave());
+    expensesView.form().addListener(ExpenseForm.SaveEvent.class, event -> {
+      saveBtn.setEnabled(receiptForm.binder().isValid() && !expensesView.items().isEmpty());
+    });
 
-        cancelBtn.addClickListener(event -> navigateBack());
+    expensesView.addListener(ExpensesView.LoadExpensesEvent.class, event -> loadReserveFunds());
 
-        expensesView.form().addListener(ExpenseForm.SaveEvent.class, event -> {
-            saveBtn.setEnabled(receiptForm.binder().isValid() && !expensesView.items().isEmpty());
-        });
+    return new HorizontalLayout(saveBtn, cancelBtn);
+  }
 
-        expensesView.addListener(ExpensesView.LoadExpensesEvent.class, event -> loadReserveFunds());
+  private void addContent() {
 
-        return new HorizontalLayout(saveBtn, cancelBtn);
-    }
+    receiptForm.buildingComboBox().addValueChangeListener(event -> {
+      if (receiptId == null) {
+        final var value = event.getValue();
 
-    private void addContent() {
-
-        receiptForm.buildingComboBox().addValueChangeListener(event -> {
-            if (receiptId == null) {
-                final var value = event.getValue();
-
-                debtsView.setVisible(false);
-                extraChargesView.setVisible(false);
-
-                if (value != null) {
-
-                    setAptNumbers(value)
-                            .doOnSuccess(this::uiAsyncAction)
-                            .ignoreElement()
-                            .subscribeOn(Schedulers.io())
-                            .subscribe(completableObserver());
-                }
-            }
-        });
-
-        extraChargesView.setVisible(false);
         debtsView.setVisible(false);
+        extraChargesView.setVisible(false);
 
+        if (value != null) {
 
-        add(receiptForm, createButtonsLayout(), new H3(Labels.TOTAL_EXPENSES), new Div(commonExpensesTotal, unCommonExpensesTotal,
-                        commonExpensesTotalPlusReserveFund, unCommonExpensesTotalPlusReserveFund), new Hr(),
-                new H3(Labels.RESERVE_FUNDS_TITLE), reserveFundsDiv, new Hr(), expensesView, new Hr(), debtsView, new Hr(),
-                extraChargesView, new Hr(),
-                createButtonsLayout());
-    }
+          setAptNumbers(value)
+              .doOnSuccess(this::uiAsyncAction)
+              .ignoreElement()
+              .subscribeOn(Schedulers.io())
+              .subscribe(completableObserver());
+        }
+      }
+    });
 
-    private void navigateBack() {
-        navigate(ReceiptView.class);
-    }
+    extraChargesView.setVisible(false);
+    debtsView.setVisible(false);
 
-    private Single<Runnable> setAptNumbers(String buildingId) {
-        final var buildingSingle = buildingService.get(buildingId);
-        final var listSingle = apartmentService.aptNumbers(buildingId);
+    add(receiptForm, createButtonsLayout(), new H3(Labels.TOTAL_EXPENSES),
+        new Div(commonExpensesTotal, unCommonExpensesTotal,
+            commonExpensesTotalPlusReserveFund, unCommonExpensesTotalPlusReserveFund), new Hr(),
+        new H3(Labels.RESERVE_FUNDS_TITLE), reserveFundsDiv, new Hr(), expensesView, new Hr(), debtsView, new Hr(),
+        extraChargesView, new Hr(),
+        createButtonsLayout());
+  }
 
-        return Single.zip(buildingSingle, listSingle, (building, list) -> {
-            logger().info("setAptNumbers called");
-            return () -> {
-                this.building = building;
+  private void navigateBack() {
+    navigate(ReceiptView.class);
+  }
 
-                debtsView.setCurrency(building.debtCurrency());
+  private Single<Runnable> setAptNumbers(String buildingId) {
+    final var buildingSingle = buildingService.get(buildingId);
+    final var listSingle = apartmentService.aptNumbers(buildingId);
 
-                final var debtList = Optional.ofNullable(receipt)
-                        .map(Receipt::debts)
-                        .orElseGet(Collections::emptyList);
+    return Single.zip(buildingSingle, listSingle, (building, list) -> {
+      logger().info("setAptNumbers called");
+      return () -> {
+        this.building = building;
 
-                final var debtViewItems = list.stream()
-                        .map(apartment -> {
+        debtsView.setCurrency(building.debtCurrency());
 
-                            final var debtViewItem = debtList.stream()
-                                    .filter(debt -> debt.aptNumber().equals(apartment.apartmentId().number()))
-                                    .findFirst()
-                                    .map(DebtMapper::to)
-                                    .orElse(DebtViewItem.builder()
-                                            .aptNumber(apartment.apartmentId().number())
-                                            .build());
+        final var debtList = Optional.ofNullable(receipt)
+            .map(Receipt::debts)
+            .orElseGet(Collections::emptyList);
 
-                            return debtViewItem.toBuilder()
-                                    .name(apartment.name())
-                                    .build();
-                        })
-                        .collect(Collectors.toCollection(LinkedList::new));
+        final var debtViewItems = list.stream()
+            .map(apartment -> {
 
-                debtsView.setItems(debtViewItems);
-                debtsView.setVisible(true);
-                extraChargesView.setApartments(list);
-                extraChargesView.setItems(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
-                extraChargesView.setVisible(true);
-                loadReserveFunds();
-            };
+              final var debtViewItem = debtList.stream()
+                  .filter(debt -> debt.aptNumber().equals(apartment.apartmentId().number()))
+                  .findFirst()
+                  .map(DebtMapper::to)
+                  .orElse(DebtViewItem.builder()
+                      .aptNumber(apartment.apartmentId().number())
+                      .build());
+
+              return debtViewItem.toBuilder()
+                  .name(apartment.name())
+                  .build();
+            })
+            .collect(Collectors.toCollection(LinkedList::new));
+
+        debtsView.setItems(debtViewItems);
+        debtsView.setVisible(true);
+        extraChargesView.setApartments(list);
+        extraChargesView.setItems(ConvertUtil.toList(receipt.extraCharges(), ExtraChargeMapper::to));
+        extraChargesView.setVisible(true);
+        loadReserveFunds();
+      };
+    });
+  }
+
+  private void loadReserveFunds() {
+    final var fundList = Optional.ofNullable(building)
+        .map(Building::reserveFunds)
+        .filter(CollectionUtils::isNotEmpty);
+
+    Optional.ofNullable(building)
+        .map(Building::reserveFunds)
+        .filter(CollectionUtils::isNotEmpty)
+        .ifPresent(reserveFunds -> {
+          reserveFundsDiv.setVisible(true);
+          reserveFundsDiv.removeAll();
+
+          reserveFunds.forEach(reserveFund -> {
+            final var reserveFundPay = reserveFund.getPay();
+            if (reserveFund.getActive() && DecimalUtil.greaterThanZero(reserveFundPay)) {
+
+              final var isFixedPay = reserveFund.getType() == ReserveFund.Type.FIXED_PAY;
+              final var total = expensesView.totalCommon();
+              final var amountToPay = isFixedPay ? reserveFundPay :
+                  DecimalUtil.greaterThanZero(total) ? DecimalUtil.percentageOf(reserveFundPay,
+                      total) : total;
+
+              final var amountToPayStr = "Monto a pagar: " + amountToPay;
+              final var last = isFixedPay ? amountToPayStr : "Porcentaje: " + reserveFundPay + "% " + amountToPayStr;
+              reserveFundsDiv.add(new Paragraph(reserveFund.getName() + ": " + reserveFund.getFund() + " " + last));
+            }
+
+          });
+
         });
-    }
 
-    private void loadReserveFunds() {
-        final var fundList = Optional.ofNullable(building)
-                .map(Building::reserveFunds)
-                .filter(CollectionUtils::isNotEmpty);
+    final var totalUnCommon = new AtomicReference<>(expensesView.totalUnCommon());
+    final var totalCommon = new AtomicReference<>(expensesView.totalCommon());
 
-        Optional.ofNullable(building)
-                .map(Building::reserveFunds)
-                .filter(CollectionUtils::isNotEmpty)
-                .ifPresent(reserveFunds -> {
-                    reserveFundsDiv.setVisible(true);
-                    reserveFundsDiv.removeAll();
+    fundList.stream()
+        .flatMap(Collection::stream)
+        .filter(reserveFund -> reserveFund.getActive() && DecimalUtil.greaterThanZero(reserveFund.getPay())
+            && reserveFund.getAddToExpenses())
+        .forEach(reserveFund -> {
 
-                    reserveFunds.forEach(reserveFund -> {
-                        final var reserveFundPay = reserveFund.getPay();
-                        if (reserveFund.getActive() && DecimalUtil.greaterThanZero(reserveFundPay)) {
+          final var total = expensesView.totalCommon();
 
-                            final var isFixedPay = reserveFund.getType() == ReserveFund.Type.FIXED_PAY;
-                            final var total = expensesView.totalCommon();
-                            final var amountToPay = isFixedPay ? reserveFundPay :
-                                    DecimalUtil.greaterThanZero(total) ? DecimalUtil.percentageOf(reserveFundPay,
-                                            total) : total;
+          final var pay = reserveFund.getType() == ReserveFund.Type.FIXED_PAY ? reserveFund.getPay()
+              : DecimalUtil.greaterThanZero(total) ? DecimalUtil.percentageOf(
+                  reserveFund.getPay(), total) : total;
 
-                            final var amountToPayStr = "Monto a pagar: " + amountToPay;
-                            final var last = isFixedPay ? amountToPayStr : "Porcentaje: " + reserveFundPay + "% " + amountToPayStr;
-                            reserveFundsDiv.add(new Paragraph(reserveFund.getName() + ": " + reserveFund.getFund() + " " + last));
-                        }
+          if (reserveFund.getExpenseType() == Type.UNCOMMON) {
+            totalUnCommon.set(totalUnCommon.get().add(pay));
 
-                    });
+          } else {
+            totalCommon.set(totalCommon.get().add(pay));
+          }
+        });
 
-                });
+    commonExpensesTotal.setText("Gastos comunes total: %s".formatted(expensesView.totalCommon()));
+    unCommonExpensesTotal.setText("Gastos no comunes total: %s".formatted(expensesView.totalUnCommon()));
+    commonExpensesTotalPlusReserveFund.setText(
+        "Gastos comunes total + fondos de reserva: %s".formatted(totalCommon.get()));
+    unCommonExpensesTotalPlusReserveFund.setText(
+        "Gastos no comunes total + fondos de reserva: %s".formatted(totalUnCommon.get()));
 
-        final var totalUnCommon = new AtomicReference<>(expensesView.totalUnCommon());
-        final var totalCommon = new AtomicReference<>(expensesView.totalCommon());
+  }
 
-        fundList.stream()
-                .flatMap(Collection::stream)
-                .filter(reserveFund -> reserveFund.getActive() && DecimalUtil.greaterThanZero(reserveFund.getPay())
-                        && reserveFund.getAddToExpenses())
-                .forEach(reserveFund -> {
+  @Override
+  public void beforeEnter(BeforeEnterEvent event) {
+    receiptId = event.getRouteParameters().get("receipt_id")
+        .map(s -> {
 
-                    final var total = expensesView.totalCommon();
-
-                    final var pay = reserveFund.getType() == ReserveFund.Type.FIXED_PAY ? reserveFund.getPay()
-                            : DecimalUtil.greaterThanZero(total) ? DecimalUtil.percentageOf(
-                            reserveFund.getPay(), total) : total;
-
-                    if (reserveFund.getExpenseType() == Type.UNCOMMON) {
-                        totalUnCommon.set(totalUnCommon.get().add(pay));
-
-                    } else {
-                        totalCommon.set(totalCommon.get().add(pay));
-                    }
-                });
-
-        commonExpensesTotal.setText("Gastos comunes total: %s".formatted(expensesView.totalCommon()));
-        unCommonExpensesTotal.setText("Gastos no comunes total: %s".formatted(expensesView.totalUnCommon()));
-        commonExpensesTotalPlusReserveFund.setText(
-                "Gastos comunes total + fondos de reserva: %s".formatted(totalCommon.get()));
-        unCommonExpensesTotalPlusReserveFund.setText(
-                "Gastos no comunes total + fondos de reserva: %s".formatted(totalUnCommon.get()));
-
-    }
-
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        receiptId = event.getRouteParameters().get("receipt_id")
-                .map(s -> {
-
-                    final var obj = VaadinSession.getCurrent().getAttribute("receipt");
-                    if (obj instanceof Receipt) {
-                        receipt = (Receipt) obj;
-                    }
-                    switch (s) {
-                        case "new", "file", "copy" -> {
-                            return null;
-                        }
-                        default -> {
-                            try {
-                                return Long.parseLong(s);
-                            } catch (Exception e) {
-                                return null;
-                            }
-                        }
-                    }
+          final var obj = VaadinSession.getCurrent().getAttribute("receipt");
+          if (obj instanceof Receipt) {
+            receipt = (Receipt) obj;
+          }
+          switch (s) {
+            case "new", "file", "copy" -> {
+              return null;
+            }
+            default -> {
+              try {
+                return Long.parseLong(s);
+              } catch (Exception e) {
+                return null;
+              }
+            }
+          }
 
 
-                })
-                .orElse(null);
-    }
+        })
+        .orElse(null);
+  }
 
-    private void initializeReceiptInfo() {
-        //debtsView.setItems(ConvertUtil.toList(receipt.debts(), DebtMapper::to));
-        expensesView.setItems(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
+  private void initializeReceiptInfo() {
+    //debtsView.setItems(ConvertUtil.toList(receipt.debts(), DebtMapper::to));
+    expensesView.setItems(ConvertUtil.toList(receipt.expenses(), ExpenseMapper::to));
 
-        receiptForm.setItem(new ReceiptFormItem(receipt.buildingId(), receipt.year(), receipt.month(), receipt.rate(), receipt.date()));
-        receiptForm.buildingComboBox().setEnabled(receipt.createdAt() == null);
-        receiptForm.buildingComboBox().setValue(receipt.buildingId());
-    }
+    receiptForm.setItem(
+        new ReceiptFormItem(receipt.buildingId(), receipt.year(), receipt.month(), receipt.rate(), receipt.date()));
+    receiptForm.buildingComboBox().setEnabled(receipt.createdAt() == null);
+    receiptForm.buildingComboBox().setValue(receipt.buildingId());
+  }
 
-    private Maybe<Runnable> initReceipt() {
+  private Maybe<Runnable> initReceipt() {
 
-        return Maybe.fromOptional(Optional.ofNullable(receipt).map(Receipt::buildingId))
-                .flatMapSingle(this::setAptNumbers)
-                .map(runnable -> {
-                    return () -> {
-                        if (receiptForm.buildingComboBox().getValue() == null) {
-                            initializeReceiptInfo();
-                        }
+    return Maybe.fromOptional(Optional.ofNullable(receipt).map(Receipt::buildingId))
+        .flatMapSingle(this::setAptNumbers)
+        .map(runnable -> {
+          return () -> {
+            if (receiptForm.buildingComboBox().getValue() == null) {
+              initializeReceiptInfo();
+            }
 
-                        runnable.run();
-                    };
-                });
-    }
+            runnable.run();
+          };
+        });
+  }
 
-    private void initData() {
+  private void initData() {
 
-        Optional.ofNullable(receipt)
-                .map(Receipt::buildingId)
-                .ifPresent(buildingId -> {
-                    receiptForm.buildingComboBox().setItems(buildingId);
-                    initializeReceiptInfo();
-                });
+    Optional.ofNullable(receipt)
+        .map(Receipt::buildingId)
+        .ifPresent(buildingId -> {
+          receiptForm.buildingComboBox().setItems(buildingId);
+          initializeReceiptInfo();
+        });
 
-        final var setBuildingIdSingle = Maybe.fromOptional(Optional.ofNullable(receipt))
-                .map(r -> AppUtil.emptyRunnable())
-                .switchIfEmpty(buildingService.buildingIds()
-                        .map(buildingIds -> (Runnable) () -> receiptForm.buildingComboBox().setItems(buildingIds)));
+    final var setBuildingIdSingle = Maybe.fromOptional(Optional.ofNullable(receipt))
+        .map(r -> AppUtil.emptyRunnable())
+        .switchIfEmpty(buildingService.buildingIds()
+            .map(buildingIds -> () -> receiptForm.buildingComboBox().setItems(buildingIds)));
 
-        final var loadFromId = Maybe.fromOptional(Optional.ofNullable(receiptId))
-                .flatMap(receiptService::find)
-                .flatMap(receipt -> {
+    final var loadFromId = Maybe.fromOptional(Optional.ofNullable(receiptId))
+        .flatMap(receiptService::find)
+        .flatMap(receipt -> {
 
-                    EditReceiptView.this.receipt = receipt;
-                    return initReceipt();
-                });
+          EditReceiptView.this.receipt = receipt;
+          return initReceipt();
+        });
 
-        final var receiptSingle = initReceipt()
-                .switchIfEmpty(loadFromId)
-                .switchIfEmpty(Single.fromCallable(AppUtil::emptyRunnable));
+    final var receiptSingle = initReceipt()
+        .switchIfEmpty(loadFromId)
+        .switchIfEmpty(Single.fromCallable(AppUtil::emptyRunnable));
 
-        Single.zip(setBuildingIdSingle, receiptSingle,
-                        (setBuildingId, setReceipt) -> List.of(/*this::init,*/ setBuildingId, setReceipt, this::loadReserveFunds))
-                .doOnSuccess(this::uiAsyncAction)
-                .ignoreElement()
-                .subscribeOn(Schedulers.io())
-                .subscribe(completableObserver());
-    }
+    Single.zip(setBuildingIdSingle, receiptSingle,
+            (setBuildingId, setReceipt) -> List.of(/*this::init,*/ setBuildingId, setReceipt, this::loadReserveFunds))
+        .doOnSuccess(this::uiAsyncAction)
+        .ignoreElement()
+        .subscribeOn(Schedulers.io())
+        .subscribe(completableObserver());
+  }
 }
 

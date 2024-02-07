@@ -49,12 +49,10 @@ public class RateView extends BaseVerticalLayout {
   private final Button refreshBtn = new Button(VaadinIcon.REFRESH.create());
   private final Text queryCountText = new Text(null);
   private final Text totalCountText = new Text(null);
-  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
-  private final DeleteDialog deleteDialog = new DeleteDialog();
+  private final DeleteDialog deleteDialog = new DeleteDialog();  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
   private final RateService rateService;
   private final SaveNewBcvRate saveNewBcvRate;
   private final ProgressLayout progressLayout = new ProgressLayout();
-
   @Autowired
   public RateView(RateService rateService, SaveNewBcvRate saveNewBcvRate) {
     super();
@@ -253,6 +251,8 @@ public class RateView extends BaseVerticalLayout {
         .subscribeOn(Schedulers.io())
         .subscribe(completableObserver());
   }
+
+
 
 
 }

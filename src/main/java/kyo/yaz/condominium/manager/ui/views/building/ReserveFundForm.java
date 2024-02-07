@@ -29,13 +29,13 @@ import org.springframework.context.annotation.Scope;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ReserveFundForm extends BaseForm {
 
+  public final Binder<ReserveFundViewItem> binder = new BeanValidationBinder<>(ReserveFundViewItem.class);
   @PropertyId("name")
   private final TextField nameField = new TextField(Labels.ReserveFund.NAME_LABEL);
   @PropertyId("fund")
   private final BigDecimalField fundField = new BigDecimalField(Labels.ReserveFund.FUND_LABEL);
   @PropertyId("pay")
   private final BigDecimalField payField = new BigDecimalField(Labels.ReserveFund.PAY_LABEL);
-
   @PropertyId("expense")
   private final BigDecimalField expenseField = new BigDecimalField(Labels.ReserveFund.EXPENSE_LABEL);
   @PropertyId("active")
@@ -48,10 +48,6 @@ public class ReserveFundForm extends BaseForm {
       Labels.ReserveFund.EXPENSE_TYPE_LABEL);
   @PropertyId("addToExpenses")
   private final Checkbox addToExpensesField = new Checkbox(Labels.ReserveFund.ADD_TO_EXPENSES_LABEL);
-
-
-  public final Binder<ReserveFundViewItem> binder = new BeanValidationBinder<>(ReserveFundViewItem.class);
-
   private final TranslationProvider translationProvider;
 
   private transient ReserveFundViewItem item;

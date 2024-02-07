@@ -7,13 +7,16 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import kyo.yaz.condominium.manager.core.domain.Currency;
-import lombok.*;
-import lombok.extern.jackson.Jacksonized;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Set;
+import kyo.yaz.condominium.manager.core.domain.Currency;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized
 @Builder(toBuilder = true)
@@ -24,52 +27,40 @@ import java.util.Set;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @AllArgsConstructor
 public class BuildingViewItem {
-
-    @NotBlank
-    @NotNull
-    @JsonProperty
-    private String id;
-
-    @NotBlank
-    @NotNull
-    @JsonProperty
-    private String name;
-
-    @NotBlank
-    @NotNull
-    @JsonProperty
-    private String rif;
-
-    @NotNull
-    @JsonProperty
-    private Currency mainCurrency;
-
-    @NotNull
-    @JsonProperty
-    private Currency debtCurrency;
-
-    @NotEmpty
-    @JsonProperty
-    private Set<Currency> currenciesToShowAmountToPay;
-
-    @JsonProperty
-    private boolean fixedPay;
-
-    @JsonProperty
-    private BigDecimal fixedPayAmount;
-
-    @NotNull
-    @JsonProperty
-    private Boolean roundUpPayments;
-
-    @NotNull
-    @NotBlank
-    @JsonProperty
-    private String emailConfig;
-
-    @JsonProperty
-    private final ZonedDateTime createdAt;
-
-    @JsonProperty
-    private final ZonedDateTime updatedAt;
+  @NotBlank
+  @NotNull
+  @JsonProperty
+  private String id;
+  @NotBlank
+  @NotNull
+  @JsonProperty
+  private String name;
+  @NotBlank
+  @NotNull
+  @JsonProperty
+  private String rif;
+  @NotNull
+  @JsonProperty
+  private Currency mainCurrency;
+  @NotNull
+  @JsonProperty
+  private Currency debtCurrency;
+  @NotEmpty
+  @JsonProperty
+  private Set<Currency> currenciesToShowAmountToPay;
+  @JsonProperty
+  private boolean fixedPay;
+  @JsonProperty
+  private BigDecimal fixedPayAmount;
+  @NotNull
+  @JsonProperty
+  private Boolean roundUpPayments;
+  @NotNull
+  @NotBlank
+  @JsonProperty
+  private String emailConfig;
+  @JsonProperty
+  private final ZonedDateTime createdAt;
+  @JsonProperty
+  private final ZonedDateTime updatedAt;
 }

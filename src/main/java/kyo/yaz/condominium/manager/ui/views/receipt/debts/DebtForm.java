@@ -13,6 +13,7 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
+import java.time.Month;
 import kyo.yaz.condominium.manager.core.domain.Currency;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.ui.views.actions.ViewEvent;
@@ -24,126 +25,128 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.time.Month;
-
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class DebtForm extends BaseForm {
-    @PropertyId("aptNumber")
-    private final TextField aptNumberField = new TextField(Labels.Debt.APT_LABEL);
-    @PropertyId("name")
-    private final TextField nameField = new TextField(Labels.Debt.NAME_LABEL);
-    @PropertyId("receipts")
-    private final IntegerField receiptsField = new IntegerField(Labels.Debt.RECEIPT_LABEL);
-    @PropertyId("amount")
-    private final BigDecimalField amountField = new BigDecimalField(Labels.Debt.AMOUNT_LABEL);
-    @PropertyId("months")
-    private final MultiSelectComboBox<Month> monthsPicker = ViewUtil.monthMultiComboBox(Labels.Debt.MONTHS_LABEL);
-    @PropertyId("previousPaymentAmount")
-    private final BigDecimalField previousPaymentAmountField = new BigDecimalField(Labels.Debt.PREVIOUS_AMOUNT_PAYED_LABEL);
-    @PropertyId("previousPaymentAmountCurrency")
-    private final ComboBox<Currency> previousPaymentAmountCurrencyComboBox = ViewUtil.currencyComboBox(Labels.Debt.PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL);
 
-    private final Binder<DebtViewItem> binder = new BeanValidationBinder<>(DebtViewItem.class);
-    private final TranslationProvider translationProvider;
+  @PropertyId("aptNumber")
+  private final TextField aptNumberField = new TextField(Labels.Debt.APT_LABEL);
+  @PropertyId("name")
+  private final TextField nameField = new TextField(Labels.Debt.NAME_LABEL);
+  @PropertyId("receipts")
+  private final IntegerField receiptsField = new IntegerField(Labels.Debt.RECEIPT_LABEL);
+  @PropertyId("amount")
+  private final BigDecimalField amountField = new BigDecimalField(Labels.Debt.AMOUNT_LABEL);
+  @PropertyId("months")
+  private final MultiSelectComboBox<Month> monthsPicker = ViewUtil.monthMultiComboBox(Labels.Debt.MONTHS_LABEL);
+  @PropertyId("previousPaymentAmount")
+  private final BigDecimalField previousPaymentAmountField = new BigDecimalField(
+      Labels.Debt.PREVIOUS_AMOUNT_PAYED_LABEL);
+  @PropertyId("previousPaymentAmountCurrency")
+  private final ComboBox<Currency> previousPaymentAmountCurrencyComboBox = ViewUtil.currencyComboBox(
+      Labels.Debt.PREVIOUS_AMOUNT_CURRENCY_PAYED_LABEL);
 
-    DebtViewItem item;
+  private final Binder<DebtViewItem> binder = new BeanValidationBinder<>(DebtViewItem.class);
+  private final TranslationProvider translationProvider;
 
-    @Autowired
-    public DebtForm(TranslationProvider translationProvider) {
-        this.translationProvider = translationProvider;
+  DebtViewItem item;
 
-        addClassName("debt-form");
+  @Autowired
+  public DebtForm(TranslationProvider translationProvider) {
+    this.translationProvider = translationProvider;
 
+    addClassName("debt-form");
 
-        monthsPicker.setAllowCustomValue(false);
-        monthsPicker.setAutoOpen(true);
-        monthsPicker.setItemLabelGenerator(m -> this.translationProvider.translate(m.name()));
+    monthsPicker.setAllowCustomValue(false);
+    monthsPicker.setAutoOpen(true);
+    monthsPicker.setItemLabelGenerator(m -> this.translationProvider.translate(m.name()));
 
-        add(
-                aptNumberField,
-                nameField,
-                receiptsField,
-                amountField,
-                monthsPicker,
-                previousPaymentAmountField,
-                previousPaymentAmountCurrencyComboBox,
-                createButtonsLayout());
+    add(
+        aptNumberField,
+        nameField,
+        receiptsField,
+        amountField,
+        monthsPicker,
+        previousPaymentAmountField,
+        previousPaymentAmountCurrencyComboBox,
+        createButtonsLayout());
 
-        binder.bindInstanceFields(this);
-        setItem(DebtViewItem.builder().build());
-    }
+    binder.bindInstanceFields(this);
+    setItem(DebtViewItem.builder().build());
+  }
 
-    private HorizontalLayout createButtonsLayout() {
-        final var addBtn = new Button(Labels.SAVE);
-        final var deleteBtn = new Button(Labels.DELETE);
-        final var cancelBtn = new Button(Labels.CANCEL);
+  private HorizontalLayout createButtonsLayout() {
+    final var addBtn = new Button(Labels.SAVE);
+    final var deleteBtn = new Button(Labels.DELETE);
+    final var cancelBtn = new Button(Labels.CANCEL);
 
-        addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+    addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+    deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+    cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        addBtn.addClickShortcut(Key.ENTER);
-        cancelBtn.addClickShortcut(Key.ESCAPE);
+    addBtn.addClickShortcut(Key.ENTER);
+    cancelBtn.addClickShortcut(Key.ESCAPE);
 
-        addBtn.addClickListener(event -> validateAndSave());
-        deleteBtn.addClickListener(event -> fireEvent(new DeleteEvent(this, item)));
-        cancelBtn.addClickListener(event -> {
-            binder.readBean(null);
-            fireEvent(new CloseEvent(this));
-        });
+    addBtn.addClickListener(event -> validateAndSave());
+    deleteBtn.addClickListener(event -> fireEvent(new DeleteEvent(this, item)));
+    cancelBtn.addClickListener(event -> {
+      binder.readBean(null);
+      fireEvent(new CloseEvent(this));
+    });
 
+    binder.addStatusChangeListener(e -> addBtn.setEnabled(binder.isValid()));
 
-        binder.addStatusChangeListener(e -> addBtn.setEnabled(binder.isValid()));
+    return new HorizontalLayout(addBtn, deleteBtn, cancelBtn);
+  }
 
-        return new HorizontalLayout(addBtn, deleteBtn, cancelBtn);
-    }
-
-    private void validateAndSave() {
-        try {
-            binder.writeBean(item);
-            fireEvent(new SaveEvent(this, item));
-            setItem(DebtViewItem.builder().build());
-        } catch (ValidationException e) {
-            logger().error("ERROR_VALIDATING", e);
-            asyncNotification(e.getMessage());
-
-        }
-    }
-
-    public DebtViewItem defaultItem() {
-        return DebtViewItem.builder()
-                .build();
-    }
-
-    public void setItem(DebtViewItem expense) {
-        this.item = expense;
-        binder.readBean(expense);
+  private void validateAndSave() {
+    try {
+      binder.writeBean(item);
+      fireEvent(new SaveEvent(this, item));
+      setItem(DebtViewItem.builder().build());
+    } catch (ValidationException e) {
+      logger().error("ERROR_VALIDATING", e);
+      asyncNotification(e.getMessage());
 
     }
+  }
 
-    public static abstract class DebtFormEvent extends ViewEvent<DebtForm, DebtViewItem> {
+  public DebtViewItem defaultItem() {
+    return DebtViewItem.builder()
+        .build();
+  }
 
-        DebtFormEvent(DebtForm source, DebtViewItem obj) {
-            super(source, obj);
-        }
+  public void setItem(DebtViewItem expense) {
+    this.item = expense;
+    binder.readBean(expense);
+
+  }
+
+  public static abstract class DebtFormEvent extends ViewEvent<DebtForm, DebtViewItem> {
+
+    DebtFormEvent(DebtForm source, DebtViewItem obj) {
+      super(source, obj);
     }
+  }
 
-    public static class SaveEvent extends DebtFormEvent {
-        SaveEvent(DebtForm source, DebtViewItem obj) {
-            super(source, obj);
-        }
-    }
+  public static class SaveEvent extends DebtFormEvent {
 
-    public static class DeleteEvent extends DebtFormEvent {
-        DeleteEvent(DebtForm source, DebtViewItem obj) {
-            super(source, obj);
-        }
+    SaveEvent(DebtForm source, DebtViewItem obj) {
+      super(source, obj);
     }
+  }
 
-    public static class CloseEvent extends DebtFormEvent {
-        CloseEvent(DebtForm source) {
-            super(source, null);
-        }
+  public static class DeleteEvent extends DebtFormEvent {
+
+    DeleteEvent(DebtForm source, DebtViewItem obj) {
+      super(source, obj);
     }
+  }
+
+  public static class CloseEvent extends DebtFormEvent {
+
+    CloseEvent(DebtForm source) {
+      super(source, null);
+    }
+  }
 }

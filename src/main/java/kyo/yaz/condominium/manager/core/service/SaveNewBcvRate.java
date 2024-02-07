@@ -43,7 +43,7 @@ public class SaveNewBcvRate {
           final var rate = result.rate();
 
           final var newRateSingle = sequenceService.nextSequence(Sequence.Type.RATES)
-              .<Rate>map(id -> rate.toBuilder()
+              .map(id -> rate.toBuilder()
                   .id(id)
                   .createdAt(DateUtil.nowZonedWithUTC())
                   .build())

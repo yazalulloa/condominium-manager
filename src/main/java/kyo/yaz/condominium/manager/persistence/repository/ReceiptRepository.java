@@ -5,5 +5,7 @@ import kyo.yaz.condominium.manager.persistence.repository.base.ReactiveRepositor
 import kyo.yaz.condominium.manager.persistence.repository.base.ReceiptCustomRepository;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 
-public interface ReceiptRepository extends ReactiveMongoRepository<Receipt, Long>, ReactiveRepository<Receipt>, ReceiptCustomRepository {
+public interface ReceiptRepository extends ReactiveMongoRepository<Receipt, Long>, ReactiveRepository<Receipt>,
+    ReceiptCustomRepository {
+
 }

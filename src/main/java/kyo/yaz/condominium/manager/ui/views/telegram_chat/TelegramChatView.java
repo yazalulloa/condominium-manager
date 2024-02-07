@@ -58,16 +58,13 @@ public class TelegramChatView extends BaseVerticalLayout implements TelegramChat
   private final Text queryCountText = new Text(null);
   private final Text totalCountText = new Text(null);
   private final ProgressLayout progressLayout = new ProgressLayout();
-  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
-  private final DeleteDialog deleteDialog = new DeleteDialog();
+  private final DeleteDialog deleteDialog = new DeleteDialog();  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
   private final TelegramChatService chatService;
   private final TranslationProvider translationProvider;
   private final UserSession userSession;
   private final TelegramChatForm form;
-
   private final String telegramStartUrl;
   private final TelegramChatLinkHandler linkHandler;
-
   @Autowired
   public TelegramChatView(TelegramChatService chatService, TranslationProvider translationProvider,
       UserSession userSession,
@@ -159,7 +156,6 @@ public class TelegramChatView extends BaseVerticalLayout implements TelegramChat
     deleteDialog.setDeleteAction(() -> delete(item));
     deleteDialog.open();
   }
-
 
   private Component getContent() {
     final var content = new HorizontalLayout(grid, form);
@@ -307,7 +303,6 @@ public class TelegramChatView extends BaseVerticalLayout implements TelegramChat
     grid.getDataProvider().refreshAll();
   }
 
-
   private void updateGrid() {
     refreshData()
         .subscribeOn(Schedulers.io())
@@ -318,4 +313,6 @@ public class TelegramChatView extends BaseVerticalLayout implements TelegramChat
   public void chatLinked() {
     updateGrid();
   }
+
+
 }

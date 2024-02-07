@@ -3,6 +3,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import kyo.yaz.condominium.manager.core.domain.HttpClientRequest;
 import kyo.yaz.condominium.manager.core.service.HttpServiceImpl;
+import kyo.yaz.condominium.manager.core.service.VertxHttpService;
 import kyo.yaz.condominium.manager.core.util.JacksonUtil;
 import kyo.yaz.condominium.manager.core.verticle.HttpClientVerticle;
 import kyo.yaz.condominium.manager.core.vertx.VertxHandlerImpl;
@@ -81,8 +83,7 @@ public class TelegramTest {
             "document",
             "pom.xml",
             "pom.xml",
-            MediaType.APPLICATION_XML_VALUE)*/
-        ;
+            MediaType.APPLICATION_XML_VALUE)*/;
 
     final HttpClientRequest request = HttpClientRequest.builder()
         .url(url + "sendDocument")
@@ -91,7 +92,18 @@ public class TelegramTest {
         .multipartForm(form)
         .build();
 
-    final var service = new HttpServiceImpl(new VertxHandlerImpl(vertx));
+    final var vertxHandler = new VertxHandlerImpl(vertx);
+    final var config = new JsonObject();
+    final var webClient = WebClient.create(vertx, new WebClientOptions(config));
+
+    final var trustAllWebClientOptions = new WebClientOptions()
+        .setTrustAll(true)
+        .setVerifyHost(false);
+
+    final var trustAll = WebClient.create(vertx, trustAllWebClientOptions);
+
+    final var service = new HttpServiceImpl(vertxHandler, new VertxHttpService(webClient, config),
+        new VertxHttpService(trustAll, config));
 
     service.send(request)
         .ignoreElement()

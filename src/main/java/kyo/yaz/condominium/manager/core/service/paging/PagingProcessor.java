@@ -4,9 +4,9 @@ import io.reactivex.rxjava3.core.Single;
 
 public interface PagingProcessor<T> {
 
-    Single<T> next();
+  Single<T> next();
 
-    boolean isComplete();
+  boolean isComplete();
 
-    void onTerminate();
+  void onTerminate();
 }

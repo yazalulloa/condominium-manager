@@ -42,10 +42,8 @@ public class UserView extends BaseVerticalLayout {
 
   private final Text queryCountText = new Text(null);
   private final Text totalCountText = new Text(null);
-  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
-  private final DeleteDialog deleteDialog = new DeleteDialog();
+  private final DeleteDialog deleteDialog = new DeleteDialog();  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
   private final UserService userService;
-
   @Autowired
   public UserView(UserService userService) {
     this.userService = userService;
@@ -185,11 +183,13 @@ public class UserView extends BaseVerticalLayout {
     grid.getDataProvider().refreshAll();
   }
 
-
   private void updateGrid() {
     refreshData()
         .subscribeOn(Schedulers.io())
         .subscribe(completableObserver());
   }
+
+
+
 
 }

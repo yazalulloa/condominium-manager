@@ -9,21 +9,19 @@ import com.vaadin.flow.component.html.Div;
 
 public class DragDropDiv<T> extends Div implements DragSource<Div>, DropTarget<Div>, HasStyle {
 
-    private final T item;
+  private final T item;
 
-    public DragDropDiv(T item) {
-        this.item = item;
-        setDraggable(true);
-        setActive(true);
-        setDropEffect(DropEffect.MOVE);
-        setEffectAllowed(EffectAllowed.MOVE);
-    }
+  public DragDropDiv(T item) {
+    this.item = item;
+    setDraggable(true);
+    setActive(true);
+    setDropEffect(DropEffect.MOVE);
+    setEffectAllowed(EffectAllowed.MOVE);
+  }
 
-    public T item() {
-        return item;
-    }
-
-
+  public T item() {
+    return item;
+  }
 
 
 }

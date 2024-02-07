@@ -9,19 +9,20 @@ import org.mapstruct.factory.Mappers;
 @Mapper
 public interface DebtMapper {
 
-    DebtMapper MAPPER = Mappers.getMapper(DebtMapper.class);
+  DebtMapper MAPPER = Mappers.getMapper(DebtMapper.class);
 
-    static Debt to(DebtViewItem item) {
-        return MAPPER.map(item);
-    }
+  static Debt to(DebtViewItem item) {
+    return MAPPER.map(item);
+  }
 
-    static DebtViewItem to(Debt Debt) {
-        return MAPPER.map(Debt);
-    }
+  static DebtViewItem to(Debt Debt) {
+    return MAPPER.map(Debt);
+  }
 
-    Debt map(DebtViewItem item);
+  Debt map(DebtViewItem item);
 
-    default DebtViewItem map(Debt debt) {
-        return new DebtViewItem(debt.aptNumber(), debt.name(), debt.receipts(), debt.amount(), debt.months(), debt.previousPaymentAmount(), debt.previousPaymentAmountCurrency());
-    }
+  default DebtViewItem map(Debt debt) {
+    return new DebtViewItem(debt.aptNumber(), debt.name(), debt.receipts(), debt.amount(), debt.months(),
+        debt.previousPaymentAmount(), debt.previousPaymentAmountCurrency());
+  }
 }

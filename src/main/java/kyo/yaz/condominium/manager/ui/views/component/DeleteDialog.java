@@ -5,21 +5,21 @@ import kyo.yaz.condominium.manager.ui.views.util.Labels;
 
 public class DeleteDialog extends ConfirmDialog {
 
-    private Runnable deleteAction = () -> {
-    };
+  private Runnable deleteAction = () -> {
+  };
 
-    public DeleteDialog() {
-        super();
+  public DeleteDialog() {
+    super();
 
-        setCancelable(true);
-        addCancelListener(e -> close());
-        setCancelText(Labels.CANCEL);
+    setCancelable(true);
+    addCancelListener(e -> close());
+    setCancelText(Labels.CANCEL);
 
-        setConfirmText(Labels.DELETE);
-        addConfirmListener(e -> {
-            deleteAction.run();
-            this.close();
-        });
+    setConfirmText(Labels.DELETE);
+    addConfirmListener(e -> {
+      deleteAction.run();
+      this.close();
+    });
 
 
 
@@ -38,9 +38,9 @@ public class DeleteDialog extends ConfirmDialog {
         cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         this.getFooter().add(cancelBtn);
         this.setModal(true);*/
-    }
+  }
 
-    public void setDeleteAction(Runnable deleteAction) {
-        this.deleteAction = deleteAction;
-    }
+  public void setDeleteAction(Runnable deleteAction) {
+    this.deleteAction = deleteAction;
+  }
 }

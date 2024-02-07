@@ -4,9 +4,9 @@ import java.util.Optional;
 
 public class ObjectUtil {
 
-    public static boolean aBoolean(Boolean aBoolean) {
-        return Optional.ofNullable(aBoolean).orElse(false);
-    }
+  public static boolean aBoolean(Boolean aBoolean) {
+    return Optional.ofNullable(aBoolean).orElse(false);
+  }
 
 
 }

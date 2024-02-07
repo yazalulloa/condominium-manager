@@ -13,8 +13,6 @@ public class JacksonConfig {
   @Bean
   @Primary
   public ObjectMapper objectMapper() {
-    final var mapper = JacksonUtil.defaultConfig(DatabindCodec.mapper());
-    JacksonUtil.defaultConfig(DatabindCodec.prettyMapper());
-    return mapper;
+    return JacksonUtil.defaultConfig(DatabindCodec.mapper());
   }
 }

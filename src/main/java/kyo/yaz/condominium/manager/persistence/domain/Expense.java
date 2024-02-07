@@ -6,12 +6,15 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import kyo.yaz.condominium.manager.core.domain.Currency;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
-
-import java.math.BigDecimal;
 
 @Jacksonized
 @Builder(toBuilder = true)
@@ -24,29 +27,29 @@ import java.math.BigDecimal;
 @EqualsAndHashCode
 public class Expense implements IAmountCurrency {
 
-    @NotBlank
-    @JsonProperty
-    private final String description;
+  @NotBlank
+  @JsonProperty
+  private final String description;
 
-    @NotNull
-    @JsonProperty
-    private final BigDecimal amount;
+  @NotNull
+  @JsonProperty
+  private final BigDecimal amount;
 
-    @NotNull
-    @JsonProperty
-    private final Currency currency;
+  @NotNull
+  @JsonProperty
+  private final Currency currency;
 
-    @NotNull
-    @JsonProperty
-    private final Boolean reserveFund;
+  @NotNull
+  @JsonProperty
+  private final Boolean reserveFund;
 
-    @NotNull
-    @JsonProperty
-    private final Type type;
+  @NotNull
+  @JsonProperty
+  private final Type type;
 
-    public enum Type {
-        COMMON, UNCOMMON;
+  public enum Type {
+    COMMON, UNCOMMON;
 
-        public static final Type[] values = values();
-    }
+    public static final Type[] values = values();
+  }
 }

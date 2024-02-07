@@ -28,115 +28,116 @@ import org.springframework.stereotype.Component;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class ExpenseForm extends BaseForm {
 
-    @PropertyId("description")
-    private final TextField descriptionField = new TextField(Labels.Expense.DESCRIPTION_LABEL);
+  @PropertyId("description")
+  private final TextField descriptionField = new TextField(Labels.Expense.DESCRIPTION_LABEL);
 
-    @PropertyId("amount")
-    private final BigDecimalField amountField = new BigDecimalField(Labels.Expense.AMOUNT_LABEL);
+  @PropertyId("amount")
+  private final BigDecimalField amountField = new BigDecimalField(Labels.Expense.AMOUNT_LABEL);
 
-    @PropertyId("currency")
-    private final ComboBox<Currency> currencyComboBox = ViewUtil.currencyComboBox(Labels.Expense.CURRENCY_LABEL);
+  @PropertyId("currency")
+  private final ComboBox<Currency> currencyComboBox = ViewUtil.currencyComboBox(Labels.Expense.CURRENCY_LABEL);
 
-    @PropertyId("type")
-    private final ComboBox<Expense.Type> typeComboBox = new ComboBox<>(Labels.Expense.TYPE_LABEL, Expense.Type.values);
-
-
-    private final Binder<ExpenseViewItem> binder = new BeanValidationBinder<>(ExpenseViewItem.class);
-    private final TranslationProvider translationProvider;
-
-    ExpenseViewItem item;
-
-    @Autowired
-    public ExpenseForm(TranslationProvider translationProvider) {
-        this.translationProvider = translationProvider;
-        addClassName("expense-form");
+  @PropertyId("type")
+  private final ComboBox<Expense.Type> typeComboBox = new ComboBox<>(Labels.Expense.TYPE_LABEL, Expense.Type.values);
 
 
-        typeComboBox.setAllowCustomValue(false);
-        typeComboBox.setAutoOpen(true);
-        typeComboBox.setItemLabelGenerator(m -> this.translationProvider.translate(m.name()));
+  private final Binder<ExpenseViewItem> binder = new BeanValidationBinder<>(ExpenseViewItem.class);
+  private final TranslationProvider translationProvider;
 
-        add(
-                descriptionField,
-                amountField,
-                currencyComboBox,
-                typeComboBox,
-                createButtonsLayout());
+  ExpenseViewItem item;
 
-        binder.bindInstanceFields(this);
-        setItem(ExpenseViewItem.builder().build());
-    }
+  @Autowired
+  public ExpenseForm(TranslationProvider translationProvider) {
+    this.translationProvider = translationProvider;
+    addClassName("expense-form");
 
-    private HorizontalLayout createButtonsLayout() {
-        final var addBtn = new Button(Labels.ADD);
-        final var deleteBtn = new Button(Labels.DELETE);
-        final var cancelBtn = new Button(Labels.CANCEL);
+    typeComboBox.setAllowCustomValue(false);
+    typeComboBox.setAutoOpen(true);
+    typeComboBox.setItemLabelGenerator(m -> this.translationProvider.translate(m.name()));
 
-        addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+    add(
+        descriptionField,
+        amountField,
+        currencyComboBox,
+        typeComboBox,
+        createButtonsLayout());
 
-        addBtn.addClickShortcut(Key.ENTER);
-        cancelBtn.addClickShortcut(Key.ESCAPE);
+    binder.bindInstanceFields(this);
+    setItem(ExpenseViewItem.builder().build());
+  }
 
-        addBtn.addClickListener(event -> validateAndSave());
-        deleteBtn.addClickListener(event -> fireEvent(new DeleteEvent(this, item)));
-        cancelBtn.addClickListener(event -> {
-            binder.readBean(null);
-            fireEvent(new CloseEvent(this));
-        });
+  private HorizontalLayout createButtonsLayout() {
+    final var addBtn = new Button(Labels.ADD);
+    final var deleteBtn = new Button(Labels.DELETE);
+    final var cancelBtn = new Button(Labels.CANCEL);
 
+    addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+    deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+    cancelBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        binder.addStatusChangeListener(e -> addBtn.setEnabled(binder.isValid()));
+    addBtn.addClickShortcut(Key.ENTER);
+    cancelBtn.addClickShortcut(Key.ESCAPE);
 
-        return new HorizontalLayout(addBtn, deleteBtn, cancelBtn);
-    }
+    addBtn.addClickListener(event -> validateAndSave());
+    deleteBtn.addClickListener(event -> fireEvent(new DeleteEvent(this, item)));
+    cancelBtn.addClickListener(event -> {
+      binder.readBean(null);
+      fireEvent(new CloseEvent(this));
+    });
 
-    private void validateAndSave() {
-        try {
-            binder.writeBean(item);
-            fireEvent(new SaveEvent(this, item));
-            setItem(ExpenseViewItem.builder().build());
-        } catch (ValidationException e) {
-            logger().error("ERROR_VALIDATING", e);
-            asyncNotification(e.getMessage());
+    binder.addStatusChangeListener(e -> addBtn.setEnabled(binder.isValid()));
 
-        }
-    }
+    return new HorizontalLayout(addBtn, deleteBtn, cancelBtn);
+  }
 
-    public ExpenseViewItem defaultItem() {
-        return ExpenseViewItem.builder()
-                .build();
-    }
-
-    public void setItem(ExpenseViewItem expense) {
-        this.item = expense;
-        binder.readBean(expense);
+  private void validateAndSave() {
+    try {
+      binder.writeBean(item);
+      fireEvent(new SaveEvent(this, item));
+      setItem(ExpenseViewItem.builder().build());
+    } catch (ValidationException e) {
+      logger().error("ERROR_VALIDATING", e);
+      asyncNotification(e.getMessage());
 
     }
+  }
 
-    public static abstract class ExpenseFormEvent extends ViewEvent<ExpenseForm, ExpenseViewItem> {
+  public ExpenseViewItem defaultItem() {
+    return ExpenseViewItem.builder()
+        .build();
+  }
 
-        ExpenseFormEvent(ExpenseForm source, ExpenseViewItem obj) {
-            super(source, obj);
-        }
+  public void setItem(ExpenseViewItem expense) {
+    this.item = expense;
+    binder.readBean(expense);
+
+  }
+
+  public static abstract class ExpenseFormEvent extends ViewEvent<ExpenseForm, ExpenseViewItem> {
+
+    ExpenseFormEvent(ExpenseForm source, ExpenseViewItem obj) {
+      super(source, obj);
     }
+  }
 
-    public static class SaveEvent extends ExpenseFormEvent {
-        SaveEvent(ExpenseForm source, ExpenseViewItem obj) {
-            super(source, obj);
-        }
-    }
+  public static class SaveEvent extends ExpenseFormEvent {
 
-    public static class DeleteEvent extends ExpenseFormEvent {
-        DeleteEvent(ExpenseForm source, ExpenseViewItem obj) {
-            super(source, obj);
-        }
+    SaveEvent(ExpenseForm source, ExpenseViewItem obj) {
+      super(source, obj);
     }
+  }
 
-    public static class CloseEvent extends ExpenseFormEvent {
-        CloseEvent(ExpenseForm source) {
-            super(source, null);
-        }
+  public static class DeleteEvent extends ExpenseFormEvent {
+
+    DeleteEvent(ExpenseForm source, ExpenseViewItem obj) {
+      super(source, obj);
     }
+  }
+
+  public static class CloseEvent extends ExpenseFormEvent {
+
+    CloseEvent(ExpenseForm source) {
+      super(source, null);
+    }
+  }
 }

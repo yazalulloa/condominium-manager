@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.util.zip.GZIPOutputStream;
 import kyo.yaz.condominium.manager.core.domain.FileResponse;
 import kyo.yaz.condominium.manager.core.util.RxUtil;
-import kyo.yaz.condominium.manager.core.util.SystemUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

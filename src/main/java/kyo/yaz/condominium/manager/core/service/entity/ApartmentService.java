@@ -95,6 +95,7 @@ public class ApartmentService implements MongoService<Apartment> {
   public Completable delete(Apartment entity) {
     return RxJava3Adapter.monoToCompletable(repository.delete(entity));
   }
+
   public Completable delete(Iterable<Apartment> entities) {
     return RxJava3Adapter.monoToCompletable(repository.deleteAll(entities));
   }
@@ -102,10 +103,11 @@ public class ApartmentService implements MongoService<Apartment> {
   public Single<List<Apartment>> save(Iterable<Apartment> entities) {
 
     final var mono = repository.saveAll(entities)
-            .collectList();
+        .collectList();
 
     return RxJava3Adapter.monoToSingle(mono);
   }
+
   public Single<Apartment> save(Apartment entity) {
     return RxJava3Adapter.monoToSingle(repository.save(entity));
   }

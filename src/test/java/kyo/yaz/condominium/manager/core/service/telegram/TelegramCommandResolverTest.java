@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class TelegramCommandResolverTest {
 
 
-
   @Test
   void test(VertxTestContext testContext) throws Throwable {
 

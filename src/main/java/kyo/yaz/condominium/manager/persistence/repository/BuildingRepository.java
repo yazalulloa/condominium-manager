@@ -5,7 +5,8 @@ import kyo.yaz.condominium.manager.persistence.repository.base.BuildingCustomRep
 import kyo.yaz.condominium.manager.persistence.repository.base.ReactiveRepository;
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 
-public interface BuildingRepository extends ReactiveMongoRepository<Building, String>, ReactiveRepository<Building>, BuildingCustomRepository {
+public interface BuildingRepository extends ReactiveMongoRepository<Building, String>, ReactiveRepository<Building>,
+    BuildingCustomRepository {
 
 
 }

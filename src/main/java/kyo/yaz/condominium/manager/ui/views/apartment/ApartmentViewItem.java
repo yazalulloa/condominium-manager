@@ -4,11 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.*;
-import lombok.extern.jackson.Jacksonized;
-
 import java.math.BigDecimal;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.extern.jackson.Jacksonized;
 
 @Jacksonized
 @Builder(toBuilder = true)
@@ -20,24 +23,24 @@ import java.util.Set;
 @AllArgsConstructor
 public class ApartmentViewItem {
 
-    @JsonProperty
-    private String buildingId;
+  @JsonProperty
+  private String buildingId;
 
-    @JsonProperty
-    private String number;
+  @JsonProperty
+  private String number;
 
-    @JsonProperty
-    private String name;
+  @JsonProperty
+  private String name;
 
-    @JsonProperty
-    private String idDoc;
+  @JsonProperty
+  private String idDoc;
 
-    @JsonProperty
-    private Set<String> emails;
+  @JsonProperty
+  private Set<String> emails;
 
     /*@JsonProperty
     private PaymentType paymentType;*/
 
-    @JsonProperty
-    private BigDecimal amountToPay;
+  @JsonProperty
+  private BigDecimal amountToPay;
 }

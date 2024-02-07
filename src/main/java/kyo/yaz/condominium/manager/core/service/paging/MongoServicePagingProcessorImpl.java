@@ -8,9 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MongoServicePagingProcessorImpl<T> implements MongoServicePagingProcessor<T> {
 
-  private volatile boolean isComplete;
   private final MongoService<T> service;
   private final int pageSize;
+  private volatile boolean isComplete;
   private int page;
 
   public MongoServicePagingProcessorImpl(MongoService<T> service, int pageSize) {

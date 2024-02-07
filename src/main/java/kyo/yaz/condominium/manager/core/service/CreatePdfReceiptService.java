@@ -1,8 +1,10 @@
 package kyo.yaz.condominium.manager.core.service;
 
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Single;
-import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.LinkedList;
+import java.util.List;
 import kyo.yaz.condominium.manager.core.pdf.CreatePdfAptReceipt;
 import kyo.yaz.condominium.manager.core.pdf.CreatePdfBuildingReceipt;
 import kyo.yaz.condominium.manager.core.pdf.CreatePdfReceipt;
@@ -10,32 +12,22 @@ import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
 import kyo.yaz.condominium.manager.core.service.entity.BuildingService;
 import kyo.yaz.condominium.manager.core.service.entity.ReceiptService;
-import kyo.yaz.condominium.manager.core.util.ZipUtility;
 import kyo.yaz.condominium.manager.persistence.entity.Apartment;
 import kyo.yaz.condominium.manager.persistence.entity.Building;
 import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 @Service
 @RequiredArgsConstructor
 public class CreatePdfReceiptService {
 
-    private final ReceiptService receiptService;
-    private final BuildingService buildingService;
-    private final ApartmentService apartmentService;
-    private final DeleteDirAfterDelay deleteDirAfterDelay;
-    private final TranslationProvider translationProvider;
-    private final GetReceiptName getReceiptName;
+  private final ReceiptService receiptService;
+  private final BuildingService buildingService;
+  private final ApartmentService apartmentService;
+  private final DeleteDirAfterDelay deleteDirAfterDelay;
+  private final TranslationProvider translationProvider;
+  private final GetReceiptName getReceiptName;
 
 
 /*    public Single<List<CreatePdfReceipt>> createFiles(Long receiptId) {
@@ -72,37 +64,38 @@ public class CreatePdfReceiptService {
         });
     }*/
 
-    public List<CreatePdfReceipt> pdfReceipts(String tempPath, Receipt receipt, Building building, List<Apartment> apartments) throws IOException {
+  public List<CreatePdfReceipt> pdfReceipts(String tempPath, Receipt receipt, Building building,
+      List<Apartment> apartments) throws IOException {
 
-        final var path = Paths.get(tempPath + receipt.buildingId() + "/");
-        Files.createDirectories(path);
-        final var list = new LinkedList<CreatePdfReceipt>();
+    final var path = Paths.get(tempPath + receipt.buildingId() + "/");
+    Files.createDirectories(path);
+    final var list = new LinkedList<CreatePdfReceipt>();
 
-        final var buildingPdfReceipt = CreatePdfBuildingReceipt.builder()
-                .translationProvider(translationProvider)
-                .path(path.resolve(building.id() + ".pdf"))
-                .receipt(receipt)
-                .building(building)
-                .build();
+    final var buildingPdfReceipt = CreatePdfBuildingReceipt.builder()
+        .translationProvider(translationProvider)
+        .path(path.resolve(building.id() + ".pdf"))
+        .receipt(receipt)
+        .building(building)
+        .build();
 
-        list.add(buildingPdfReceipt);
+    list.add(buildingPdfReceipt);
 
-        apartments.stream()
-                .<CreatePdfReceipt>map(apartment -> {
-                    return CreatePdfAptReceipt.builder()
-                            .translationProvider(translationProvider)
-                            .title("AVISO DE COBRO")
-                            .path(path.resolve(apartment.apartmentId().number() + ".pdf"))
-                            .receipt(receipt)
-                            .apartment(apartment)
-                            .building(building)
-                            .build();
+    apartments.stream()
+        .<CreatePdfReceipt>map(apartment -> {
+          return CreatePdfAptReceipt.builder()
+              .translationProvider(translationProvider)
+              .title("AVISO DE COBRO")
+              .path(path.resolve(apartment.apartmentId().number() + ".pdf"))
+              .receipt(receipt)
+              .apartment(apartment)
+              .building(building)
+              .build();
 
-                })
-                .forEach(list::add);
+        })
+        .forEach(list::add);
 
-        return list;
-    }
+    return list;
+  }
 
     /*public Single<LinkedList<CreatePdfReceipt>> createFiles(Receipt receipt, boolean shouldDeleteAfter) {
         return createFiles(receipt, shouldDeleteAfter, () -> {

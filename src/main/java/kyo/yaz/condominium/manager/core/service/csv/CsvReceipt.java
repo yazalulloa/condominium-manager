@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import java.util.List;
 import kyo.yaz.condominium.manager.persistence.domain.Debt;
 import kyo.yaz.condominium.manager.persistence.domain.Expense;
 import kyo.yaz.condominium.manager.persistence.domain.ExtraCharge;
@@ -13,8 +14,6 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
-
-import java.util.List;
 
 @Jacksonized
 @Builder(toBuilder = true)
@@ -26,12 +25,12 @@ import java.util.List;
 @AllArgsConstructor
 public class CsvReceipt {
 
-    @JsonProperty
-    private final List<Expense> expenses;
+  @JsonProperty
+  private final List<Expense> expenses;
 
-    @JsonProperty
-    private final List<Debt> debts;
+  @JsonProperty
+  private final List<Debt> debts;
 
-    @JsonProperty
-    private final List<ExtraCharge> extraCharges;
+  @JsonProperty
+  private final List<ExtraCharge> extraCharges;
 }

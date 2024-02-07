@@ -27,6 +27,7 @@ public class BackupService {
   public EntityDownloader get(String key) {
     return downloaderMap.get(key);
   }
+
   public Single<Pair<String, String>> allGz() {
     return Observable.fromIterable(downloaderMap.values())
         .map(EntityDownloader::download)

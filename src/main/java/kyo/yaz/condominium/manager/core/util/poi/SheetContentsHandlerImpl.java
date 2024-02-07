@@ -13,14 +13,12 @@ import org.apache.poi.xssf.usermodel.XSSFComment;
 @Slf4j
 public class SheetContentsHandlerImpl implements XSSFSheetXMLHandler.SheetContentsHandler {
 
-  private boolean firstCellOfRow;
-  private int currentRow = -1;
-  private int currentCol = -1;
-
-
   private final LinkedHashMap<String, Row> values = new LinkedHashMap<>();
   private final int pagingSize;
   private final Consumer<Collection<Row>> consumer;
+  private boolean firstCellOfRow;
+  private int currentRow = -1;
+  private int currentCol = -1;
 
   public SheetContentsHandlerImpl(int pagingSize, Consumer<Collection<Row>> consumer) {
     this.pagingSize = pagingSize;

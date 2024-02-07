@@ -146,7 +146,8 @@ public class RxUtil {
     };
   }
 
-  public static <T> Completable paging(PagingProcessor<List<T>> pagingProcessor, Function<List<T>, Completable> function) {
+  public static <T> Completable paging(PagingProcessor<List<T>> pagingProcessor,
+      Function<List<T>, Completable> function) {
 
     final var processor = BehaviorProcessor.createDefault(pagingProcessor);
 
