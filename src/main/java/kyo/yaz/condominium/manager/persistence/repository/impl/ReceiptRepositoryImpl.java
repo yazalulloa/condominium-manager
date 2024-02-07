@@ -36,7 +36,8 @@ public class ReceiptRepositoryImpl implements ReceiptCustomRepository {
   @Override
   public Flux<Receipt> find(ReceiptQueryRequest request) {
     final var query = query(request);
-
+    Optional.ofNullable(request.page())
+        .ifPresent(query::with);
     //log.info("QUERY: " + query);
     return template.find(query, Receipt.class);
   }
@@ -50,9 +51,6 @@ public class ReceiptRepositoryImpl implements ReceiptCustomRepository {
 
   public Query query(ReceiptQueryRequest request) {
     final var query = new Query();
-
-    Optional.ofNullable(request.page())
-        .ifPresent(query::with);
 
     QueryUtil.addSortings(query, request.sortings());
 

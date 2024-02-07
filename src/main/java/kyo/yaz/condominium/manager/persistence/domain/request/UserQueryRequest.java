@@ -6,6 +6,7 @@ import kyo.yaz.condominium.manager.persistence.domain.MongoSortField;
 import kyo.yaz.condominium.manager.persistence.domain.Sorting;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
@@ -14,9 +15,7 @@ import org.springframework.data.domain.Sort;
 
 @Builder(toBuilder = true)
 @Accessors(fluent = true)
-@ToString
-@Getter
-@AllArgsConstructor
+@Data
 public class UserQueryRequest {
 
   private final String user;

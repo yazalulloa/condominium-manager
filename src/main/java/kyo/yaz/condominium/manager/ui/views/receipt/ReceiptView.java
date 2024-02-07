@@ -77,16 +77,19 @@ public class ReceiptView extends BaseVerticalLayout {
   private final TextField filterText = new TextField();
 
   private final Text countText = new Text(null);
+  private final Text totalCountText = new Text(null);
   private final Button addEntityButton = new Button(Labels.Receipt.ADD_BUTTON_LABEL);
   private final BuildingService buildingService;
   private final DeleteDialog deleteDialog = new DeleteDialog();
-  private final ReceiptService receiptService;  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
+  private final ReceiptService receiptService;
+  private final GridPaginator gridPaginator = new GridPaginator(this::updateGrid);
   private final LoadCsvReceipt loadCsvReceipt;
   private final ProgressLayout progressLayout = new ProgressLayout();
   private final SendEmailReceipts sendEmailReceipts;
   private final TranslationProvider translationProvider;
   private final EmailAptReceiptDialog emailAptReceiptDialog;
   private final GetPdfReceipts getPdfReceipts;
+
   @Autowired
   public ReceiptView(BuildingService buildingService, ReceiptService receiptService, LoadCsvReceipt loadCsvReceipt,
       SendEmailReceipts sendEmailReceipts,
@@ -214,7 +217,13 @@ public class ReceiptView extends BaseVerticalLayout {
     getPdfReceipts.asyncSubject()
         .subscribe(observerShowError(state -> uiAsyncAction(() -> progressLayout.setState(state))));
 
-    add(toolbar, progressLayout, grid, gridPaginator);
+    add(toolbar, progressLayout, grid, footer());
+  }
+
+  private Component footer() {
+    final var footer = new Div(gridPaginator, totalCountText);
+    footer.addClassName("footer");
+    return footer;
   }
 
   private Component card(Receipt receipt) {
@@ -472,7 +481,7 @@ public class ReceiptView extends BaseVerticalLayout {
   private void setCountText(long queryCount, long totalCount) {
     countText.setText(String.format(Labels.Receipt.AMOUNT_OF_LABEL, queryCount));
     gridPaginator.set(queryCount, totalCount);
-    // totalCountText.setText(String.format("Total de Apartamentos: %d", totalCount));
+    totalCountText.setText(String.format("Recibos Totales: %d", totalCount));
   }
 
   private void updateGrid() {
@@ -525,8 +534,6 @@ public class ReceiptView extends BaseVerticalLayout {
     grid.asSingleSelect().clear();
     ui(ui -> ui.navigate(EditReceiptView.class, new RouteParameters("receipt_id", id)));
   }
-
-
 
 
 }

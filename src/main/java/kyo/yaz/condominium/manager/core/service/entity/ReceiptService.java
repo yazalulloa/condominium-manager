@@ -20,6 +20,7 @@ import kyo.yaz.condominium.manager.persistence.entity.Receipt;
 import kyo.yaz.condominium.manager.persistence.repository.ReceiptRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class ReceiptService implements MongoService<Receipt> {
   private final ObjectMapper objectMapper;
   private final ReceiptRepository repository;
 
+  //@Cacheable("receipts-paging")
   public Single<Paging<Receipt>> paging(Set<String> buildings, Set<Month> months, String filter, int page,
       int pageSize) {
 
