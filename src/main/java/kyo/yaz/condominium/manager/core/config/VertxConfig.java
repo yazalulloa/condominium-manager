@@ -49,7 +49,7 @@ public class VertxConfig {
     final var eventBus = vertx.eventBus();
     final var defaultJacksonMessageCodec = new DefaultJacksonMessageCodec();
     eventBus.registerCodec(defaultJacksonMessageCodec);
-    eventBus.codecSelector(_ -> defaultJacksonMessageCodec.name());
+    eventBus.codecSelector(body -> defaultJacksonMessageCodec.name());
 
     final var fileStore = new ConfigStoreOptions()
         .setType("file")
@@ -62,15 +62,16 @@ public class VertxConfig {
         .addStore(fileStore)
         .setScanPeriod(5000);
 
+    final var verticlePrefix = verticleFactory.prefix();
     Stream.of(ProcessLoggedUserVerticle.class)
         .map(Class::getName)
-        .map(name -> STR."\{verticleFactory.prefix()}:\{name}")
+        .map(name -> STR."\{verticlePrefix}:\{name}")
         .forEach(verticle -> vertx.deployVerticle(verticle, new DeploymentOptions().setInstances(loopPoolSize)));
 
     final var verticleRecords = Set.of(
-        new VerticleRecord("telegram_config", STR."\{verticleFactory.prefix()}:\{TelegramVerticle.class.getName()}"),
-        //new VerticleRecord("http_client_options", STR."\{verticleFactory.prefix()}:\{HttpClientVerticle.class.getName()}"),
-        new VerticleRecord("send_email_config", STR."\{verticleFactory.prefix()}:\{SendEmailVerticle.class.getName()}")
+        new VerticleRecord("telegram_config", STR."\{verticlePrefix}:\{TelegramVerticle.class.getName()}"),
+       // new VerticleRecord("http_client_options", STR."\{verticlePrefix}:\{HttpClientVerticle.class.getName()}"),
+        new VerticleRecord("send_email_config", STR."\{verticlePrefix}:\{SendEmailVerticle.class.getName()}")
     );
 
     final var deployer = VerticleConfigDeployer.builder()
@@ -83,7 +84,7 @@ public class VertxConfig {
         .build();
 
     deployer.loadConfig()
-        .onSuccess((_) -> log.info("Successfully deployed verticles"))
+        .onSuccess((f) -> log.info("Successfully deployed verticles"))
         .onFailure(t -> log.error("ERROR DEPLOYING VERTICLE", t));
 
     return vertx;
