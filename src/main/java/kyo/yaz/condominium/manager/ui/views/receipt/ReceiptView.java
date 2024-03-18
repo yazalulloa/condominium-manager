@@ -402,7 +402,7 @@ public class ReceiptView extends BaseVerticalLayout {
     upload.setAutoUpload(true);
     upload.setAcceptedFileTypes(".xlsx");
     upload.setMaxFiles(1);
-    int maxFileSizeInBytes = 2 * 1024 * 1024;
+    int maxFileSizeInBytes = 3 * 1024 * 1024;
     upload.setMaxFileSize(maxFileSizeInBytes);
 
     final var i18n = new UploadI18N();

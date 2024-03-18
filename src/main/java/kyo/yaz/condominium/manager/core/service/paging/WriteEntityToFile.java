@@ -7,6 +7,7 @@ import io.reactivex.rxjava3.core.Single;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import kyo.yaz.condominium.manager.core.domain.FileResponse;
 import kyo.yaz.condominium.manager.core.util.RxUtil;
@@ -19,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WriteEntityToFile<T> {
 
   private final ObjectMapper mapper;
-  private final MongoServicePagingProcessor<T> pagingProcessor;
+  private final PagingProcessor<List<T>> pagingProcessor;
 
   public Single<FileResponse> downloadFile(String fileName) {
 
