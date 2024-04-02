@@ -1,4 +1,3 @@
-version: '3'
 services:
   cmy:
     container_name: condominium-manager-spring-vaadin

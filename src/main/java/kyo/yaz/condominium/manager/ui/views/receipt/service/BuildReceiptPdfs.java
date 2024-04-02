@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import kyo.yaz.condominium.manager.core.domain.PdfReceiptItem;
-import kyo.yaz.condominium.manager.core.service.CreatePdfReceiptService;
 import kyo.yaz.condominium.manager.core.service.DeleteDirAfterDelay;
 import kyo.yaz.condominium.manager.core.service.GetPdfItems;
 import kyo.yaz.condominium.manager.core.service.entity.ApartmentService;
@@ -32,7 +31,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BuildReceiptPdfs implements GetPdfItems {
 
-  private final CreatePdfReceiptService createPdfReceiptService;
+  private final GetPdfReceipts createPdfReceiptService;
   private final DeleteDirAfterDelay deleteDirAfterDelay;
   private final CalculateReceiptInfo calculateReceiptInfo;
   private final BuildingService buildingService;

@@ -8,6 +8,7 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 import kyo.yaz.condominium.manager.core.provider.TranslationProvider;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,9 @@ public class I18nProvider {
       final var months = Arrays.stream(Month.values()).map(Enum::name).map(translationProvider::translate)
           .map(str -> CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, str)).toList();
 
-      final var weekDays = Arrays.stream(DayOfWeek.values()).map(Enum::name).map(translationProvider::translate)
+      final var weekDays = Stream.of(DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+              DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY)
+          .map(Enum::name).map(translationProvider::translate)
           .map(str -> CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, str)).toList();
 
       final var weekdaysShort = weekDays.stream().map(str -> str.substring(0, 2)).toList();

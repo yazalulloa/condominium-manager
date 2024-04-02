@@ -121,7 +121,7 @@ public class GetPdfReceipts {
     asyncSubject.onNext(state);
   }
 
-  private List<CreatePdfReceipt> pdfReceipts(String tempPath, Receipt receipt, Building building,
+  public List<CreatePdfReceipt> pdfReceipts(String tempPath, Receipt receipt, Building building,
       List<Apartment> apartments) throws IOException {
 
     final var path = Paths.get(tempPath + receipt.buildingId() + "/");
