@@ -119,7 +119,7 @@ public class SendEmailReceipts {
     return emailConfigService.get(request.building().emailConfig())
         .flatMap(emailConfig -> {
 
-          final var subject = request.subject() + " %s 2022 Adm. %s APT: %s";
+          final var subject = request.subject() + " %s %s Adm. %s APT: %s";
 
           return Observable.fromIterable(list)
               .filter(pdfReceipt -> pdfReceipt.emails() != null && !pdfReceipt.emails().isEmpty())
@@ -132,7 +132,7 @@ public class SendEmailReceipts {
                     .from(emailConfig.from())
                     .to(pdfReceipt.emails())
                     //.to(Set.of("yzlup2@gmail.com"))
-                    .subject(subject.formatted(month, pdfReceipt.buildingName(),
+                    .subject(subject.formatted(month, request.receipt().year(), pdfReceipt.buildingName(),
                         pdfReceipt.id()))
                     .text(request.message())
                     .files(Set.of(pdfReceipt.path().toString()))
