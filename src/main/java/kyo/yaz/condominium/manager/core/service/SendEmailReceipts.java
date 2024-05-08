@@ -125,8 +125,7 @@ public class SendEmailReceipts {
               .filter(pdfReceipt -> pdfReceipt.emails() != null && !pdfReceipt.emails().isEmpty())
               .map(pdfReceipt -> {
 
-                final var month = translationProvider.getTranslation(request.receipt().month().name(),
-                    translationProvider.LOCALE_ES);
+                final var month = translationProvider.translate(request.receipt().month().name());
 
                 final var emailRequest = ReceiptEmailRequest.builder()
                     .from(emailConfig.from())

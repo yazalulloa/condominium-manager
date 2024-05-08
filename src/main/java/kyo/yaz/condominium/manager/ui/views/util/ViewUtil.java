@@ -150,7 +150,7 @@ public class ViewUtil {
         .range(now.getYear() - 3, now.getYear() + 1)
         .boxed()
         .sorted(Comparator.reverseOrder())
-        .collect(Collectors.toList());
+        .toList();
 
     final var comboBox = new ComboBox<>(Labels.YEAR, selectableYears);
 

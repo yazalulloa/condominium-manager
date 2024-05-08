@@ -49,9 +49,6 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
   private final Apartment apartment;
   private final Building building;
 
-  private String translate(String str) {
-    return translationProvider.getTranslation(str, translationProvider.LOCALE_ES);
-  }
 
   protected void addContent(Document document) {
 
@@ -62,7 +59,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
     document.add(new Paragraph("RIF: " + building().rif()));
 
     final var year = receipt().year();
-    final var month = translate(receipt().month().name());
+    final var month = translationProvider.translate(receipt().month().name());
 
     document.add(new Paragraph("MES A PAGAR: " + month + " " + year));
     document.add(new Paragraph(receipt().date().toString()));
@@ -288,7 +285,7 @@ public class CreatePdfAptReceipt extends CreatePdfReceipt {
           .orElseGet(Collections::emptySet)
           .stream()
           .map(Enum::name)
-          .map(this::translate)
+          .map(translationProvider::translate)
           .collect(Collectors.joining(", "));
 
       final var previousPaymentAmount = Optional.ofNullable(debt.previousPaymentAmount())

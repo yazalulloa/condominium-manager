@@ -33,16 +33,13 @@ public class CreatePdfBuildingReceipt extends CreatePdfReceipt {
     return null;
   }
 
-  private String translate(String str) {
-    return translationProvider.getTranslation(str, translationProvider.LOCALE_ES);
-  }
 
   protected void addContent(Document document) {
 
     document.add(new Paragraph(new Text("AVISO DE COBRO").setBold()).setTextAlignment(TextAlignment.CENTER));
     document.add(new Paragraph(building().name()));
     document.add(new Paragraph(building().rif()));
-    document.add(new Paragraph("MES A PAGAR: " + translate(receipt().month().name())));
+    document.add(new Paragraph("MES A PAGAR: " + translationProvider.translate(receipt().month().name())));
     document.add(new Paragraph(receipt().date().toString()));
     document.add(new Paragraph("LISTADO A PAGAR"));
 
